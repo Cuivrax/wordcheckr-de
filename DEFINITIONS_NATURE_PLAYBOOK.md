@@ -1,3 +1,8 @@
+> **Not used in this pass (German site).** Definitions and grammatical type are explicitly
+> out of scope for the current German build (see `CLAUDE.md`, `docs/DECISIONS.md` D-DE-XXX) —
+> no `word_senses` table, no generation pipeline run for German. Kept here as reference
+> methodology only, in case a future phase revisits this decision.
+
 # Playbook — bulk-generating definitions + grammatical type for a word list
 
 How we took Mot Valide's ~412K-word French Scrabble dictionary from 19,200 definitions

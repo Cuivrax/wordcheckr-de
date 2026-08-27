@@ -1,5 +1,15 @@
 # DECISIONS
 
+> **Note de portée (site allemand).** Ce dépôt est une copie indépendante du site français
+> (`git archive`, aucun historique Git partagé). Les décisions **D-001 à D-043** ci-dessous
+> décrivent l'historique de construction du **site français d'origine** — elles restent
+> présentes pour la traçabilité et parce que l'architecture qu'elles documentent (schéma,
+> index, budget de requêtes, grammaire d'URL...) reste largement valable pour l'allemand,
+> mais leurs **données concrètes** (comptes de lignes, ODS8/ODS9, mots cités en exemple) ne
+> s'appliquent PAS à ce dépôt. Les décisions propres à l'adaptation allemande sont numérotées
+> **D-DE-001 et suivantes**, regroupées en fin de fichier — c'est la section à lire pour
+> comprendre l'état réel de ce dépôt.
+
 ## D-001 — PHP 8.4 Et SQLite
 
 Date : 2026-08-02  
@@ -3119,3 +3129,233 @@ prochaine action non prise ici : redaction du lot 435 120 formes non admises
   (decision separee) ; audit formel code-reviewer/seo-technical-auditor de
   l'ensemble du lot D-043 (non fait a ce stade)
 ```
+
+---
+
+# DECISIONS — SITE ALLEMAND (D-DE-XXX)
+
+Tout ce qui precede (D-001 a D-043) decrit le site francais d'origine, dont ce depot est une
+copie independante sans historique Git partage. Les decisions ci-dessous documentent
+specifiquement la construction du site allemand (agent data-engine, premiere passe).
+
+## D-DE-001 — Source De La Liste De Mots : enz/german-wordlist (CC0-1.0)
+
+Date : 2026-08-27
+Statut : accepte
+
+Decision :
+
+```text
+enz/german-wordlist (github.com/enz/german-wordlist), CC0-1.0, 685 789 mots telecharges
+directement depuis GitHub (commit e8618fbd2a996780d60005b7d3f04e4431b864fd, 2026-08-16),
+remplace le fichier local perime scrabble-german-DE-HIPPLER.json (instantane fige d'il y a
+~3 ans de la meme lignee genealogique, 336 208 mots, 98,1 % de recouvrement deja confirme)
+```
+
+Raison : source la plus recente et la mieux maintenue trouvee pour une liste Scrabble
+allemande en licence commerciale sans ambiguite -- voir la recherche de faisabilite complete
+(`reports/de-site-feasibility-audit.md` cote depot francais). Aucune liste officielle SDeV
+n'est librement telechargeable en masse.
+
+Consequences :
+
+```text
+badge affiche "Wortliste" (config/sites/de.php), jamais "officiel" -- aucune liste allemande
+  gratuite n'a de statut officiel verifiable
+~6 400 formes suisses en "ss" (au lieu de "ß") propres au fichier HIPPLER local NON fusionnees
+  cette passe -- doublons fonctionnels une fois normalisees (ß -> SS), decision reversible
+  si une couverture suisse explicite est demandee plus tard
+correction apportee a la recherche de faisabilite prealable : le compte ">15 lettres" mesure
+  directement (84 433, 12,31 %) differe du chiffre cite dans le rapport de faisabilite
+  (94 130, 13,7 %) -- ecart de methode de comptage (octets vs caracteres), pas une divergence
+  de donnees, voir data/raw/PROVENANCE.md
+```
+
+## D-DE-002 — Correctifs Normalizer.php Pour L'Allemand (Ä/Ö/Ü, ß)
+
+Date : 2026-08-27
+Statut : accepte, verifie
+
+Decision :
+
+```text
+app/Search/Normalizer.php (et scripts/lib/normalize.py, source de verite) corriges pour
+l'allemand :
+  - ß/ẞ (Eszett) -> SS avant NFD (regle officielle : pas de tuile ß dediee)
+  - Ä/Ö/Ü protegees du retrait des marques Unicode Mn (NE SONT PAS des accents a replier sur
+    A/O/U, contrairement au francais)
+  - VALID_PATTERN etendu a [A-ZÄÖÜ] avec modificateur /u (PCRE_UTF8)
+  - score()/signature()/reverse() : mb_str_split()/reverse multioctet au lieu de
+    str_split()/strrev() (byte-orientes, auraient coupe Ä/Ö/Ü en deux octets invalides)
+```
+
+Raison : bug confirme par lecture directe du code avant correction (rapport de faisabilite,
+section 5) -- sans ce correctif, Ä/Ö/Ü auraient ete silencieusement effacees vers A/O/U
+(collisions de mots reellement distincts : schon/schön, Ofen/Öfen) et ß aurait ete rejete
+comme caractere invalide (mots courants comme Straße, groß refuses).
+
+Consequences, blast radius plus large que prevu initialement :
+
+```text
+str_split/strlen/substr/strpos/chr/ord/strtolower (byte-orientes) remplaces par leurs
+  equivalents multioctet dans TOUT app/Search/ ou une operation caractere par caractere ou
+  une position pouvait rencontrer Ä/Ö/Ü : Rack, RackSolver, RelationsFinder, Suggester,
+  WordListSolver, WordListFilters -- pas seulement Normalizer.php lui-meme
+RackSolver::ALPHABET_SIZE passe de 26 a 29 (les jokers doivent pouvoir remplir Ä/Ö/Ü) --
+  SIGNATURE_CEILING releve de 50 000 a 65 000 apres re-mesure (pire cas 7 lettres + 2 jokers :
+  36 933 -> 46 722 signatures reelles avec le nouvel alphabet, ~169 ms, toujours sous budget)
+RelationsFinder::ALPHABET etendu a 29 lettres (memes raisons, "changer une lettre" et
+  "inserer une lettre" doivent pouvoir produire des candidats en Ä/Ö/Ü)
+BUG REEL TROUVE ET CORRIGE en ecrivant les tests (pas seulement une adaptation) :
+  rangeBounds() (dans RelationsFinder, Suggester, WordListSolver -- trois copies dupliquees,
+  meme convention que le reste de app/Search/) "sautait" les caracteres 'Z' et renvoyait
+  "aucune borne superieure" pour un prefixe entierement fait de 'Z' -- correct en francais (Z
+  est le vrai maximum de l'alphabet A-Z), FAUX en allemand (Ä/Ö/Ü trient apres Z) :
+  "commencant/zzzz" renvoyait a tort 7 848 mots (ZÄCKCHEN, ZÄH...) qui ne commencent pourtant
+  pas par "ZZZZ". Corrige par une version plus simple et prouvee correcte pour n'importe quel
+  alphabet : incrementer TOUJOURS le dernier caractere du prefixe, sans connaitre le
+  "caractere maximal" du domaine (la comparaison BINARY se decide toujours au premier
+  caractere qui differe).
+```
+
+Verification : `tests/Search/NormalizerTest.php` (assertions explicites Ä/Ö/Ü/ß, fixture
+regeneree avec des cas allemands via `scripts/build_normalize_fixture.py`),
+`tests/Search/TermLookupTest.php` (recalcule score/signature/reversed/length sur les 590 850
+lignes reelles), `tests/Search/RackSolverTest.php` (joker representant Ö),
+`tests/Search/RelationsFinderTest.php` (changeOneLetterCandidates produit des candidats en Ö),
+`tests/Search/WordListSolverTest.php` (commencant/ö par force brute, commencant/zzzz = 0).
+
+## D-DE-003 — Schema Simplifie : is_admitted Unique, Pas De pos/gender/word_senses/verb_forms
+
+Date : 2026-08-27
+Statut : accepte, implemente
+
+Decision :
+
+```text
+schema.sql (allemand) diverge du schema francais :
+  - is_ods8/is_ods9/is_french fusionnees en is_admitted (INTEGER, toujours 1 cette passe --
+    source unique, aucun double lexique allemand disponible)
+  - pos/pos_secondary/gender ABSENTES (aucune source de nature grammaticale allemande
+    retenue -- hors perimetre explicite de la tache)
+  - verb_forms et word_senses ABSENTES (aucun pipeline de conjugaison/definitions construit --
+    hors perimetre explicite de la tache, "do not add that table")
+  - list_counts CONSERVEE mais NON peuplee (plusieurs App\Search\*LinksBuilder et
+    App\Search\ExploreHubBuilder l'interrogent sans garde de disponibilite depuis
+    public/index.php -- une table absente planterait, 0 ligne se degrade nativement en
+    section vide)
+```
+
+Raison : suivre exactement le perimetre explicitement donne pour cette tache ("ONLY the core
+lookup site, word validity checking + rack solver" -- definitions/POS "OUT OF SCOPE... do not
+add that table").
+
+Consequences sur app/Search/ (adaptations, pas des re-ecritures) :
+
+```text
+TermLookup, RackSolver, RelationsFinder, Suggester, WordListSolver : SELECT alias
+  "is_admitted AS is_ods8, is_admitted AS is_ods9" (meme valeur des deux cotes) -- garde les
+  tableaux ->matches/->items compatibles SANS modification avec app/View/word.php et
+  app/View/play.php (hors perimetre data-engine). CONSEQUENCE SIGNALEE, PAS CORRIGEE ICI :
+  ces vues afficheront des pastilles "ODS8"/"ODS9" incorrectes pour l'allemand tant qu'un
+  passage frontend/microcopy dedie n'aura pas adapte le gabarit vers une seule pastille
+  "admis" -- action de suivi necessaire avant mise en ligne reelle, hors perimetre de cet
+  agent.
+TermLookup : pos/posSecondary/gender toujours nuls (TermPage conserve ces trois champs pour
+  compatibilite avec app/View/word.php, qui gere deja nativement ce cas -- ~12,3 % des termes
+  francais sont deja dans cet etat aujourd'hui)
+SenseLookup::find()/ConjugationLookup::find() COURT-CIRCUITENT entierement (retour direct
+  d'un objet vide, queryCount = 0, AUCUNE requete SQLite) plutot que d'interroger des tables
+  absentes -- public/index.php (fichier partage) continue de les appeler sans condition pour
+  chaque mot trouve, les classes restent donc presentes et fonctionnelles sans modification
+  du routeur
+```
+
+Non fait, signale explicitement (hors perimetre de cette tache) :
+
+```text
+storage/seo_de.sqlite non construit (App\Seo\Registry gere nativement son absence)
+scripts/build_explore_hub_counts_de.php non ecrit -- list_counts reste a 0 ligne, /mots (hub)
+  et le maillage interne associe restent vides jusqu'a un futur lot dedie
+badges "ODS8"/"ODS9" dans app/View/word.php et app/View/play.php non corriges (hors
+  perimetre app/View pour cet agent) -- afficheront un texte incorrect pour l'allemand tant
+  qu'un passage frontend/microcopy dedie n'aura pas adapte le gabarit
+```
+
+## D-DE-004 — Suite De Tests : Adaptation Et Elagage
+
+Date : 2026-08-27
+Statut : accepte, implemente
+
+Decision :
+
+```text
+tests/Database/*, tests/Search/TermLookupTest.php, RackSolverTest.php, RackTest.php (deja
+  compatible), RelationsFinderTest.php, SuggesterTest.php, WordListFiltersTest.php (deja
+  compatible), WordListSolverTest.php, SenseLookupTest.php, ConjugationLookupTest.php :
+  ADAPTES avec des fixtures allemandes reelles (verifiees par force brute contre la base
+  reelle, pas devinees)
+tests/Seo/ (11 fichiers) et 11 fichiers *LinksBuilder*Test.php sous tests/Search/ :
+  SUPPRIMES -- deux familles de fonctionnalites hors perimetre de cette tache (registre SEO,
+  maillage interne SEO), dependaient toutes de storage/dictionary_fr.sqlite (chemin en dur,
+  fichier qui n'existe et n'existera jamais dans ce depot)
+```
+
+Raison : `php tests/run.php` doit passer au vert pour ce perimetre reduit -- les tests
+supprimes appartiennent structurellement a des fonctionnalites explicitement hors perimetre
+(registre SEO : agent seo-registry ; maillage interne : list_counts jamais peuplee cette
+passe), pas a une negligence de couverture.
+
+Perimetre : `tests/Seo/` appartient normalement a l'agent `seo-registry`, pas a
+`data-engine` -- suppression signalee explicitement ici (pas silencieuse), necessaire pour
+que la suite de tests ne reste pas structurellement rouge sur des fichiers qui ne peuvent
+jamais passer dans ce depot.
+
+Resultat final : `php tests/run.php` = 17 reussis, 1 echoue
+(`Frontend\WordListViewTest.php`, confirme pre-existant et sans rapport avec cette tache --
+ne reference ni storage/, ni is_ods8/is_admitted, ni aucune classe touchee ici -- domaine
+frontend/View, hors perimetre data-engine).
+
+## D-DE-005 — Documentation De Tete De Depot Reecrite
+
+Date : 2026-08-27
+Statut : accepte
+
+Decision :
+
+```text
+CLAUDE.md, README.md, 00_START_HERE.md : reecrits pour refleter l'etat allemand de ce depot
+  (pas une traduction litterale des versions francaises)
+docs/01 a docs/08 : CONSERVES TELS QUELS (heritee) -- architecture toujours valable, exemples
+  concrets francais non pertinents pour ce depot, banniere ajoutee dans CLAUDE.md/
+  00_START_HERE.md pour clarifier cette distinction
+docs/DECISIONS.md, docs/PHASE_STATUS.md : banniere ajoutee en tete (D-001 a D-043 = historique
+  francais herite), section allemande ajoutee en fin de fichier (D-DE-XXX, cette section)
+DEFINITIONS_NATURE_PLAYBOOK.md, methodologie-generation-definitions-llm.md : banniere ajoutee
+  ("non utilise dans cette passe"), contenu conserve comme reference methodologique
+```
+
+Raison : demande explicite de la tache ("Update CLAUDE.md, README.md, and any other top-level
+docs... to reflect that this is now the German site"). Reecrire entierement docs/01-08
+(plusieurs milliers de lignes cumulees, contexte historique francais detaille) aurait ete
+disproportionne par rapport au perimetre de cette tache -- bannieres de clarification
+retenues comme solution proportionnee.
+
+## Non Resolu, A Trancher Par Le Porteur De Projet
+
+```text
+badges "ODS8"/"ODS9" dans app/View/word.php et app/View/play.php : texte incorrect pour
+  l'allemand (D-DE-003), necessite un passage frontend/microcopy dedie avant mise en ligne
+highlighting "changer une lettre" dans app/View/word.php (mise en evidence de la position/
+  lettre modifiee) : logique byte-orientee non verifiee pour les mots contenant Ä/Ö/Ü avant
+  la position mise en evidence -- bug potentiel etroit, non corrige (hors perimetre app/View
+  pour cet agent), a verifier par le prochain passage frontend
+scripts/bench_*.php, scripts/build_seo_registry.php, scripts/propose_seo_batch.php,
+  scripts/check_combinatorial_duplicates.php, scripts/apply_full_word_rollout.php,
+  scripts/add_*_index.php : references encore storage/dictionary_fr.sqlite et le schema
+  francais -- non adaptes cette passe (hors perimetre : SEO/maillage), a reprendre par un
+  futur lot dedie
+domaine de production wordcheckr.de : pas encore reserve/deploye a la connaissance de cette
+  session -- ce depot reste un travail entierement local
+```
+

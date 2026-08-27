@@ -1,6 +1,11 @@
 # PHASE_STATUS
 
-## Phase Courante
+> **Note de portée (site allemand).** Tout ce qui suit jusqu'à la section « PHASE_STATUS —
+> SITE ALLEMAND » en fin de fichier décrit l'historique du **site français d'origine** dont ce
+> dépôt est une copie indépendante (`git archive`, aucun historique Git partagé). L'état réel
+> de ce dépôt est décrit dans la section allemande, en fin de fichier.
+
+## Phase Courante (historique français hérité)
 
 ```text
 Toutes les phases fonctionnelles (1 à 6) sont livrées, plus un enrichissement
@@ -494,3 +499,93 @@ D-027/D-035/D-036/D-037/D-038/D-039/D-040/D-041 — 1er audit consolidé
   à chaque fois. Domaine de production fixé en D-042 (wordcheckr.fr).
   Registre final : 924 408 URL. En attente du 5e audit.
 ```
+
+---
+
+# PHASE_STATUS — SITE ALLEMAND
+
+État réel de CE dépôt (indépendant du site français ci-dessus). Mis à jour le 2026-08-27.
+
+## Phase Courante
+
+```text
+Construction initiale du dictionnaire allemand (équivalent Phase 0-1 côté français) --
+  couche donnees complete et verifiee, couche application (app/Search/) adaptee et testee,
+  couche presentation (app/View/) et registre SEO (app/Seo/) NON touches (hors perimetre de
+  l'agent data-engine pour cette tache).
+```
+
+## Livré
+
+```text
+data/raw/PROVENANCE.md                empreintes et licence de la source allemande
+  (enz/german-wordlist, CC0-1.0)
+data/raw/enz_german_wordlist/         685 789 mots bruts, hors Git
+scripts/lib/normalize.py              normalisation allemande (Ä/Ö/Ü, ß), source de verite
+app/Search/Normalizer.php             reimplementation PHP stricte, verifiee identique
+scripts/import_de.py                  import deterministe et rejouable
+schema.sql                            schema simplifie (is_admitted unique, pas de
+  pos/gender/word_senses/verb_forms -- voir docs/DECISIONS.md D-DE-003)
+storage/dictionary_de.sqlite          590 850 termes, 150,6 Mo, integrity ok, determinisme
+  verifie (2 builds consecutifs, sha256 identique)
+config/sites/de.php                   tuiles allemandes (102, verifiees deux fois), lexique
+  unique
+app/Search/*.php                      adapte a is_admitted + multioctet Ä/Ö/Ü (TermLookup,
+  RackSolver, RelationsFinder, Suggester, WordListSolver, WordListFilters, Rack,
+  SenseLookup, ConjugationLookup) -- voir docs/DECISIONS.md D-DE-002/D-DE-003
+tests/                                17 fichiers passants, 1 pre-existant hors perimetre
+  (Frontend\WordListViewTest.php) -- voir docs/DECISIONS.md D-DE-004
+reports/query-plans/de-import-baseline.md   7 requetes temoins, EXPLAIN QUERY PLAN, timings
+```
+
+## Comptes De La Base — Vérifiés Exhaustivement
+
+```text
+termes                   590 850
+admis (source unique)    590 850   (is_admitted = 1 sur CHAQUE ligne, pas de second lexique)
+rejetes a l'import        85 122   (85 120 > 15 caracteres, dont ~687 uniquement a cause de
+                                    l'expansion ß -> SS ; 2 caractere hors A-ZÄÖÜ, emprunt
+                                    polonais "Złoty" non decomposable en NFD)
+collisions de normalisation 9 800  (examen manuel : casse nom/verbe allemande legitime,
+                                    ex. Aal/aal, pas un bug)
+```
+
+Source unique (enz/german-wordlist, CC0-1.0) pour l'admissibilite. Aucun dictionnaire général
+allemand indépendant retenu cette passe (voir data/raw/PROVENANCE.md) -- modèle à deux statuts
+peuplés (admis / inconnu), troisième statut structurellement fermé mais inactif.
+
+## Porte De Cette Passe
+
+```text
+integrity_check = ok                                                          OK
+déterminisme : fichier .sqlite reconstruit BYTE-IDENTIQUE (2 builds)          OK
+score/signature/reversed/length : 0 divergence sur les 590 850 lignes         OK
+7 requêtes témoins, toutes via index, persistées dans
+  reports/query-plans/de-import-baseline.md, 0,058 à 6,163 ms                 OK
+Ä/Ö/Ü distinctes de A/O/U, ß -> SS : vérifié en direct + exhaustivement       OK
+rapport AFTER de l'agent data-engine                                          OK
+audit code-reviewer                                                           EN ATTENTE
+```
+
+## Non Fait, Explicitement Hors Périmètre De Cette Tâche
+
+```text
+app/View/ : badges "ODS8"/"ODS9" incorrects pour l'allemand (D-DE-003), highlighting
+  "changer une lettre" non vérifié pour Ä/Ö/Ü -- nécessite un passage frontend dédié
+app/Seo/ : storage/seo_de.sqlite non construit (Registry gère nativement son absence,
+  noindex,follow par défaut -- aucun impact fonctionnel, juste pas encore de rollout)
+scripts/build_explore_hub_counts_de.php : non écrit -- list_counts reste à 0 ligne, hub
+  /mots et maillage interne vides jusqu'à un futur lot dédié
+scripts/bench_*.php, build_seo_registry.php, propose_seo_batch.php,
+  check_combinatorial_duplicates.php, apply_full_word_rollout.php, add_*_index.php :
+  référencent encore storage/dictionary_fr.sqlite et le schéma français, non adaptés
+déploiement o2switch : ce dépôt reste un travail entièrement local, aucun serveur touché
+```
+
+## GO / NO GO
+
+```text
+Construction initiale (data-engine) — EN ATTENTE D'AUDIT (code-reviewer). Non auto-approuvé
+  par l'agent qui l'a construite, conformément à la règle du projet.
+```
+

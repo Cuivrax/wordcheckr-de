@@ -1,3 +1,9 @@
+> **Non utilisé dans cette passe (site allemand).** Les définitions et la nature grammaticale
+> sont explicitement hors périmètre de la construction allemande actuelle (voir `CLAUDE.md`,
+> `docs/DECISIONS.md` D-DE-XXX) — aucune table `word_senses`, aucun pipeline de génération
+> exécuté pour l'allemand. Conservé ici comme référence méthodologique seule, au cas où une
+> phase future reviendrait sur cette décision.
+
 # Méthodologie : génération de définitions + nature grammaticale à grande échelle via LLM
 
 Procédure utilisée pour générer ~285 000 définitions (dictionnaire principal) puis ~37 000 définitions supplémentaires (mots "réels mais non valides au Scrabble") sur LexiFinder. Réutilisable pour n'importe quel site ayant besoin de définitions courtes et fiables pour un grand nombre de termes, sans recopier une source protégée.
