@@ -1,126 +1,103 @@
-# Provenance Des Données Brutes
+# Provenance Des Données Brutes — Site Allemand
 
 **Document interne.** Il existe pour une seule raison : rendre l'import reproductible à
 l'identique. Rien de son contenu n'est publié sur le site — aucun crédit de source n'y figure
-(D-015).
+(D-015, hérité du site français, toujours en vigueur ici).
 
-Ce dossier est exclu de Git. Les fichiers y sont reconstitués grâce aux empreintes ci-dessous.
+Ce dossier est exclu de Git (voir `.gitignore`). Les fichiers y sont reconstitués grâce aux
+empreintes ci-dessous.
 
-## ods8.json
-
-```text
-nom d'origine   scrabble-french-FR-ODS8.json
-renommé le      2026-08-03
-date du fichier 2025-01-25
-taille          6 239 871 octets
-sha256          7536456c64848a426265bafb5a315d5b9682db9dbe0f14fbc1dd0ad2748846ec
-```
-
-Renommé en `ods8.json` : c'est le nom attendu par `scripts/verify_data_pack.py`,
-`docs/03_SOURCES_ET_IMPORT_DATA.md` et `.gitignore`.
-
-Structure vérifiée :
-
-```json
-{"words": ["AA", "AALENIEN", "..."]}
-```
+## enz_german_wordlist/ — liste de mots allemande (source unique, Phase 0 DE)
 
 ```text
-411 430 entrées
-411 430 distinctes (aucun doublon)
-charset strictement A-Z majuscules, aucun accent, aucun espace, aucune ponctuation
-longueurs de 2 à 21 caractères
-```
-
-Fourni par l'utilisateur. Les droits d'usage des données ODS relèvent de l'utilisateur.
-
-## french_dict.db
-
-```text
-source          https://huggingface.co/datasets/Kartmaan/french-dictionary
-fichier         french_dict.db
-téléchargé le   2026-08-03
-taille          282 763 264 octets
-sha256          ce3ee53429d8d08a6a56c3e25d62f5451a56d99db496cc1fdac9dc427cf721e9
-obtention       scripts/download_french_dictionary.ps1 (écrit aussi le .sha256)
-```
-
-Ce fichier ne doit jamais être publié dans le dossier web ni copié dans la base de production.
-
-Schéma constaté (`PRAGMA quick_check` = ok) :
-
-```sql
-CREATE TABLE mots (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    forme       TEXT NOT NULL,
-    pos         TEXT,
-    definitions TEXT NOT NULL,
-    gender      TEXT DEFAULT NULL
-);
-CREATE INDEX idx_forme ON mots(forme);
+source          https://github.com/enz/german-wordlist
+fichier récupéré words (brut, un mot par ligne)
+URL directe     https://raw.githubusercontent.com/enz/german-wordlist/master/words
+commit source   e8618fbd2a996780d60005b7d3f04e4431b864fd (2026-08-16T10:46:34Z, auteur
+                Markus Enzenberger, message "Rephrased")
+téléchargé le   2026-08-27
+licence         CC0-1.0 (Creative Commons Zero — domaine public, usage commercial
+                explicitement autorisé, aucune attribution requise). Fichier COPYING
+                téléchargé en parallèle et vérifié : contenu du texte légal CC0 1.0
+                Universal, sha256 identique au COPYING de hippler/german-wordlist
+                (dépôt d'origine dont enz est un fork continué) — licence confirmée
+                inchangée depuis l'origine.
 ```
 
 ```text
-1 000 747 lignes
-  895 090 valeurs distinctes de forme
+words       8 643 558 octets   sha256 445c8e09e0efe63e76beadc25607f521c7e09893ac68d585a822c7c6ecbebf7b
+COPYING         7 048 octets   sha256 a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499
 ```
 
-`pos` porte l'étiquette grammaticale et permet le filtrage : `NP` pour les noms propres,
-`Loc*` et `loc-*` pour les locutions, `flex-*` pour les formes fléchies.
-`definitions` est un JSON de gloses — il n'est jamais copié en production (D-004).
-
-## hbenbel/ — seconde source française (D-014)
+Structure vérifiée directement (`python`, lecture ligne à ligne, UTF-8) :
 
 ```text
-source          https://github.com/hbenbel/French-Dictionary
-téléchargé le   2026-08-03
-obtention       python scripts/download_hbenbel.py
+685 789 lignes, 685 789 formes distinctes (aucun doublon brut, aucune ligne vide)
+encodage UTF-8, fins de ligne LF
+longueurs de 2 à 25 caractères
+0 espace, 0 trait d'union, 0 apostrophe, 0 chiffre dans tout le fichier
+11 974 formes contiennent un ß (Eszett)
+475 formes (0,07 %) contiennent un diacritique hors A-Z/ÄÖÜäöüß — emprunts étrangers
+  conservés tels quels par la source (ex. Abbé, Abrégé, Açaï, Acheuléen, Agrément,
+  Ampère, Ångström, Aperçu, Apéro, Åsar) — traités par le pliage générique NFD déjà en
+  place pour le français, aucune règle supplémentaire nécessaire
+84 433 formes (12,31 %) dépassent 15 caractères une fois comptées en CARACTÈRES (pas en
+  octets) — voir note de correction ci-dessous
 ```
+
+**Correction apportée à la recherche de faisabilité préalable**
+(`reports/de-site-feasibility-audit.md` côté dépôt français, section 1.b) : ce document
+annonçait 94 130 formes (13,7 %) au-dessus de 15 lettres. Le compte vérifié directement pour
+cet import est de 84 433 (12,31 %). L'écart vient très probablement d'un comptage en OCTETS
+UTF-8 plutôt qu'en CARACTÈRES lors de la mesure précédente (un mot contenant Ä/Ö/Ü/ß compte 2
+octets par lettre étendue mais 1 seul caractère) — le fichier source lui-même est identique
+(même sha256, même nombre de lignes) entre les deux mesures. Le plafond D-010 (15 lettres,
+hérité du français) est défini en CARACTÈRES (une case de plateau = une lettre), donc 84 433
+est le chiffre correct à utiliser pour le filtrage réel de `scripts/import_de.py` — pas une
+divergence de données, une divergence de méthode de comptage corrigée ici.
+
+**Aucun filtre de noms propres/toponymes/sigles appliqué à l'import** (contrairement au
+pipeline français, qui dispose d'une étiquette `pos = NP` côté Kartmaan et d'un filtre sur la
+casse côté hbenbel) : cette source n'offre aucun marqueur exploitable de ce type — l'allemand
+met une majuscule à TOUS les noms communs, la casse ne distingue donc pas un nom propre d'un
+nom commun ici (contrairement au français). Le README du projet source déclare une politique
+éditoriale explicite d'exclusion des noms propres/toponymes/sigles/formes archaïques, avec un
+biais assumé vers l'inclusion en cas de doute ("Tanglet fonctionne mieux avec des faux positifs
+que des faux négatifs") — cette politique est acceptée telle quelle pour cette première passe,
+faute de source de recoupement indépendante et gratuite (voir
+`reports/de-site-feasibility-audit.md` §1 et §3 côté dépôt français : aucune source de
+dictionnaire général allemand ne réunit licence commerciale claire et indépendance réelle vis-
+à-vis de la liste Scrabble elle-même).
+
+## Fichier local HIPPLER (référence, non utilisé comme source)
 
 ```text
-dictionary.csv   4 869 842 o   b9fc59fe615a1ed9e89d27ddfb4226b175b5f6c075abbc535be077a40738b2b4
-adj.csv          1 331 447 o   482f870d6da61f0426248961ba3a2660f2a536275040a8a930fb4b38c13c71a5
-noun.csv         1 637 824 o   ef9b89416885d5a957fae887a2094f51efba8f9ff7ae878aa700bd13729fa4db
-verb.csv        22 726 815 o   a480f803adafa99b77be469f7262e3d76a3a226058b4d25fa3bc1c8542d518e8
-adv.csv             66 068 o   b6521cfcae6ed78156987b7dabba8bf0a0900ff383257c3986b4cc0cc642b655
+chemin   C:\Users\reka0\Website Windsurf\01. Data Scrabble\JSON\scrabble-german-DE-HIPPLER.json
+statut   NON utilisé comme source de cet import — instantané figé (~janvier 2023) de
+         hippler/german-wordlist, l'ancêtre direct d'enz/german-wordlist. 336 208 mots,
+         98,1 % de recouvrement déjà confirmé avec le fichier enz actuel (voir
+         reports/de-site-feasibility-audit.md §1.b côté dépôt français).
 ```
+
+**Décision explicite sur les ~6 400 formes suisses en "ss" propres à ce fichier local**
+(variantes orthographiques suisses type `Abschiedsgruss` au lieu de `Abschiedsgruß`) : **non
+fusionnées dans cette première passe.** Raison : ce sont des doublons fonctionnels de la forme
+standard avec ß une fois normalisées (ß → SS dans `normalize()`, voir plus bas) — les
+fusionner ferait entrer en collision de normalisation deux graphies déjà couvertes par la même
+forme normalisée finale (`ABSCHIEDSGRUSS`), sans ajouter de couverture lexicale réelle. Décision
+révisable si un besoin explicite de couverture suisse est exprimé plus tard — pas un oubli.
+
+## Ce Qui N'est PAS Construit Dans Cette Passe (rappel explicite)
 
 ```text
-404 849 formes brutes distinctes
-352 529 retenues après normalisation et filtrage
- 34 300 absentes de la base construite depuis ODS8 + ODS9 + Kartmaan
+aucun dictionnaire général allemand indépendant (pas d'équivalent Kartmaan/hbenbel/is_french) —
+  modèle à deux statuts pour l'instant (admis / inconnu), troisième statut fermé faute de
+  source combinant licence commerciale claire et indépendance réelle (voir section 3 du rapport
+  de faisabilité)
+aucune donnée de nature grammaticale/genre (pas d'équivalent D-018)
+aucune définition lexicale (pas d'équivalent D-043)
+aucun registre SEO (storage/seo_de.sqlite non construit) — Registry gère nativement son absence
+  (noindex,follow par défaut, voir app/Seo/Registry.php), aucun impact fonctionnel
 ```
 
-`dictionary.csv` est une liste plate sans en-tête. Les quatre autres fichiers ont un
-en-tête `form,tags`.
-
-Cette source n'a **pas** d'étiquette `NP` : ses noms propres et ses sigles se trouvent dans
-`noun.csv`. La casse de la forme d'origine est le seul marqueur disponible et sert de filtre
-(D-014).
-
-## kaikki_fr/ — extrait Wiktionnaire français (palier 2 des définitions, D-0XX)
-
-```text
-source          https://kaikki.org/frwiktionary/Français/ (extraction du Wiktionnaire
-                FRANÇAIS -- PAS "kaikki.org/dictionary/French/", qui documente le
-                vocabulaire français avec des gloses en ANGLAIS, vérifié par
-                échantillonnage avant de choisir cette source)
-fichier         kaikki-dictionary-francais.jsonl.gz
-téléchargé le   2026-08-24
-taille          384 016 438 octets (~366 Mo)
-sha256          7bfa7b73bca5759bbbc2feb6171659f8872879268db9ae9e7bb5b51b048076a4
-obtention       python scripts/download_kaikki_french.py (écrit aussi le .sha256)
-```
-
-Sert de référence de secours (palier 2, `scripts/lib/reference_definitions.py`) pour les
-termes non couverts par `french_dict.db` (palier 1) — jamais affiché tel quel, uniquement du
-grounding pour la reformulation LLM (D-015 reste en vigueur).
-
-## data/ods9/
-
-Livré avec le pack de lancement, empreintes dans `data/ods9/manifest.json`.
-`ods9_patch.sqlite` : `integrity_check` = ok, 1091 additions / 64 removals /
-10 keep_overrides / 46 modifications.
-
-Ce pack est le delta actuellement disponible. Il ne constitue pas une certification
-officielle d'exhaustivité ODS9.
+Ce document n'est pas un avis juridique.

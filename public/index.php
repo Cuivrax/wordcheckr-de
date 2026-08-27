@@ -135,7 +135,11 @@ if (!in_array($method, $allowedMethods, true)) {
     return;
 }
 
-$config = Config::load(getenv('SCRABBLE_SITE') ?: 'fr');
+// CHANGEMENT SIGNALE (fichier partage, CLAUDE.md) : defaut "fr" -> "de". Ce depot est une
+// copie independante dediee exclusivement au site allemand (voir CLAUDE.md) -- il n'existe
+// aucun config/sites/fr.php ici, laisser "fr" par defaut aurait fait echouer Config::load()
+// sur toute requete qui n'exporte pas explicitement SCRABBLE_SITE au niveau de l'hebergement.
+$config = Config::load(getenv('SCRABBLE_SITE') ?: 'de');
 $seoRegistry = new Registry($config->seoPath, $config->canonicalBaseUrl);
 
 /**

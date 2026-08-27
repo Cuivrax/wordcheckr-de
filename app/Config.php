@@ -13,7 +13,16 @@ namespace App;
  * Le code applicatif (app/) reste commun a tous les sites ; seule cette configuration
  * change d'un deploiement a l'autre (docs/02_ARCHITECTURE_DATA_MULTILINGUE.md). Le site
  * actif se choisit via la variable d'environnement SCRABBLE_SITE (reglable au niveau de
- * l'hebergement), "fr" par defaut.
+ * l'hebergement), "de" par defaut dans ce depot (site allemand independant -- ce depot ne
+ * sert jamais que ce site, contrairement au depot francais dont il est issu).
+ *
+ * CHANGEMENT SIGNALE (fichier partage, CLAUDE.md) : $generalLanguageColumn est devenu
+ * nullable (etait `string` strict). Raison : l'allemand n'a, dans cette premiere passe,
+ * aucune source de dictionnaire general independante de sa liste Scrabble (pas
+ * d'equivalent is_french/Kartmaan -- voir data/raw/PROVENANCE.md), donc aucune valeur de
+ * colonne a fournir ici. Verifie avant ce changement : generalLanguageColumn n'est lu nulle
+ * part ailleurs dans app/ (recherche exhaustive) -- rendre le champ nullable ne change le
+ * comportement d'aucun autre fichier.
  */
 final class Config
 {
@@ -26,7 +35,7 @@ final class Config
         public readonly string $dictionaryPath,
         public readonly string $seoPath,
         public readonly array $lexicons,
-        public readonly string $generalLanguageColumn,
+        public readonly ?string $generalLanguageColumn,
         public readonly array $tileScores,
         public readonly int $minTermLength,
         public readonly int $maxTermLength,
