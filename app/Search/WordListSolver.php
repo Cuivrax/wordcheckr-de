@@ -676,29 +676,44 @@ final class WordListSolver
 
     /**
      * Bornes [inclusive, exclusive) d'une plage de prefixe sur une colonne triee en ordre
-     * binaire (A-Z uniquement, D-009) : incremente le dernier caractere qui n'est pas 'Z' en
-     * remontant depuis la fin, tronque apres lui. Si $prefix ne contient que des 'Z', aucune
-     * borne superieure n'existe dans l'alphabet A-Z -- la plage reste ouverte (upper = null,
-     * seule la borne inferieure s'applique). Meme principe que le commentaire de schema.sql
-     * ("normalized >= 'NOIT' AND normalized < 'NOIU'"), generalise a un prefixe quelconque.
+     * binaire : incremente le DERNIER caractere du prefixe d'un cran (codepoint suivant),
+     * tronque a cette longueur. Correct pour n'importe quel alphabet, sans connaitre son
+     * "caractere maximal" : la comparaison BINARY se decide toujours a la premiere position
+     * qui differe, donc incrementer le dernier caractere du prefixe produit systematiquement
+     * la plus petite borne superieure valide, quel que soit ce qui suit dans le mot reel.
+     * Meme principe que le commentaire de schema.sql ("normalized >= 'NOIT' AND
+     * normalized < 'NOIU'"), generalise a un prefixe quelconque.
+     *
+     * CORRECTIF DE FOND (ADAPTATION ALLEMANDE, pas une simple traduction) : la version
+     * heritee du site francais "sautait" les caracteres 'Z' en remontant vers la gauche
+     * (persuadee que Z est toujours le MAXIMUM de l'alphabet) et renvoyait upper = null
+     * (aucune borne) des que le prefixe n'etait fait que de 'Z' -- correct en francais
+     * (domaine pur A-Z, Z est reellement le maximum), mais FAUX en allemand : Ä/Ö/Ü trient
+     * APRES Z (voir Normalizer::signature()), donc "aucune borne superieure" a partir d'un
+     * prefixe tout en Z incluait a tort tout mot commencant par Z puis Ä/Ö/Ü (ex.
+     * "commencant/zzzz" renvoyait a tort ZÄCKCHEN, ZÄH... -- aucun de ces mots ne commence
+     * pourtant par "ZZZZ"). Bug REEL trouve en ecrivant tests/Search/WordListSolverTest.php
+     * (7 848 faux positifs mesures), pas une hypothese theorique. Le correctif retire toute
+     * connaissance d'un "caractere maximal" : il n'y en a plus besoin (voir preuve ci-dessus).
      *
      * @return array{0: string, 1: string|null}
      */
     private static function rangeBounds(string $prefix): array
     {
-        // mb_str_split + mb_ord()/mb_chr() (pas str_split/ord/chr) : voir
-        // RelationsFinder::rangeBounds() pour l'explication complete.
+        // mb_str_split + mb_ord()/mb_chr() (pas str_split/ord/chr) : $prefix peut contenir
+        // Ä/Ö/Ü, codees sur deux octets UTF-8 chacune.
         $chars = mb_str_split($prefix);
+        $lastIndex = count($chars) - 1;
 
-        for ($i = count($chars) - 1; $i >= 0; $i--) {
-            if ($chars[$i] !== 'Z') {
-                $chars[$i] = mb_chr(mb_ord($chars[$i]) + 1);
-
-                return [$prefix, implode('', array_slice($chars, 0, $i + 1))];
-            }
+        if ($lastIndex < 0) {
+            // Ne devrait jamais arriver (tous les appelants filtrent deja un prefixe vide
+            // avant d'appeler cette methode) -- defense en profondeur, jamais observee.
+            return [$prefix, null];
         }
 
-        return [$prefix, null];
+        $chars[$lastIndex] = mb_chr(mb_ord($chars[$lastIndex]) + 1);
+
+        return [$prefix, implode('', $chars)];
     }
 
     /**

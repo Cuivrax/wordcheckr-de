@@ -672,38 +672,41 @@ final class RelationsFinder
     /**
      * Bornes [inclusive, exclusive) d'une plage de prefixe sur une colonne triee en ordre
      * binaire -- meme technique que WordListSolver::rangeBounds(), dupliquee ici plutot
-     * que partagee (meme convention que mergeSorted() ci-dessus).
+     * que partagee (meme convention que mergeSorted() ci-dessus). Incremente le DERNIER
+     * caractere du prefixe d'un cran (codepoint suivant) : correct pour n'importe quel
+     * alphabet, sans connaitre son "caractere maximal" -- la comparaison BINARY se decide
+     * toujours a la premiere position qui differe.
      *
-     * ADAPTATION ALLEMANDE : mb_str_split (pas str_split) + mb_ord()/mb_chr() (pas
-     * ord()/chr(), qui n'operent que sur un seul OCTET) -- $prefix peut se terminer par
-     * Ä/Ö/Ü, codees sur deux octets UTF-8 ; ord() sur un tel caractere ne lirait que son
-     * premier octet (0xC3, commun aux trois) et chr() produirait un octet isole invalide
-     * en UTF-8. mb_ord()/mb_chr() operent sur le CODEPOINT entier. Correction PUREMENT
-     * technique (bug reel corrige, pas une adaptation de regle) : incrementer le dernier
-     * caractere significatif d'un cran reste une borne superieure valide quel que soit
-     * l'alphabet du domaine (la comparaison BINARY se decide au premier caractere qui
-     * differe -- verifie manuellement avant d'ecrire ce correctif, voir rapport AFTER).
-     * La condition de report ($chars[$i] !== 'Z') reste inchangee : elle n'est qu'une
-     * optimisation qui evite d'incrementer une lettre deja "au bout" pour rester proche du
-     * domaine reel des mots ; elle demeure correcte (jamais un bug) meme si Ä/Ö/Ü trient
-     * desormais apres Z, puisqu'elle ne fait que produire une borne parfois moins
-     * SERREE, jamais une borne fausse.
+     * CORRECTIF DE FOND (ADAPTATION ALLEMANDE, revu depuis une premiere version fausse de
+     * ce docblock) : la version heritee du site francais "sautait" les caracteres 'Z' en
+     * remontant vers la gauche (persuadee que Z est toujours le MAXIMUM de l'alphabet) et
+     * renvoyait upper = null (aucune borne) des que le prefixe n'etait fait que de 'Z' --
+     * correct en francais (domaine pur A-Z), mais FAUX en allemand : Ä/Ö/Ü trient APRES Z
+     * (voir Normalizer::signature()), donc "aucune borne superieure" a partir d'un prefixe
+     * tout en Z incluait a tort tout mot commencant par Z puis Ä/Ö/Ü. Bug REEL trouve en
+     * ecrivant tests/Search/WordListSolverTest.php (7 848 faux positifs mesures sur
+     * WordListSolver::rangeBounds(), meme fonction dupliquee ici), pas une hypothese
+     * theorique -- une premiere version de ce docblock affirmait a tort que l'ancienne
+     * condition de report restait "toujours correcte, jamais une borne fausse" : FAUX,
+     * corrige ici. mb_str_split + mb_ord()/mb_chr() (pas str_split/ord/chr, qui n'operent
+     * que sur un seul OCTET) : $prefix peut contenir Ä/Ö/Ü, codees sur deux octets UTF-8.
      *
      * @return array{0: string, 1: string|null}
      */
     private static function rangeBounds(string $prefix): array
     {
         $chars = mb_str_split($prefix);
+        $lastIndex = count($chars) - 1;
 
-        for ($i = count($chars) - 1; $i >= 0; $i--) {
-            if ($chars[$i] !== 'Z') {
-                $chars[$i] = mb_chr(mb_ord($chars[$i]) + 1);
-
-                return [$prefix, implode('', array_slice($chars, 0, $i + 1))];
-            }
+        if ($lastIndex < 0) {
+            // Ne devrait jamais arriver (tous les appelants passent un prefixe non vide) --
+            // defense en profondeur, jamais observee.
+            return [$prefix, null];
         }
 
-        return [$prefix, null];
+        $chars[$lastIndex] = mb_chr(mb_ord($chars[$lastIndex]) + 1);
+
+        return [$prefix, implode('', $chars)];
     }
 
     // ------------------------------------------------------------------

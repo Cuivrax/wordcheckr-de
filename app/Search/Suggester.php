@@ -83,27 +83,31 @@ final class Suggester
 
     /**
      * Bornes [inclusive, exclusive) d'une plage de prefixe sur une colonne triee en ordre
-     * binaire (A-Z uniquement, D-009) -- copie litterale de RelationsFinder::rangeBounds() /
-     * WordListSolver::rangeBounds(), meme convention de duplication assumee dans app/Search/.
+     * binaire -- copie litterale de RelationsFinder::rangeBounds() / WordListSolver::
+     * rangeBounds() (voir le premier pour l'explication complete du correctif de fond
+     * "toujours incrementer le dernier caractere, jamais de report/null" -- ADAPTATION
+     * ALLEMANDE, bug reel corrige : Ä/Ö/Ü trient apres Z, l'ancien report special sur 'Z'
+     * incluait a tort des mots hors du prefixe demande), meme convention de duplication
+     * assumee dans app/Search/.
      *
      * @return array{0: string, 1: string|null}
      */
     private static function rangeBounds(string $prefix): array
     {
-        // mb_str_split + mb_ord()/mb_chr() (pas str_split/ord/chr) : voir
-        // RelationsFinder::rangeBounds() pour l'explication complete (Ä/Ö/Ü sur deux
-        // octets UTF-8, ord()/chr() n'operent que sur un seul octet).
+        // mb_str_split + mb_ord()/mb_chr() (pas str_split/ord/chr) : $prefix peut contenir
+        // Ä/Ö/Ü, codees sur deux octets UTF-8, ord()/chr() n'operent que sur un seul octet.
         $chars = mb_str_split($prefix);
+        $lastIndex = count($chars) - 1;
 
-        for ($i = count($chars) - 1; $i >= 0; $i--) {
-            if ($chars[$i] !== 'Z') {
-                $chars[$i] = mb_chr(mb_ord($chars[$i]) + 1);
-
-                return [$prefix, implode('', array_slice($chars, 0, $i + 1))];
-            }
+        if ($lastIndex < 0) {
+            // Ne devrait jamais arriver (suggest() filtre deja un prefixe < MIN_LENGTH
+            // avant d'appeler cette methode) -- defense en profondeur, jamais observee.
+            return [$prefix, null];
         }
 
-        return [$prefix, null];
+        $chars[$lastIndex] = mb_chr(mb_ord($chars[$lastIndex]) + 1);
+
+        return [$prefix, implode('', $chars)];
     }
 
     /**
