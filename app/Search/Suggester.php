@@ -69,8 +69,11 @@ final class Suggester
             $params[] = $upper;
         }
 
+        // is_admitted AS is_ods8/is_ods9 : ADAPTATION ALLEMANDE, voir TermLookup pour
+        // l'explication complete -- un seul indicateur reel (is_admitted), aliase deux
+        // fois pour rester compatible avec toItems()/app/View sans les modifier.
         $statement = $this->connection->pdo()->prepare(
-            'SELECT normalized, score, length, is_ods8, is_ods9 FROM terms WHERE '
+            'SELECT normalized, score, length, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms WHERE '
             . implode(' AND ', $conditions) . ' ORDER BY normalized LIMIT ?'
         );
         $statement->execute([...$params, self::MAX_RESULTS]);
@@ -87,11 +90,14 @@ final class Suggester
      */
     private static function rangeBounds(string $prefix): array
     {
-        $chars = str_split($prefix);
+        // mb_str_split + mb_ord()/mb_chr() (pas str_split/ord/chr) : voir
+        // RelationsFinder::rangeBounds() pour l'explication complete (Ä/Ö/Ü sur deux
+        // octets UTF-8, ord()/chr() n'operent que sur un seul octet).
+        $chars = mb_str_split($prefix);
 
         for ($i = count($chars) - 1; $i >= 0; $i--) {
             if ($chars[$i] !== 'Z') {
-                $chars[$i] = chr(ord($chars[$i]) + 1);
+                $chars[$i] = mb_chr(mb_ord($chars[$i]) + 1);
 
                 return [$prefix, implode('', array_slice($chars, 0, $i + 1))];
             }
@@ -120,9 +126,10 @@ final class Suggester
             $isOds8 = (int) $row['is_ods8'] === 1;
             $isOds9 = (int) $row['is_ods9'] === 1;
 
+            // mb_strtolower (pas strtolower) : voir TermLookup::find() pour la meme raison.
             return [
                 'normalized' => $row['normalized'],
-                'slug' => strtolower($row['normalized']),
+                'slug' => mb_strtolower($row['normalized'], 'UTF-8'),
                 'score' => (int) $row['score'],
                 'length' => (int) $row['length'],
                 'isOds8' => $isOds8,

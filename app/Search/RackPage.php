@@ -16,11 +16,14 @@ namespace App\Search;
  * erreur (decision du coordinateur) : le routeur rend toujours la vue normale, jamais
  * une reponse d'erreur pour ce cas.
  *
- * Chaque entree de $matches est necessairement admise au Scrabble (is_ods8 = 1 ou
- * is_ods9 = 1) : RackSolver filtre en base -- "quel mot puis-je jouer" ne repond
- * qu'avec des mots effectivement jouables, jamais avec des formes francaises non
- * admises. Le modele a trois statuts reste ferme (CLAUDE.md) ; aucun champ "status"
- * n'est necessaire ici puisque la seule valeur possible serait toujours "admitted".
+ * Chaque entree de $matches est necessairement admise (is_admitted = 1, schema.sql) :
+ * RackSolver filtre en base -- "quel mot puis-je jouer" ne repond qu'avec des mots
+ * effectivement jouables. Le modele a trois statuts reste ferme (CLAUDE.md) ; aucun
+ * champ "status" n'est necessaire ici puisque la seule valeur possible serait toujours
+ * "admitted". isOds8/isOds9 (noms herites du site francais, double lexique ODS8/ODS9) :
+ * conserves tels quels uniquement pour compatibilite avec app/View/play.php (hors
+ * perimetre de cet agent) -- RackSolver leur assigne desormais la MEME valeur
+ * (is_admitted, lexique allemand unique), voir son docblock de classe.
  */
 final class RackPage
 {

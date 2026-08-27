@@ -36,7 +36,12 @@ return [
 
     // Valeurs des tuiles allemandes (102 tuiles : 100 lettres + 2 blancs), confirmees par
     // deux sources independantes concordantes -- voir reports/de-site-feasibility-audit.md
-    // cote depot francais, §2. Doit rester identique a TILE_SCORES dans
+    // cote depot francais, §2 -- puis RE-VERIFIEES directement contre Wikipedia
+    // ("Scrabble letter distributions") a la demande explicite du porteur de projet,
+    // repartition complete (nombre de tuiles ET valeur) recalculee a la main : totalise
+    // exactement 102 (E15 N9 S7 I6 R6 T6 U6 A5 D4 H4 G3 L3 O3 M4 B2 W1 Z1 C2 F2 K2 P1 Ä1
+    // J1 Ü1 V1 Ö1 X1 Q1 Y1 + 2 blancs) -- 0 divergence avec les valeurs deja presentes
+    // ci-dessous, aucune correction necessaire. Doit rester identique a TILE_SCORES dans
     // scripts/lib/normalize.py -- toute derive entre les deux est detectee par
     // tests/Search/TermLookupTest.php, qui recalcule score() pour les lignes reelles de
     // storage/dictionary_de.sqlite et compare a la colonne stockee. ß n'a pas d'entree :

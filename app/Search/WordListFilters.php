@@ -246,7 +246,8 @@ final class WordListFilters
         // primer la longueur du motif, et le routeur redirige en 301 vers la forme corrigee
         // -- meme esprit que "toute autre permutation redirige en 301".
         if ($pattern !== null) {
-            $length = strlen($pattern);
+            // mb_strlen (pas strlen) : $pattern peut contenir Ä/Ö/Ü.
+            $length = mb_strlen($pattern);
         }
 
         // "position" (D-023) exige une longueur explicite, quel que soit l'ordre de saisie
@@ -298,11 +299,15 @@ final class WordListFilters
         // garanti par le seul prefixe/suffixe d'une lettre, donc jamais retire ici. Un prefixe/
         // suffixe de PLUSIEURS lettres n'est volontairement pas traite (hors perimetre mesure de
         // cette correction, voir le rapport cite) : seule la forme mono-lettre l'est.
-        if ($prefix !== null && strlen($prefix) === 1 && isset($withLetters[$prefix]) && $withLetters[$prefix] === 1) {
+        // mb_strlen (pas strlen) : un prefixe/suffixe d'une seule lettre Ä/Ö/Ü (deux octets
+        // UTF-8) resterait sinon non detecte comme "une seule lettre" (bytes = 2), et cette
+        // simplification D-032 ne s'appliquerait pas -- pas un bug de resultat (juste une URL
+        // moins canonique), mais corrige pour la coherence.
+        if ($prefix !== null && mb_strlen($prefix) === 1 && isset($withLetters[$prefix]) && $withLetters[$prefix] === 1) {
             unset($withLetters[$prefix]);
         }
 
-        if ($suffix !== null && strlen($suffix) === 1 && isset($withLetters[$suffix]) && $withLetters[$suffix] === 1) {
+        if ($suffix !== null && mb_strlen($suffix) === 1 && isset($withLetters[$suffix]) && $withLetters[$suffix] === 1) {
             unset($withLetters[$suffix]);
         }
 
@@ -339,9 +344,12 @@ final class WordListFilters
             return [null, $i];
         }
 
+        // [A-ZÄÖÜ] + /u, mb_strlen (pas [A-Z]/strlen) : Ä/Ö/Ü sont des lettres allemandes
+        // valides ici (ex. /mots/commencant/ö), pas des variantes de A/O/U -- meme
+        // correctif que Normalizer::VALID_PATTERN.
         $normalized = Normalizer::normalize($segments[$i]);
 
-        if ($normalized === '' || preg_match('/^[A-Z]+\z/', $normalized) !== 1 || strlen($normalized) > Normalizer::MAX_LENGTH) {
+        if ($normalized === '' || preg_match('/^[A-ZÄÖÜ]+\z/u', $normalized) !== 1 || mb_strlen($normalized) > Normalizer::MAX_LENGTH) {
             return [null, $i];
         }
 
@@ -367,7 +375,8 @@ final class WordListFilters
 
         [$letter, $next] = self::readSingleLetterRun($segments, $i + 1, $count);
 
-        if ($letter === null || strlen($letter) !== 1) {
+        // mb_strlen (pas strlen) : $letter peut etre Ä/Ö/Ü (deux octets UTF-8).
+        if ($letter === null || mb_strlen($letter) !== 1) {
             return [null, null, $i];
         }
 
@@ -406,7 +415,8 @@ final class WordListFilters
         while ($i < $count && !in_array($segments[$i], self::KEYWORDS, true)) {
             $normalized = Normalizer::normalize($segments[$i]);
 
-            if (strlen($normalized) !== 1 || preg_match('/^[A-Z]\z/', $normalized) !== 1) {
+            // mb_strlen + [A-ZÄÖÜ]/u (pas strlen/[A-Z]) : meme raison que readSingleLetterRun.
+            if (mb_strlen($normalized) !== 1 || preg_match('/^[A-ZÄÖÜ]\z/u', $normalized) !== 1) {
                 return [null, $i];
             }
 
@@ -453,21 +463,30 @@ final class WordListFilters
             return [null, $i];
         }
 
+        // [A-ZÄÖÜ]/u + mb_strlen (pas [A-Z]/strlen) : meme raison que readSingleLetterRun.
+        // La comparaison de longueur ci-dessous protege specifiquement contre un caractere
+        // qui CHANGERAIT DE NOMBRE de lettres apres normalize() (ex. "ß" brut, 1 caractere,
+        // normalise en "SS", 2 caracteres) -- une telle entree desynchroniserait la
+        // reconstruction position-par-position ci-dessous et DOIT etre rejetee. Comparer en
+        // OCTETS (ancien code) ne detectait PAS ce cas particulier pour "ß" -> "SS" (2 octets
+        // UTF-8 des deux cotes, coincidence numerique) : corrige ici en comparant par
+        // CARACTERE (mb_strlen), la seule unite pertinente pour cette garde.
         $raw = $segments[$i];
         $letters = str_replace('-', '', $raw);
         $normalizedLetters = Normalizer::normalize($letters);
 
-        if ($letters !== '' && (preg_match('/^[A-Z]+\z/', $normalizedLetters) !== 1 || strlen($normalizedLetters) !== strlen($letters))) {
+        if ($letters !== '' && (preg_match('/^[A-ZÄÖÜ]+\z/u', $normalizedLetters) !== 1 || mb_strlen($normalizedLetters) !== mb_strlen($letters))) {
             return [null, $i];
         }
 
         // Reconstruit le motif normalise en respectant la position d'origine des '-' : on ne
         // peut pas juste normaliser $raw tel quel, Normalizer::normalize() ne connait pas '-'.
+        // mb_str_split (pas str_split) : $normalizedLetters/$raw peuvent contenir Ä/Ö/Ü.
         $pattern = '';
         $letterPos = 0;
-        $normalizedChars = str_split($normalizedLetters);
+        $normalizedChars = mb_str_split($normalizedLetters);
 
-        foreach (str_split($raw) as $char) {
+        foreach (mb_str_split($raw) as $char) {
             if ($char === '-') {
                 $pattern .= '-';
                 continue;
@@ -477,7 +496,7 @@ final class WordListFilters
             $letterPos++;
         }
 
-        if (strlen($pattern) < Normalizer::MIN_LENGTH || strlen($pattern) > Normalizer::MAX_LENGTH) {
+        if (mb_strlen($pattern) < Normalizer::MIN_LENGTH || mb_strlen($pattern) > Normalizer::MAX_LENGTH) {
             return [null, $i];
         }
 
@@ -531,6 +550,12 @@ final class WordListFilters
      */
     public function canonicalPath(): string
     {
+        // mb_strtolower (pas strtolower) dans toute cette methode : un segment Ä/Ö/Ü reste
+        // sinon en MAJUSCULE dans une URL par ailleurs entierement minuscule (strtolower()
+        // n'opere que sur A-Z ASCII) -- incoherent avec le reste du schema d'URL, et source
+        // d'un aller-retour de redirection 301 inutile (canonicalPath() ne matcherait jamais
+        // le chemin minuscule effectivement demande). Correctif de coherence, pas de
+        // correction (les deux formes restent fonctionnellement valides, juste incoherentes).
         $segments = [];
 
         if ($this->length !== null) {
@@ -539,30 +564,30 @@ final class WordListFilters
 
         if ($this->prefix !== null) {
             $segments[] = 'commencant';
-            $segments[] = strtolower($this->prefix);
+            $segments[] = mb_strtolower($this->prefix, 'UTF-8');
         }
 
         if ($this->contains !== null) {
             $segments[] = 'contenant';
-            $segments[] = strtolower($this->contains);
+            $segments[] = mb_strtolower($this->contains, 'UTF-8');
         }
 
         if ($this->suffix !== null) {
             $segments[] = 'terminant';
-            $segments[] = strtolower($this->suffix);
+            $segments[] = mb_strtolower($this->suffix, 'UTF-8');
         }
 
         if ($this->position !== null) {
             $segments[] = 'position';
             $segments[] = (string) $this->position;
-            $segments[] = strtolower($this->positionLetter);
+            $segments[] = mb_strtolower($this->positionLetter, 'UTF-8');
         }
 
         if ($this->withLetters !== []) {
             $segments[] = 'avec';
             foreach ($this->withLetters as $letter => $times) {
                 for ($k = 0; $k < $times; $k++) {
-                    $segments[] = strtolower($letter);
+                    $segments[] = mb_strtolower($letter, 'UTF-8');
                 }
             }
         }
@@ -570,13 +595,13 @@ final class WordListFilters
         if ($this->withoutLetters !== []) {
             $segments[] = 'sans';
             foreach ($this->withoutLetters as $letter) {
-                $segments[] = strtolower($letter);
+                $segments[] = mb_strtolower($letter, 'UTF-8');
             }
         }
 
         if ($this->pattern !== null) {
             $segments[] = 'motif';
-            $segments[] = strtolower($this->pattern);
+            $segments[] = mb_strtolower($this->pattern, 'UTF-8');
         }
 
         if ($this->status !== null) {
@@ -628,8 +653,12 @@ final class WordListFilters
         if ($this->pattern !== null) {
             // Le prefixe initial (avant le premier '-') est deja couvert par l'index
             // normalized/length -- voir WordListSolver::patternLeadingPrefix(). Une case
-            // connue (A-Z) APRES la premiere case inconnue reste un predicat non indexe
+            // connue (A-ZÄÖÜ) APRES la premiere case inconnue reste un predicat non indexe
             // (substr(normalized, position, 1) = lettre, evalue en ligne, pas via un index).
+            // strpos()/substr() (pas leurs variantes mb_) restent SURS ici : '-' est un
+            // caractere ASCII, jamais confondu avec un octet de continuation UTF-8 (0x80-0xBF)
+            // -- la position OCTET qu'il renvoie est donc toujours aussi une frontiere de
+            // caractere valide, la coupure substr() ne peut jamais tomber au milieu d'un Ä/Ö/Ü.
             $firstUnknown = strpos($this->pattern, '-');
 
             if ($firstUnknown === false) {
@@ -639,7 +668,12 @@ final class WordListFilters
                 return false;
             }
 
-            return preg_match('/[A-Z]/', substr($this->pattern, $firstUnknown)) === 1;
+            // [A-ZÄÖÜ]/u (pas [A-Z] seul) : une case connue residuelle en Ä/Ö/Ü (ex. motif
+            // "AB-Ö-") DOIT etre detectee comme predicat non indexe -- avec [A-Z] seul, ce
+            // test renvoyait FAUX a tort, et WordListSolver aurait alors ignore silencieusement
+            // la contrainte Ö en executant le regime EXACT (sans jamais appliquer le predicat
+            // substr() correspondant) : un vrai bug de resultats, pas seulement de performance.
+            return preg_match('/[A-ZÄÖÜ]/u', substr($this->pattern, $firstUnknown)) === 1;
         }
 
         // Prefixe ET suffixe combines : le suffixe est applique en predicat supplementaire

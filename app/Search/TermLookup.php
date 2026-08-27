@@ -7,22 +7,28 @@ namespace App\Search;
 use App\Database\Connection;
 
 /**
- * Recherche d'un terme exact, mot precedent, mot suivant (Phase 1, docs/08).
+ * Recherche d'un terme exact, mot precedent, mot suivant.
  *
  * Budget : au plus 2 requetes SQLite par appel a find() (lookupRow() + neighbours()
- * fusionnee, D-043 -- mot precedent ET suivant en UNE requete UNION ALL, plutot que
- * deux requetes separees comme avant D-043), toutes avec LIMIT 1 par cote, toutes
- * servies par l'index UNIQUE sur normalized (sqlite_autoindex_terms_1) -- aucun scan,
- * voir reports/query-plans/phase1.md pour les plans d'origine et
- * reports/query-plans/d043-neighbour-merge.md pour la fusion. Correctif necessaire
- * par App\Search\SenseLookup (D-043, +1 requete) pour rester sous le plafond "moins
- * de 10" (CLAUDE.md) : 3+1(neighbours fusionnees en 1)+5(relations)+1(conjugaison)+
- * 1(sens) = 9 pour un mot admis, pas 10. Une forme d'entree invalide n'engendre
+ * fusionnee en UNE requete UNION ALL), toutes avec LIMIT 1 par cote, toutes servies par
+ * l'index UNIQUE sur normalized (sqlite_autoindex_terms_1) -- aucun scan, voir
+ * reports/query-plans/de-import-baseline.md. Une forme d'entree invalide n'engendre
  * aucune requete : find() renvoie null avant toute ouverture de curseur.
  *
- * Les relations (anagrammes, sous-mots, rallonges...) sont hors perimetre de la
- * Phase 1 (Phase 4) ; les recherches liees statiques (longueur, prefixe...) egalement
- * (Phase 3).
+ * ADAPTATION ALLEMANDE (voir schema.sql) : is_ods8/is_ods9 (double lexique francais)
+ * fusionnes en un unique is_admitted -- $isOds8 et $isOds9 refletent tous deux la MEME
+ * valeur is_admitted, jamais deux sources distinctes. Champ conserve sous ces deux noms
+ * (pas renomme) uniquement pour rester compatible sans modification avec app/View/word.php
+ * et app/View/play.php (hors perimetre de cet agent, CLAUDE.md), qui lisent
+ * ->isOds8/->isOds9 pour deux pastilles distinctes -- CONNU ET SIGNALE EXPLICITEMENT
+ * (rapport AFTER) : ces pastilles afficheront le texte "ODS8"/"ODS9", incorrect pour
+ * l'allemand (aucune liste "ODS" allemande n'existe), tant qu'un passage frontend/
+ * microcopy dedie n'aura pas adapte ce gabarit -- non fait ici, hors perimetre de
+ * data-engine. pos/pos_secondary/gender (D-018 francais) restent presents sur TermPage
+ * (meme raison de compatibilite) mais TOUJOURS nuls : aucune colonne pos/pos_secondary/
+ * gender dans schema.sql allemand (aucune source de nature grammaticale retenue cette
+ * passe) -- app/View/word.php gere deja nativement ce cas (verifie : ~12,3 % des termes
+ * francais sont deja dans cet etat aujourd'hui, section masquee si $page->pos === null).
  */
 final class TermLookup
 {
@@ -39,7 +45,7 @@ final class TermLookup
      * Normalise l'entree brute et construit la fiche mot correspondante.
      *
      * Renvoie null si la forme normalisee n'est pas un terme valide (2 a 15 lettres
-     * A-Z) : c'est une erreur de saisie, pas un statut de terme (le modele a trois
+     * A-ZÄÖÜ) : c'est une erreur de saisie, pas un statut de terme (le modele a trois
      * statuts reste ferme), et elle n'engendre aucune requete SQLite. Au routeur de
      * traduire ce null en reponse 404.
      */
@@ -54,54 +60,55 @@ final class TermLookup
         $row = $this->lookupRow($normalized);
         $found = $row !== null;
 
-        $isOds8 = $found && (int) $row['is_ods8'] === 1;
-        $isOds9 = $found && (int) $row['is_ods9'] === 1;
+        // Un seul indicateur reel (is_admitted) -- voir docblock de classe.
+        $isAdmitted = $found && (int) $row['is_admitted'] === 1;
 
         $status = match (true) {
-            $isOds8 || $isOds9 => TermPage::STATUS_ADMITTED,
+            $isAdmitted => TermPage::STATUS_ADMITTED,
+            // Jamais atteint dans cette passe (aucune source "reel mais non admis" pour
+            // l'allemand -- voir data/raw/PROVENANCE.md) : toute ligne presente en base a
+            // is_admitted = 1 par construction (source unique). Conserve pour le modele a
+            // trois statuts ferme (CLAUDE.md), pas une branche morte a supprimer.
             $found => TermPage::STATUS_FRENCH_NOT_ADMITTED,
             default => TermPage::STATUS_UNKNOWN,
         };
 
         $letters = $this->tiles($normalized);
         $score = $found ? (int) $row['score'] : Normalizer::score($normalized, $this->tileScores);
-        $length = $found ? (int) $row['length'] : strlen($normalized);
+        // mb_strlen (pas strlen) : normalized peut contenir Ä/Ö/Ü, codees sur deux octets
+        // UTF-8 -- strlen() compterait des OCTETS, pas des lettres.
+        $length = $found ? (int) $row['length'] : mb_strlen($normalized);
         [$previousWord, $nextWord] = $this->neighbours($normalized);
 
         return new TermPage(
             normalized: $normalized,
-            slug: strtolower($normalized),
+            // mb_strtolower (pas strtolower) : $normalized peut contenir Ä/Ö/Ü --
+            // strtolower() (ASCII uniquement) les laisserait en majuscule dans le slug.
+            slug: mb_strtolower($normalized, 'UTF-8'),
             found: $found,
             status: $status,
             score: $score,
             length: $length,
-            isOds8: $isOds8,
-            isOds9: $isOds9,
+            isOds8: $isAdmitted,
+            isOds9: $isAdmitted,
             letters: $letters,
             previousWord: $previousWord,
             nextWord: $nextWord,
-            // D-018 : uniquement pour un terme trouve -- $row est null sinon, ces trois
-            // champs restent a leur defaut TermPage (null), jamais une fiche "inconnu"
-            // avec une nature grammaticale.
-            pos: $found ? $row['pos'] : null,
-            posSecondary: $found ? $row['pos_secondary'] : null,
-            gender: $found ? $row['gender'] : null,
+            // Aucune colonne pos/pos_secondary/gender en base allemande cette passe --
+            // toujours nul, voir docblock de classe.
+            pos: null,
+            posSecondary: null,
+            gender: null,
         );
     }
 
     /**
-     * @return array{display_term: string, score: string|int, length: string|int, is_ods8: string|int, is_ods9: string|int, pos: string|null, pos_secondary: string|null, gender: string|null}|null
+     * @return array{display_term: string, score: string|int, length: string|int, is_admitted: string|int}|null
      */
     private function lookupRow(string $normalized): ?array
     {
-        // D-018 : pos/pos_secondary/gender ajoutes a ce SELECT existant -- ZERO requete
-        // SQLite supplementaire (meme requete, meme plan que Phase 1 : recherche sur
-        // l'index unique sqlite_autoindex_terms_1, puis lecture de la ligne complete,
-        // deja necessaire pour display_term/score qui ne sont pas non plus couverts par
-        // cet index).
         $statement = $this->connection->pdo()->prepare(
-            'SELECT display_term, score, length, is_ods8, is_ods9, pos, pos_secondary, gender '
-            . 'FROM terms WHERE normalized = ? LIMIT 1'
+            'SELECT display_term, score, length, is_admitted FROM terms WHERE normalized = ? LIMIT 1'
         );
         $statement->execute([$normalized]);
         $row = $statement->fetch();
@@ -110,14 +117,13 @@ final class TermLookup
     }
 
     /**
-     * Mot precedent et suivant en UNE SEULE requete (D-043, fusion -- deux SELECT bornes
-     * chacun par leur propre ORDER BY/LIMIT, combines par UNION ALL). Chaque cote reste
-     * servi par l'index unique sur normalized, exactement comme les deux requetes
-     * separees qu'elle remplace (verifie par EXPLAIN QUERY PLAN, reports/query-plans/
-     * d043-neighbour-merge.md) -- aucune ligne ne peut jamais satisfaire les deux
-     * conditions a la fois (< et > au meme normalized), donc aucune ambiguite a
-     * departager entre les 0, 1 ou 2 lignes renvoyees : normalized < $normalized est
-     * toujours le precedent, normalized > $normalized est toujours le suivant.
+     * Mot precedent et suivant en UNE SEULE requete (deux SELECT bornes chacun par leur
+     * propre ORDER BY/LIMIT, combines par UNION ALL). Chaque cote reste servi par l'index
+     * unique sur normalized (verifie par EXPLAIN QUERY PLAN, reports/query-plans/
+     * de-import-baseline.md) -- aucune ligne ne peut jamais satisfaire les deux conditions
+     * a la fois (< et > au meme normalized), donc aucune ambiguite a departager entre les
+     * 0, 1 ou 2 lignes renvoyees : normalized < $normalized est toujours le precedent,
+     * normalized > $normalized est toujours le suivant.
      *
      * @return array{0: ?string, 1: ?string} [previousWord, nextWord]
      */
@@ -145,9 +151,12 @@ final class TermLookup
     }
 
     /**
-     * Defense en profondeur (audit Phase 1, C2) : une lettre absente de
-     * $this->tileScores leve plutot que de produire une valeur nulle silencieuse --
-     * voir la meme regle dans Normalizer::score().
+     * Defense en profondeur : une lettre absente de $this->tileScores leve plutot que de
+     * produire une valeur nulle silencieuse -- voir la meme regle dans
+     * Normalizer::score().
+     *
+     * mb_str_split() (pas str_split()) : $normalized peut contenir Ä/Ö/Ü, codees sur deux
+     * octets UTF-8 chacune -- str_split() les aurait coupees en deux octets isoles.
      *
      * @return list<array{letter: string, value: int}>
      */
@@ -155,7 +164,7 @@ final class TermLookup
     {
         $tiles = [];
 
-        foreach (str_split($normalized) as $letter) {
+        foreach (mb_str_split($normalized) as $letter) {
             if (!array_key_exists($letter, $this->tileScores)) {
                 throw new \InvalidArgumentException(sprintf('Lettre sans valeur de tuile : %s', $letter));
             }

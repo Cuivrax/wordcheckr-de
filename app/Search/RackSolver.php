@@ -24,11 +24,24 @@ use App\Database\Connection;
  *    distinct plutot qu'un calcul complet ou un blocage de worker PHP partage.
  * 3. En-deca du plafond, les signatures deduites (dedupliquees) sont regroupees en lots
  *    de CHUNK_SIZE et interrogees via `signature IN (...)`, chacune servie par
- *    idx_terms_signature (EXPLAIN QUERY PLAN : SEARCH ... USING INDEX, jamais de SCAN,
- *    voir reports/query-plans/phase2.md). Pire cas explicitement nomme par la tache
- *    (7 lettres + 2 jokers, aucune contrainte) : 36 933 signatures candidates, 8
- *    requetes a CHUNK_SIZE = 5000, ~115 ms mesures -- sous le plafond de 50 000.
- * 4. Seuls les mots admis (is_ods8 = 1 OU is_ods9 = 1) sont retournes : voir RackPage.
+ *    idx_terms_signature (EXPLAIN QUERY PLAN : SEARCH ... USING INDEX, jamais de SCAN).
+ *    ADAPTATION ALLEMANDE : pire cas RE-MESURE sur cette base (7 lettres distinctes + 2
+ *    jokers, ex. "AEIORNT??") apres extension de l'alphabet des remplissages de joker a
+ *    29 lettres (voir ALPHABET_SIZE) : upperBound = 59 520 (etait 50 4XX sur 26 lettres),
+ *    46 722 signatures candidates reellement generees, 10 requetes a CHUNK_SIZE = 5000,
+ *    ~169 ms mesures (34,5 ms generation + 134,2 ms requetes) -- sous le plafond retenu de
+ *    65 000 (voir SIGNATURE_CEILING). Un rack de 8 lettres distinctes + 2 jokers (ex.
+ *    "EIRALNTS??") depasse 65 000 (upperBound = 119 040, 90 082 signatures reelles,
+ *    jusqu'a 261,6 ms mesures -- au-dessus du budget TTFB p95 < 250 ms) : capped = true
+ *    s'applique correctement a cette classe, comme prevu.
+ * 4. Seuls les mots admis (is_admitted = 1) sont retournes : voir RackPage. ADAPTATION
+ *    ALLEMANDE : is_ods8/is_ods9 (double lexique francais) fusionnes en is_admitted
+ *    unique (schema.sql) -- le SELECT ci-dessous aliase is_admitted vers is_ods8 ET
+ *    is_ods9 (meme valeur des deux cotes) uniquement pour que le tableau ->matches reste
+ *    compatible sans modification avec app/View/play.php (hors perimetre de cet agent),
+ *    qui lit ['isOds8']/['isOds9'] pour deux pastilles -- consequence signalee dans le
+ *    rapport AFTER (pastilles "ODS8"/"ODS9" incorrectes pour l'allemand tant qu'un
+ *    passage frontend/microcopy dedie n'a pas adapte ce gabarit).
  * 5. Tri score decroissant puis longueur decroissante puis alphabetique en PHP (les
  *    volumes mesures -- au plus quelques milliers de lignes pour le pire cas -- restent
  *    triviaux en memoire), puis LIMIT DISPLAY_LIMIT applique apres tri, jamais avant
@@ -38,26 +51,31 @@ use App\Database\Connection;
 final class RackSolver
 {
     /**
-     * Sous le defaut SQLITE_LIMIT_VARIABLE_NUMBER (32766 sur SQLite >= 3.32, confirme
-     * en environnement local : 3.53.2) avec marge confortable. Mesure : un IN() de
-     * 36 933 parametres echoue explicitement ("too many SQL variables"), un IN() de
-     * CHUNK_SIZE = 5000 reussit toujours et le temps total est domine par le nombre de
-     * recherches d'index effectuees, pas par le nombre de requetes HTTP-vers-SQLite
-     * (reports/query-plans/phase2.md : 74 requetes a 500 ou 8 requetes a 5000 prennent
-     * le meme temps total, ~110-120 ms, pour le meme pire cas).
+     * Sous le defaut SQLITE_LIMIT_VARIABLE_NUMBER (32766 sur SQLite >= 3.32) avec marge
+     * confortable -- un IN() de CHUNK_SIZE = 5000 reussit toujours et le temps total est
+     * domine par le nombre de recherches d'index effectuees, pas par le nombre de
+     * requetes PHP-vers-SQLite (comportement heritee du site francais, non re-mesure
+     * explicitement ici : la relation reste la meme, seul le volume de signatures change
+     * avec l'alphabet elargi -- voir SIGNATURE_CEILING pour les mesures allemandes
+     * completes).
      */
     public const CHUNK_SIZE = 5000;
 
     /**
-     * Valide explicitement par le coordinateur : confortablement au-dessus du pire cas
-     * nomme par la tache (36 933 signatures pour 7 lettres + 2 jokers), tres en dessous
-     * des millions atteints par un chevalet de 13 lettres + 2 jokers (D-010 autorise
-     * jusqu'a 15 caracteres en entree, jokers compris). Comparee a une borne SUPERIEURE
-     * bon marche (avant deduplication, voir upperBoundSignatureCount()), jamais au
-     * compte reel -- un chevalet refuse ne declenche donc jamais la generation qu'il
-     * est cense eviter.
+     * ADAPTATION ALLEMANDE (re-mesuree, pas simplement heritee) : 65 000, releve depuis
+     * 50 000 (valeur francaise, alphabet a 26 lettres) parce que l'alphabet des
+     * remplissages de joker compte desormais 29 lettres (ALPHABET_SIZE, Ä/Ö/Ü comprises)
+     * -- un rack a upperBound mecaniquement plus grand a nombre de lettres egal (facteur
+     * ~1,23 pour 2 jokers, voir le calcul dans le docblock de classe). Choisi pour laisser
+     * passer la meme CLASSE de pire cas que le site francais (7 lettres distinctes + 2
+     * jokers, upperBound = 59 520, 46 722 signatures reelles, ~169 ms mesures) tout en
+     * continuant a bloquer la classe suivante (8 lettres distinctes + 2 jokers,
+     * upperBound = 119 040, jusqu'a 261,6 ms mesures -- au-dessus du budget TTFB).
+     * Comparee a une borne SUPERIEURE bon marche (avant deduplication, voir
+     * upperBoundSignatureCount()), jamais au compte reel -- un chevalet refuse ne
+     * declenche donc jamais la generation qu'il est cense eviter.
      */
-    public const SIGNATURE_CEILING = 50_000;
+    public const SIGNATURE_CEILING = 65_000;
 
     /** Limite d'affichage validee par le coordinateur. */
     public const DISPLAY_LIMIT = 300;
@@ -118,9 +136,10 @@ final class RackSolver
         $total = count($rows);
         $limited = array_slice($rows, 0, self::DISPLAY_LIMIT);
 
+        // mb_strtolower (pas strtolower) : voir TermLookup::find() pour la meme raison.
         $matches = array_map(static fn (array $row): array => [
             'normalized' => $row['normalized'],
-            'slug' => strtolower($row['normalized']),
+            'slug' => mb_strtolower($row['normalized'], 'UTF-8'),
             'score' => (int) $row['score'],
             'length' => (int) $row['length'],
             'isOds8' => (int) $row['is_ods8'] === 1,
@@ -142,13 +161,23 @@ final class RackSolver
     }
 
     /**
-     * Borne superieure bon marche (aucun appel base, formule fermee, O(26)) : nombre de
-     * sous-multiensembles connus (produit des multiplicites + 1, incluant le
+     * ADAPTATION ALLEMANDE : ALPHABET_SIZE = 29 (A-Z + Ä/Ö/Ü), pas 26 -- un joker allemand
+     * doit pouvoir representer N'IMPORTE laquelle des 29 lettres du jeu, Ä/Ö/Ü comprises
+     * (lettres distinctes, pas des variantes de A/O/U, voir app/Search/Normalizer.php).
+     * Omettre Ä/Ö/Ü des remplissages de joker ferait manquer silencieusement tout mot
+     * valide dont la seule occurrence de Ä/Ö/Ü provient d'un joker -- correctif de fond,
+     * pas cosmetique.
+     */
+    private const ALPHABET_SIZE = 29;
+
+    /**
+     * Borne superieure bon marche (aucun appel base, formule fermee, O(ALPHABET_SIZE)) :
+     * nombre de sous-multiensembles connus (produit des multiplicites + 1, incluant le
      * sous-ensemble vide) multiplie par la somme, pour 0 a $rack->jokerCount jokers, des
-     * remplissages possibles (combinaisons AVEC repetition parmi 26 lettres). Toujours
-     * superieure ou egale au compte reel deduplique -- jamais l'inverse -- puisqu'elle
-     * ignore les collisions entre combinaisons distinctes qui produisent la meme
-     * signature triee.
+     * remplissages possibles (combinaisons AVEC repetition parmi ALPHABET_SIZE lettres).
+     * Toujours superieure ou egale au compte reel deduplique -- jamais l'inverse --
+     * puisqu'elle ignore les collisions entre combinaisons distinctes qui produisent la
+     * meme signature triee.
      */
     public static function upperBoundSignatureCount(Rack $rack): int
     {
@@ -161,7 +190,7 @@ final class RackSolver
         $jokerFillingsSum = 0;
 
         for ($j = 0; $j <= $rack->jokerCount; $j++) {
-            $jokerFillingsSum += self::multisetCount(26, $j);
+            $jokerFillingsSum += self::multisetCount(self::ALPHABET_SIZE, $j);
         }
 
         return $subsetCount * $jokerFillingsSum;
@@ -208,7 +237,9 @@ final class RackSolver
         $signatures = [];
 
         foreach ($knownSubsets as $subset) {
-            $subsetLength = strlen($subset);
+            // mb_strlen (pas strlen) : $subset peut contenir Ä/Ö/Ü (deux octets UTF-8
+            // chacune) -- strlen() compterait des octets, faussant la borne MAX_LENGTH.
+            $subsetLength = mb_strlen($subset);
 
             for ($j = 0; $j <= $rack->jokerCount; $j++) {
                 $length = $subsetLength + $j;
@@ -255,8 +286,14 @@ final class RackSolver
     }
 
     /**
-     * @return array<int, list<string>> remplissages tries alphabetiquement pour 0, 1 et
-     *         (si demande) 2 jokers -- respectivement 1, 26 puis 351 chaines
+     * @return array<int, list<string>> remplissages tries pour 0, 1 et (si demande) 2
+     *         jokers -- respectivement 1, ALPHABET_SIZE (29) puis 435 chaines.
+     *         ADAPTATION ALLEMANDE : alphabet etendu a 29 lettres (A-Z + Ä/Ö/Ü, ajoutees
+     *         APRES Z pour rester coherent avec l'ordre BINARY utilise partout ailleurs --
+     *         signature triee via SORT_STRING, index reversed -- ou Ä/Ö/Ü, codees sur deux
+     *         octets UTF-8, trient deja apres Z par construction). Un joker doit pouvoir
+     *         representer N'IMPORTE quelle lettre du jeu, Ä/Ö/Ü comprises -- les omettre
+     *         ferait manquer silencieusement des mots valides.
      */
     private static function jokerFillingsUpTo(int $maxJokers): array
     {
@@ -266,7 +303,7 @@ final class RackSolver
             return $result;
         }
 
-        $alphabet = range('A', 'Z');
+        $alphabet = array_merge(range('A', 'Z'), ['Ä', 'Ö', 'Ü']);
         $result[1] = $alphabet;
 
         if ($maxJokers < 2) {
@@ -303,7 +340,9 @@ final class RackSolver
             return $a;
         }
 
-        $chars = str_split($a . $b);
+        // mb_str_split (pas str_split) : $a/$b peuvent contenir Ä/Ö/Ü (deux octets UTF-8
+        // chacune) -- str_split() les aurait coupees en deux octets isoles.
+        $chars = mb_str_split($a . $b);
         sort($chars, SORT_STRING);
 
         return implode('', $chars);
@@ -333,9 +372,12 @@ final class RackSolver
 
             if (!isset($statementCache[$count])) {
                 $placeholders = implode(',', array_fill(0, $count, '?'));
+                // is_admitted AS is_ods8/is_ods9 : voir docblock de classe (ADAPTATION
+                // ALLEMANDE) -- un seul indicateur reel, aliase deux fois pour la
+                // compatibilite du tableau ->matches avec app/View/play.php.
                 $statementCache[$count] = $pdo->prepare(
-                    'SELECT normalized, score, length, is_ods8, is_ods9 FROM terms '
-                    . "WHERE signature IN ($placeholders) AND (is_ods8 = 1 OR is_ods9 = 1)"
+                    'SELECT normalized, score, length, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms '
+                    . "WHERE signature IN ($placeholders) AND is_admitted = 1"
                 );
             }
 

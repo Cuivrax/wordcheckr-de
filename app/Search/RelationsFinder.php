@@ -89,9 +89,15 @@ use App\Database\Connection;
  */
 final class RelationsFinder
 {
+    /**
+     * ADAPTATION ALLEMANDE : Ä/Ö/Ü ajoutees (29 lettres, pas 26) -- "changer une lettre"
+     * et "inserer une lettre" doivent pouvoir generer Ä/Ö/Ü comme candidat (ex. SCHON ->
+     * SCHÖN par changement d'une lettre), sinon ces relations manqueraient silencieusement
+     * pour tout mot dont un voisin admis utilise l'une de ces trois lettres.
+     */
     private const ALPHABET = [
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
-        'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ä', 'Ö', 'Ü',
     ];
 
     /** Nombre maximum de liens affiches par categorie -- 10 categories x 16 = 160 liens au
@@ -134,7 +140,9 @@ final class RelationsFinder
      */
     public function find(string $normalized): TermRelations
     {
-        $length = strlen($normalized);
+        // mb_strlen (pas strlen) : $normalized peut contenir Ä/Ö/Ü (deux octets UTF-8
+        // chacune) -- strlen() compterait des octets, pas des lettres.
+        $length = mb_strlen($normalized);
         $queryCount = 0;
 
         [$explicit, $explicitQueries] = $this->explicitCandidateRelations($normalized);
@@ -255,18 +263,24 @@ final class RelationsFinder
      */
     private static function changeOneLetterCandidates(string $word): array
     {
-        $length = strlen($word);
+        // mb_str_split (pas $word[$i]/substr byte-oriente) : Ä/Ö/Ü font deux octets UTF-8
+        // chacune -- l'indexation par octet couperait une lettre allemande en deux, ou
+        // decalerait toutes les positions suivantes.
+        $letters = mb_str_split($word);
+        $length = count($letters);
         $candidates = [];
 
         for ($i = 0; $i < $length; $i++) {
-            $original = $word[$i];
+            $original = $letters[$i];
 
             foreach (self::ALPHABET as $letter) {
                 if ($letter === $original) {
                     continue;
                 }
 
-                $candidate = substr($word, 0, $i) . $letter . substr($word, $i + 1);
+                $candidateLetters = $letters;
+                $candidateLetters[$i] = $letter;
+                $candidate = implode('', $candidateLetters);
 
                 if (!isset($candidates[$candidate])) {
                     $candidates[$candidate] = ['position' => $i + 1, 'newLetter' => $letter];
@@ -286,11 +300,15 @@ final class RelationsFinder
      */
     private static function removeOneLetterCandidates(string $word): array
     {
-        $length = strlen($word);
+        // mb_str_split (pas substr byte-oriente) : meme raison que changeOneLetterCandidates.
+        $letters = mb_str_split($word);
+        $length = count($letters);
         $candidates = [];
 
         for ($i = 0; $i < $length; $i++) {
-            $candidates[substr($word, 0, $i) . substr($word, $i + 1)] = true;
+            $remaining = $letters;
+            array_splice($remaining, $i, 1);
+            $candidates[implode('', $remaining)] = true;
         }
 
         return $candidates;
@@ -306,16 +324,21 @@ final class RelationsFinder
      */
     private static function insertOneLetterCandidates(string $word): array
     {
-        if (strlen($word) >= Normalizer::MAX_LENGTH) {
+        // mb_strlen/mb_str_split (pas strlen/substr byte-orientes) : meme raison que
+        // changeOneLetterCandidates.
+        if (mb_strlen($word) >= Normalizer::MAX_LENGTH) {
             return [];
         }
 
-        $length = strlen($word);
+        $letters = mb_str_split($word);
+        $length = count($letters);
         $candidates = [];
 
         for ($i = 0; $i <= $length; $i++) {
             foreach (self::ALPHABET as $letter) {
-                $candidates[substr($word, 0, $i) . $letter . substr($word, $i)] = true;
+                $candidateLetters = $letters;
+                array_splice($candidateLetters, $i, 0, [$letter]);
+                $candidates[implode('', $candidateLetters)] = true;
             }
         }
 
@@ -330,7 +353,9 @@ final class RelationsFinder
      */
     private static function substringCandidates(string $word): array
     {
-        $length = strlen($word);
+        // mb_str_split (pas substr byte-oriente) : meme raison que changeOneLetterCandidates.
+        $letters = mb_str_split($word);
+        $length = count($letters);
         $candidates = [];
 
         for ($start = 0; $start < $length; $start++) {
@@ -339,7 +364,7 @@ final class RelationsFinder
                     break;
                 }
 
-                $candidates[substr($word, $start, $len)] = true;
+                $candidates[implode('', array_slice($letters, $start, $len))] = true;
             }
         }
 
@@ -352,10 +377,13 @@ final class RelationsFinder
      */
     private function fetchByNormalizedIn(array $candidates): array
     {
+        // is_admitted AS is_ods8/is_ods9 : voir docblock de TermLookup (ADAPTATION
+        // ALLEMANDE) -- un seul indicateur reel, aliase deux fois pour la compatibilite
+        // du tableau d'item avec toItem()/app/View.
         $placeholders = implode(',', array_fill(0, count($candidates), '?'));
         $statement = $this->connection->pdo()->prepare(
-            "SELECT normalized, length, score, is_ods8, is_ods9 FROM terms WHERE normalized IN ($placeholders) "
-            . 'AND (is_ods8 = 1 OR is_ods9 = 1)'
+            "SELECT normalized, length, score, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms "
+            . "WHERE normalized IN ($placeholders) AND is_admitted = 1"
         );
         $statement->execute($candidates);
 
@@ -448,12 +476,16 @@ final class RelationsFinder
      */
     private static function minusOneSignatures(string $word): array
     {
+        // mb_str_split (pas str_split) : meme raison que changeOneLetterCandidates.
+        // mb_strpos/mb_substr (pas strpos/substr) : $base (une signature) peut contenir
+        // Ä/Ö/Ü -- les variantes non-mb operent en octets et desynchroniseraient la
+        // position trouvee du decoupage reel en lettres.
         $base = Normalizer::signature($word);
-        $distinctLetters = array_unique(str_split($word));
+        $distinctLetters = array_unique(mb_str_split($word));
         $map = [];
 
         foreach ($distinctLetters as $letter) {
-            $position = strpos($base, $letter);
+            $position = mb_strpos($base, $letter);
 
             if ($position === false) {
                 // Ne devrait jamais arriver : $base contient toutes les lettres de $word par
@@ -461,7 +493,7 @@ final class RelationsFinder
                 continue;
             }
 
-            $map[substr($base, 0, $position) . substr($base, $position + 1)] = $letter;
+            $map[mb_substr($base, 0, $position) . mb_substr($base, $position + 1)] = $letter;
         }
 
         return $map;
@@ -472,7 +504,8 @@ final class RelationsFinder
      * restent independantes, meme convention que le reste du code de app/Search/). */
     private static function mergeSorted(string $a, string $b): string
     {
-        $chars = str_split($a . $b);
+        // mb_str_split (pas str_split) : meme raison que changeOneLetterCandidates.
+        $chars = mb_str_split($a . $b);
         sort($chars, SORT_STRING);
 
         return implode('', $chars);
@@ -484,10 +517,11 @@ final class RelationsFinder
      */
     private function fetchBySignatureIn(array $signatures): array
     {
+        // is_admitted AS is_ods8/is_ods9 : voir fetchByNormalizedIn() ci-dessus.
         $placeholders = implode(',', array_fill(0, count($signatures), '?'));
         $statement = $this->connection->pdo()->prepare(
-            "SELECT normalized, length, signature, score, is_ods8, is_ods9 FROM terms WHERE signature IN ($placeholders) "
-            . 'AND (is_ods8 = 1 OR is_ods9 = 1)'
+            "SELECT normalized, length, signature, score, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms "
+            . "WHERE signature IN ($placeholders) AND is_admitted = 1"
         );
         $statement->execute($signatures);
 
@@ -509,7 +543,7 @@ final class RelationsFinder
     {
         [$lower, $upper] = self::rangeBounds($word);
 
-        $conditions = ['normalized >= ?', 'length > ?', '(is_ods8 = 1 OR is_ods9 = 1)'];
+        $conditions = ['normalized >= ?', 'length > ?', 'is_admitted = 1'];
         $params = [$lower, $length];
 
         if ($upper !== null) {
@@ -517,9 +551,10 @@ final class RelationsFinder
             $params[] = $upper;
         }
 
+        // is_admitted AS is_ods8/is_ods9 : voir fetchByNormalizedIn() plus haut.
         $statement = $this->connection->pdo()->prepare(
-            'SELECT normalized, length, score, is_ods8, is_ods9 FROM terms WHERE ' . implode(' AND ', $conditions)
-            . ' ORDER BY normalized LIMIT ?'
+            'SELECT normalized, length, score, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms WHERE '
+            . implode(' AND ', $conditions) . ' ORDER BY normalized LIMIT ?'
         );
         $statement->execute([...$params, self::EXTENSION_ROW_CEILING + 1]);
         $rows = $statement->fetchAll();
@@ -544,7 +579,7 @@ final class RelationsFinder
     {
         [$lower, $upper] = self::rangeBounds(Normalizer::reverse($word));
 
-        $conditions = ['reversed >= ?', 'length > ?', '(is_ods8 = 1 OR is_ods9 = 1)'];
+        $conditions = ['reversed >= ?', 'length > ?', 'is_admitted = 1'];
         $params = [$lower, $length];
 
         if ($upper !== null) {
@@ -552,9 +587,10 @@ final class RelationsFinder
             $params[] = $upper;
         }
 
+        // is_admitted AS is_ods8/is_ods9 : voir fetchByNormalizedIn() plus haut.
         $statement = $this->connection->pdo()->prepare(
-            'SELECT normalized, length, score, is_ods8, is_ods9 FROM terms WHERE ' . implode(' AND ', $conditions)
-            . ' ORDER BY reversed LIMIT ?'
+            'SELECT normalized, length, score, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms WHERE '
+            . implode(' AND ', $conditions) . ' ORDER BY reversed LIMIT ?'
         );
         $statement->execute([...$params, self::EXTENSION_ROW_CEILING + 1]);
         $rows = $statement->fetchAll();
@@ -603,9 +639,13 @@ final class RelationsFinder
      */
     private function containingWords(string $word, int $length): array
     {
+        // is_admitted AS is_ods8/is_ods9 : voir fetchByNormalizedIn() plus haut. substr()/
+        // instr() sont des fonctions SQLite (pas PHP) : SQLite compte deja par CARACTERE
+        // (pas par octet) sur les colonnes TEXT -- fonctionnent correctement pour Ä/Ö/Ü
+        // sans adaptation, verifie par tests/Search/RelationsFinderTest.php.
         $statement = $this->connection->pdo()->prepare(
-            'SELECT normalized, length, score, is_ods8, is_ods9 FROM terms WHERE length > ? '
-            . 'AND (is_ods8 = 1 OR is_ods9 = 1) '
+            'SELECT normalized, length, score, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms WHERE length > ? '
+            . 'AND is_admitted = 1 '
             . 'AND instr(normalized, ?) > 0 '
             . 'AND substr(normalized, 1, ?) != ? '
             . 'AND substr(normalized, -?) != ? '
@@ -631,18 +671,33 @@ final class RelationsFinder
 
     /**
      * Bornes [inclusive, exclusive) d'une plage de prefixe sur une colonne triee en ordre
-     * binaire (A-Z uniquement, D-009) -- meme technique que WordListSolver::rangeBounds(),
-     * dupliquee ici plutot que partagee (meme convention que mergeSorted() ci-dessus).
+     * binaire -- meme technique que WordListSolver::rangeBounds(), dupliquee ici plutot
+     * que partagee (meme convention que mergeSorted() ci-dessus).
+     *
+     * ADAPTATION ALLEMANDE : mb_str_split (pas str_split) + mb_ord()/mb_chr() (pas
+     * ord()/chr(), qui n'operent que sur un seul OCTET) -- $prefix peut se terminer par
+     * Ä/Ö/Ü, codees sur deux octets UTF-8 ; ord() sur un tel caractere ne lirait que son
+     * premier octet (0xC3, commun aux trois) et chr() produirait un octet isole invalide
+     * en UTF-8. mb_ord()/mb_chr() operent sur le CODEPOINT entier. Correction PUREMENT
+     * technique (bug reel corrige, pas une adaptation de regle) : incrementer le dernier
+     * caractere significatif d'un cran reste une borne superieure valide quel que soit
+     * l'alphabet du domaine (la comparaison BINARY se decide au premier caractere qui
+     * differe -- verifie manuellement avant d'ecrire ce correctif, voir rapport AFTER).
+     * La condition de report ($chars[$i] !== 'Z') reste inchangee : elle n'est qu'une
+     * optimisation qui evite d'incrementer une lettre deja "au bout" pour rester proche du
+     * domaine reel des mots ; elle demeure correcte (jamais un bug) meme si Ä/Ö/Ü trient
+     * desormais apres Z, puisqu'elle ne fait que produire une borne parfois moins
+     * SERREE, jamais une borne fausse.
      *
      * @return array{0: string, 1: string|null}
      */
     private static function rangeBounds(string $prefix): array
     {
-        $chars = str_split($prefix);
+        $chars = mb_str_split($prefix);
 
         for ($i = count($chars) - 1; $i >= 0; $i--) {
             if ($chars[$i] !== 'Z') {
-                $chars[$i] = chr(ord($chars[$i]) + 1);
+                $chars[$i] = mb_chr(mb_ord($chars[$i]) + 1);
 
                 return [$prefix, implode('', array_slice($chars, 0, $i + 1))];
             }
@@ -689,13 +744,16 @@ final class RelationsFinder
 
         $add('length', $length . '-lettres');
 
-        $add('startsWith', 'commencant/' . strtolower(substr($word, 0, 1)));
+        // mb_substr/mb_strtolower (pas substr/strtolower) : $word peut commencer/finir par
+        // Ä/Ö/Ü -- substr() couperait un octet isole, et strtolower() (ASCII uniquement)
+        // laisserait Ä/Ö/Ü inchangees en majuscule dans une URL sinon minuscule.
+        $add('startsWith', 'commencant/' . mb_strtolower(mb_substr($word, 0, 1), 'UTF-8'));
 
         if ($length > 3) {
-            $add('startsWith', 'commencant/' . strtolower(substr($word, 0, 3)));
+            $add('startsWith', 'commencant/' . mb_strtolower(mb_substr($word, 0, 3), 'UTF-8'));
         }
 
-        $add('endsWith', 'terminant/' . strtolower(substr($word, -min(2, $length))));
+        $add('endsWith', 'terminant/' . mb_strtolower(mb_substr($word, -min(2, $length)), 'UTF-8'));
 
         // Liens "contenant" SANS ancrage retires (audit final, 3e passe, code-reviewer/
         // code-optimizer, bloquant) : /mots/contenant/{sous-chaine} sans longueur/debut/fin en
@@ -709,12 +767,16 @@ final class RelationsFinder
         // hub /mots (App\View\explore-hub.php, saisie humaine volontaire, jamais auto-genere en
         // masse) reste la seule porte d'entree vers cette recherche.
 
-        $distinctLetters = array_unique(str_split($word));
+        // mb_str_split (pas str_split) : meme raison que changeOneLetterCandidates.
+        $distinctLetters = array_unique(mb_str_split($word));
         sort($distinctLetters, SORT_STRING);
         $lettersForAvec = array_slice($distinctLetters, 0, 3);
 
         if ($lettersForAvec !== []) {
-            $segments = implode('/', array_map(static fn (string $l): string => strtolower($l), $lettersForAvec));
+            $segments = implode('/', array_map(
+                static fn (string $l): string => mb_strtolower($l, 'UTF-8'),
+                $lettersForAvec,
+            ));
             $add('with', $length . '-lettres/avec/' . $segments);
         }
 
@@ -743,9 +805,11 @@ final class RelationsFinder
      */
     private static function toItem(array $row): array
     {
+        // mb_strtolower (pas strtolower) : $row['normalized'] peut contenir Ä/Ö/Ü --
+        // strtolower() (ASCII uniquement) les laisserait en majuscule dans le slug.
         return [
             'normalized' => $row['normalized'],
-            'slug' => strtolower($row['normalized']),
+            'slug' => mb_strtolower($row['normalized'], 'UTF-8'),
             'score' => (int) $row['score'],
             'length' => (int) $row['length'],
             'isOds8' => (int) $row['is_ods8'] === 1,

@@ -15,8 +15,9 @@ namespace App\Search;
  * source de verite).
  *
  * Bornes (D-010, meme plafond que Normalizer::MAX_LENGTH) : de 1 a 15 cases au total
- * (lettres connues + jokers), au plus MAX_JOKERS jokers -- le sac de Scrabble francais
- * ne contient que deux jetons blancs.
+ * (lettres connues + jokers), au plus MAX_JOKERS jokers -- le sac de Scrabble allemand
+ * (102 tuiles) ne contient lui aussi que deux jetons blancs, meme valeur que le sac
+ * francais dont ce fichier est issu.
  *
  * Representation canonique d'URL : jokers rendus par '*', jamais '?'. Un '?' litteral
  * non encode dans une URL introduit une chaine de requete cote client -- un lien ou une
@@ -60,11 +61,16 @@ final class Rack
         $jokerCount = substr_count($normalized, '?') + substr_count($normalized, '*');
         $lettersOnly = str_replace(['?', '*'], '', $normalized);
 
-        if ($lettersOnly !== '' && preg_match('/^[A-Z]+\z/', $lettersOnly) !== 1) {
+        // [A-ZÄÖÜ] (pas [A-Z] seul) + modificateur /u : Ä/Ö/Ü sont des lettres allemandes
+        // valides sur un chevalet, pas des variantes de A/O/U -- meme correctif que
+        // Normalizer::VALID_PATTERN, pour la meme raison (sequences UTF-8 multioctet).
+        if ($lettersOnly !== '' && preg_match('/^[A-ZÄÖÜ]+\z/u', $lettersOnly) !== 1) {
             return null;
         }
 
-        $totalTiles = strlen($lettersOnly) + $jokerCount;
+        // mb_strlen (pas strlen) : $lettersOnly peut contenir Ä/Ö/Ü (deux octets UTF-8
+        // chacune) -- strlen() compterait des octets, pas des cases de chevalet.
+        $totalTiles = mb_strlen($lettersOnly) + $jokerCount;
 
         if ($totalTiles < self::MIN_TILES || $totalTiles > Normalizer::MAX_LENGTH) {
             return null;
@@ -74,8 +80,10 @@ final class Rack
             return null;
         }
 
+        // mb_str_split (pas str_split) : meme raison, un chevalet avec Ä/Ö/Ü serait
+        // sinon compte/regroupe par octet plutot que par lettre.
         /** @var array<string, int> $letterCounts */
-        $letterCounts = $lettersOnly === '' ? [] : array_count_values(str_split($lettersOnly));
+        $letterCounts = $lettersOnly === '' ? [] : array_count_values(mb_str_split($lettersOnly));
         ksort($letterCounts, SORT_STRING);
 
         return new self($letterCounts, $jokerCount, self::buildSlug($letterCounts, $jokerCount));
@@ -92,6 +100,8 @@ final class Rack
             $letters .= str_repeat($letter, $count);
         }
 
-        return strtolower($letters) . str_repeat('*', $jokerCount);
+        // mb_strtolower (pas strtolower) : $letters peut contenir Ä/Ö/Ü -- strtolower()
+        // (ASCII uniquement) les laisserait en majuscule dans le slug d'URL.
+        return mb_strtolower($letters, 'UTF-8') . str_repeat('*', $jokerCount);
     }
 }

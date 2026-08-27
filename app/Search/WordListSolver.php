@@ -160,8 +160,10 @@ final class WordListSolver
             default => 'normalized',
         };
 
+        // is_admitted AS is_ods8/is_ods9 : ADAPTATION ALLEMANDE, voir TermLookup pour
+        // l'explication complete.
         $pageStatement = $pdo->prepare(
-            'SELECT normalized, score, length, is_ods8, is_ods9 FROM terms '
+            'SELECT normalized, score, length, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms '
             . "$whereSql ORDER BY $orderBy LIMIT ? OFFSET ?"
         );
         $pageStatement->execute([...$params, self::PAGE_SIZE, $offset]);
@@ -271,7 +273,7 @@ final class WordListSolver
             // CEILING + 1 suffit. $truncated se deduit du nombre de lignes rendues ; la ligne
             // CEILING + 1 (au-dela de ce que $total doit annoncer) est simplement retiree.
             $statement = $pdo->prepare(
-                "SELECT normalized, score, length, is_ods8, is_ods9 FROM terms $whereSql "
+                "SELECT normalized, score, length, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms $whereSql "
                 . 'ORDER BY normalized LIMIT ?'
             );
             $statement->execute([...$params, self::ROW_EXAMINATION_CEILING + 1]);
@@ -296,7 +298,7 @@ final class WordListSolver
 
             $fetchStatement = $pdo->prepare(
                 'SELECT normalized, score, length, is_ods8, is_ods9 FROM ('
-                . "SELECT normalized, score, length, is_ods8, is_ods9 FROM terms $whereSql "
+                . "SELECT normalized, score, length, is_admitted AS is_ods8, is_admitted AS is_ods9 FROM terms $whereSql "
                 . "ORDER BY $anchorOrder LIMIT ?"
                 . ') ORDER BY normalized'
             );
@@ -383,7 +385,9 @@ final class WordListSolver
         // s'ajoute en predicat supplementaire sur le petit panier deja isole par l'egalite (pas
         // dans cet index, mais bon marche a ce stade). Toujours prioritaire sur le choix par
         // frequence ci-dessous.
-        if ($filters->prefix !== null && strlen($filters->prefix) === 1 && $filters->suffix !== null && strlen($filters->suffix) === 1) {
+        // mb_strlen (pas strlen) : un prefixe/suffixe Ä/Ö/Ü (deux octets UTF-8) resterait
+        // sinon jamais detecte comme "une seule lettre", ratant l'index dedie pour ce cas.
+        if ($filters->prefix !== null && mb_strlen($filters->prefix) === 1 && $filters->suffix !== null && mb_strlen($filters->suffix) === 1) {
             $conditions[] = 'substr(normalized, 1, 1) = ?';
             $params[] = $filters->prefix;
             $conditions[] = 'substr(reversed, 1, 1) = ?';
@@ -407,7 +411,15 @@ final class WordListSolver
             // D-025 (jamais lie ni indexe aujourd'hui) -- choix par frequence en repli, une
             // amelioration reelle sur l'ancien "toujours le prefixe" sans necessiter un index
             // dedie a ce cas plus rare.
-            $preferSuffixAnchor = $this->suffixLetterIsRarer($filters->prefix[0], $filters->suffix[strlen($filters->suffix) - 1]);
+            // mb_substr (pas $prefix[0]/$suffix[strlen-1], byte-orientes) : la premiere lettre
+            // du prefixe ou la derniere du suffixe peut etre Ä/Ö/Ü. Actuellement sans effet
+            // observable (list_counts n'est pas peuplee pour l'allemand cette passe, voir
+            // schema.sql -- suffixLetterIsRarer() renvoie toujours false par defaut), mais
+            // corrige pour rester correct des qu'un futur lot peuplera list_counts.
+            $preferSuffixAnchor = $this->suffixLetterIsRarer(
+                mb_substr($filters->prefix, 0, 1),
+                mb_substr($filters->suffix, -1),
+            );
             $frequencyQueryCount = 1;
         }
 
@@ -622,33 +634,40 @@ final class WordListSolver
         return [implode(' AND ', $conditions), $params];
     }
 
-    /** Portion de $pattern avant la premiere case inconnue ('-'), '' si $pattern commence par '-'. */
+    /** Portion de $pattern avant la premiere case inconnue ('-'), '' si $pattern commence par '-'.
+     * mb_strpos/mb_substr (pas strpos/substr) : $pattern peut contenir Ä/Ö/Ü en case connue. */
     private static function patternLeadingPrefix(string $pattern): string
     {
-        $dash = strpos($pattern, '-');
+        $dash = mb_strpos($pattern, '-');
 
-        return $dash === false ? $pattern : substr($pattern, 0, $dash);
+        return $dash === false ? $pattern : mb_substr($pattern, 0, $dash);
     }
 
     /**
      * Cases connues APRES la premiere case inconnue -- celles que anchorClause() ne peut pas
-     * deja couvrir via un prefixe. Position 1-based (convention substr() SQLite).
+     * deja couvrir via un prefixe. Position 1-based (convention substr() SQLite, qui compte
+     * deja par CARACTERE, pas par octet).
+     *
+     * mb_strpos/mb_str_split (pas strpos/$pattern[$i]) : $pattern peut contenir Ä/Ö/Ü, codees
+     * sur deux octets UTF-8 -- l'indexation par octet couperait une lettre en deux ou
+     * decalerait les positions suivantes.
      *
      * @return list<array{0: int, 1: string}>
      */
     private static function patternResidualPredicates(string $pattern): array
     {
-        $dash = strpos($pattern, '-');
+        $dash = mb_strpos($pattern, '-');
 
         if ($dash === false) {
             return [];
         }
 
+        $letters = mb_str_split($pattern);
         $residual = [];
 
-        for ($i = $dash; $i < strlen($pattern); $i++) {
-            if ($pattern[$i] !== '-') {
-                $residual[] = [$i + 1, $pattern[$i]];
+        for ($i = $dash; $i < count($letters); $i++) {
+            if ($letters[$i] !== '-') {
+                $residual[] = [$i + 1, $letters[$i]];
             }
         }
 
@@ -667,11 +686,13 @@ final class WordListSolver
      */
     private static function rangeBounds(string $prefix): array
     {
-        $chars = str_split($prefix);
+        // mb_str_split + mb_ord()/mb_chr() (pas str_split/ord/chr) : voir
+        // RelationsFinder::rangeBounds() pour l'explication complete.
+        $chars = mb_str_split($prefix);
 
         for ($i = count($chars) - 1; $i >= 0; $i--) {
             if ($chars[$i] !== 'Z') {
-                $chars[$i] = chr(ord($chars[$i]) + 1);
+                $chars[$i] = mb_chr(mb_ord($chars[$i]) + 1);
 
                 return [$prefix, implode('', array_slice($chars, 0, $i + 1))];
             }
@@ -690,9 +711,10 @@ final class WordListSolver
             $isOds8 = (int) $row['is_ods8'] === 1;
             $isOds9 = (int) $row['is_ods9'] === 1;
 
+            // mb_strtolower (pas strtolower) : voir TermLookup::find() pour la meme raison.
             return [
                 'normalized' => $row['normalized'],
-                'slug' => strtolower($row['normalized']),
+                'slug' => mb_strtolower($row['normalized'], 'UTF-8'),
                 'score' => (int) $row['score'],
                 'length' => (int) $row['length'],
                 'isOds8' => $isOds8,

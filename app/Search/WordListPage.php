@@ -9,11 +9,13 @@ namespace App\Search;
  * hors perimetre de cet agent -- structure prete a rendre, meme principe que TermPage pour
  * /mot/{mot} et RackPage pour /jouer/{lettres}).
  *
- * Contrairement a RackPage (qui ne renvoie que des mots admis, "quel mot puis-je jouer"),
- * cette liste couvre TOUTE la base is_french = 1 -- une fiche par forme francaise, admise ou
- * non (D-006, D-011). Chaque entree porte donc un statut explicite parmi les trois valeurs
- * fermees de TermPage::STATUS_* (jamais STATUS_UNKNOWN : une ligne presente dans `terms`
- * est par construction is_french = 1, jamais un terme inconnu).
+ * Cette liste couvre TOUTE la base -- une fiche par forme presente en base, chaque entree
+ * porte un statut explicite parmi les trois valeurs fermees de TermPage::STATUS_* (jamais
+ * STATUS_UNKNOWN : une ligne presente dans `terms` designe un terme trouve par construction,
+ * jamais un terme inconnu). ADAPTATION ALLEMANDE : dans cette premiere passe, toute ligne de
+ * `terms` a is_admitted = 1 (source unique, voir schema.sql) -- le statut observe ici vaut
+ * donc toujours TermPage::STATUS_ADMITTED, jamais STATUS_FRENCH_NOT_ADMITTED (constante
+ * conservee pour le modele ferme, pas produite par les donnees actuelles).
  *
  * Deux regimes, determines par WordListSolver selon les contraintes presentes (voir sa
  * documentation pour la mesure qui justifie ce choix) :
