@@ -6,20 +6,22 @@ use App\Database\Connection;
 use Tests\Support\Assert;
 
 /**
- * Verifie l'application effective de D-001/D-007 (lecture seule stricte au runtime) :
- * lecture possible, ecriture impossible par construction, aucun fichier cree en cas de
- * chemin absent.
+ * Verifie l'application effective de la lecture seule stricte au runtime : lecture
+ * possible, ecriture impossible par construction, aucun fichier cree en cas de chemin
+ * absent.
  */
 return function (): void {
-    $dbPath = __DIR__ . '/../../storage/dictionary_fr.sqlite';
+    $dbPath = __DIR__ . '/../../storage/dictionary_de.sqlite';
     Assert::true(is_file($dbPath), 'base manquante : ' . $dbPath);
 
     $connection = new Connection($dbPath);
     $pdo = $connection->pdo();
 
-    $row = $pdo->query("SELECT normalized FROM terms WHERE normalized = 'POSER' LIMIT 1")->fetch();
+    // SCHÖN : mot allemand reel, choisi ici (plutot qu'un mot sans diacritique) pour que
+    // ce test le plus simple de la suite exerce deja Ä/Ö/Ü sur une connexion reelle.
+    $row = $pdo->query("SELECT normalized FROM terms WHERE normalized = 'SCHÖN' LIMIT 1")->fetch();
     Assert::notNull($row, 'lecture attendue sur une connexion en lecture seule');
-    Assert::same('POSER', $row['normalized']);
+    Assert::same('SCHÖN', $row['normalized']);
 
     // La connexion est memorisee : deux appels a pdo() renvoient la meme instance,
     // pas une reouverture a chaque appel.
@@ -27,12 +29,14 @@ return function (): void {
 
     // Toute tentative d'ecriture doit echouer, quel que soit le mecanisme employe
     // (SQLITE_OPEN_READONLY, PDO::SQLITE_ATTR_READONLY_STATEMENT, PRAGMA query_only).
+    // Colonnes conformes au schema allemand simplifie (schema.sql) : is_admitted
+    // uniquement, pas de is_french/is_ods8/is_ods9 (fusionnees, voir schema.sql).
     $wrote = true;
     try {
         $pdo->exec(
-            "INSERT INTO terms (display_term, normalized, is_french, is_ods8, is_ods9, "
+            "INSERT INTO terms (display_term, normalized, is_admitted, "
             . "score, length, signature, reversed) "
-            . "VALUES ('X', 'ZZZTESTONLY', 1, 0, 0, 1, 11, 'X', 'X')"
+            . "VALUES ('X', 'ZZZTESTONLY', 1, 1, 11, 'X', 'X')"
         );
     } catch (\Throwable) {
         $wrote = false;
