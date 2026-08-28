@@ -76,15 +76,17 @@ return function (): void {
     );
 
     // Deux boutons de soumission natifs sur le meme champ (type="submit" +
-    // formaction), sans JavaScript requis : "Trouver" vers /wortsuche, "Vérifier" vers
+    // formaction), sans JavaScript requis : "Finden" vers /wortsuche, "Prüfen" vers
     // /pruefen -- exactement le layout de prototype/index.html.
+    // ADAPTATION ALLEMANDE (cette passe) : libelles traduits ("Trouver" -> "Finden",
+    // "Vérifier" -> "Prüfen"), assertions mises a jour en consequence.
     Assert::true(
-        str_contains($html, 'type="submit" formaction="/wortsuche">Trouver</button>'),
-        'le bouton Trouver doit soumettre en GET vers /wortsuche via formaction',
+        str_contains($html, 'type="submit" formaction="/wortsuche">Finden</button>'),
+        'le bouton Finden doit soumettre en GET vers /wortsuche via formaction',
     );
     Assert::true(
-        str_contains($html, 'type="submit" formaction="/pruefen">Vérifier</button>'),
-        'le bouton Vérifier doit soumettre en GET vers /pruefen via formaction',
+        str_contains($html, 'type="submit" formaction="/pruefen">Prüfen</button>'),
+        'le bouton Prüfen doit soumettre en GET vers /pruefen via formaction',
     );
 
     // D-015 : aucun credit de source publie.

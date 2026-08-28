@@ -129,14 +129,16 @@ return function (): void {
 
     $htmlAa = $render($aaPage, $aaRelations, $noConjugation, $noSenses);
 
-    Assert::true(str_contains($htmlAa, 'Jouer Autour De AA'), 'AA : titre de section relations attendu');
+    // ADAPTATION ALLEMANDE (cette passe) : titres/libelles traduits, memes invariants
+    // structurels testes -- voir rapport de tache pour la terminologie complete.
+    Assert::true(str_contains($htmlAa, 'Rund Um AA Spielen'), 'AA : titre de section relations attendu');
 
     // Categories structurellement vides : aucune trace de leur titre exact.
-    Assert::true(!str_contains($htmlAa, '<span>Anagrammes</span>'), 'AA : anagrammes exactes structurellement vide, aucune section');
-    Assert::true(!str_contains($htmlAa, '<span>Retirer Une Lettre</span>'), 'AA : retirer une lettre structurellement vide, aucune section');
-    Assert::true(!str_contains($htmlAa, '<span>Sous-Mots</span>'), 'AA : sous-mots structurellement vide, aucune section');
-    Assert::true(!str_contains($htmlAa, '<span>Anagrammes Avec Une Lettre En Moins</span>'), 'AA : anagrammes -1 lettre structurellement vide, aucune section');
-    Assert::true(!str_contains($htmlAa, 'AA Dans Un Mot Plus Long'), 'AA : mot contenu structurellement vide, aucune section');
+    Assert::true(!str_contains($htmlAa, '<span>Anagramme</span>'), 'AA : anagrammes exactes structurellement vide, aucune section');
+    Assert::true(!str_contains($htmlAa, '<span>Einen Buchstaben Entfernen</span>'), 'AA : retirer une lettre structurellement vide, aucune section');
+    Assert::true(!str_contains($htmlAa, '<span>Teilwörter</span>'), 'AA : sous-mots structurellement vide, aucune section');
+    Assert::true(!str_contains($htmlAa, '<span>Anagramme Mit Einem Buchstaben Weniger</span>'), 'AA : anagrammes -1 lettre structurellement vide, aucune section');
+    Assert::true(!str_contains($htmlAa, 'AA In Einem Längeren Wort'), 'AA : mot contenu structurellement vide, aucune section');
 
     // changeOneLetter : position/newLetter fournis par le backend, surlignage attendu.
     Assert::true(str_contains($htmlAa, 'A<mark>B</mark>'), 'AA : changeOneLetter doit surligner la lettre en position 2 (AB)');
@@ -144,16 +146,16 @@ return function (): void {
     // insertOneLetter : surlignage calcule par comparaison de chaines (ACA = A + C inseree).
     Assert::true(str_contains($htmlAa, 'A<mark>C</mark>A'), 'AA : insertOneLetter doit surligner la lettre inseree (ACA)');
 
-    // rightExtensions : mot pivot surligne en prefixe, lien "Voir les N mots" car total (5) > items affiches (2).
+    // rightExtensions : mot pivot surligne en prefixe, lien "Alle N Wörter ansehen" car total (5) > items affiches (2).
     Assert::true(str_contains($htmlAa, '<mark>AA</mark>H'), 'AA : rightExtensions doit surligner le prefixe (AAH)');
     Assert::true(str_contains($htmlAa, '<mark>AA</mark>S'), 'AA : rightExtensions doit surligner le prefixe (AAS)');
-    Assert::true(str_contains($htmlAa, 'href="/woerter/beginnend-mit/aa"'), 'AA : lien "Voir les N mots" attendu pour rightExtensions (total > affiches)');
-    Assert::true(str_contains($htmlAa, 'Voir les 5 mots'), 'AA : libelle du lien rightExtensions avec le total exact');
+    Assert::true(str_contains($htmlAa, 'href="/woerter/beginnend-mit/aa"'), 'AA : lien "Alle N Wörter ansehen" attendu pour rightExtensions (total > affiches)');
+    Assert::true(str_contains($htmlAa, 'Alle 5 Wörter ansehen'), 'AA : libelle du lien rightExtensions avec le total exact');
 
-    // leftExtensions : mot pivot surligne en suffixe, PAS de lien "Voir les N mots" (total == affiches).
+    // leftExtensions : mot pivot surligne en suffixe, PAS de lien "Alle N Wörter ansehen" (total == affiches).
     Assert::true(str_contains($htmlAa, 'B<mark>AA</mark>'), 'AA : leftExtensions doit surligner le suffixe (BAA)');
-    Assert::true(!str_contains($htmlAa, 'href="/woerter/endend-mit/aa"'), 'AA : aucun lien "Voir les N mots" pour leftExtensions (total == affiches)');
-    Assert::true(str_contains($htmlAa, '1 mot<'), 'AA : compte au singulier pour leftExtensions (1 mot)');
+    Assert::true(!str_contains($htmlAa, 'href="/woerter/endend-mit/aa"'), 'AA : aucun lien "Alle N Wörter ansehen" pour leftExtensions (total == affiches)');
+    Assert::true(str_contains($htmlAa, '1 Wort<'), 'AA : compte au singulier pour leftExtensions (1 Wort)');
 
     // anagramsPlusOne : regroupement par lettre ajoutee, pas de surlignage.
     Assert::true(str_contains($htmlAa, '<span class="plus">+B</span>'), 'AA : groupe +B attendu pour anagramsPlusOne');
@@ -161,7 +163,7 @@ return function (): void {
     Assert::true(str_contains($htmlAa, '>AAB<') && str_contains($htmlAa, '>ABA<') && str_contains($htmlAa, '>CAA<'), 'AA : les trois mots anagramsPlusOne doivent apparaitre en liens');
 
     // Recherches liees.
-    Assert::true(str_contains($htmlAa, 'Recherches Liées'), 'AA : section recherches liees attendue');
+    Assert::true(str_contains($htmlAa, 'Verwandte Suchen'), 'AA : section recherches liees attendue');
     Assert::true(str_contains($htmlAa, '>Wörter Mit 2 Buchstaben<'), 'AA : libelle "length" attendu');
     Assert::true(str_contains($htmlAa, '>Beginnend Mit A<'), 'AA : libelle "startsWith" attendu');
     Assert::true(str_contains($htmlAa, '>Wortsuche Mit AA<'), 'AA : libelle "play" attendu');
@@ -209,12 +211,12 @@ return function (): void {
 
     $htmlLong = $render($longPage, $longRelations, $noConjugation, $noSenses);
 
-    Assert::true(str_contains($htmlLong, 'Jouer Autour De ABANDONNATRICES'), 'ABANDONNATRICES : titre de section relations attendu');
-    Assert::true(!str_contains($htmlLong, '<span>Insérer Une Lettre</span>'), 'ABANDONNATRICES : inserer une lettre structurellement vide (D-010)');
-    Assert::true(!str_contains($htmlLong, '<span>Anagrammes Avec Une Lettre En Plus</span>'), 'ABANDONNATRICES : anagrammes +1 lettre structurellement vide (D-010)');
-    Assert::true(!str_contains($htmlLong, '<span>Rallonges À Droite</span>'), 'ABANDONNATRICES : rallonges a droite structurellement vide (D-010)');
-    Assert::true(!str_contains($htmlLong, '<span>Rallonges À Gauche</span>'), 'ABANDONNATRICES : rallonges a gauche structurellement vide (D-010)');
-    Assert::true(!str_contains($htmlLong, 'ABANDONNATRICES Dans Un Mot Plus Long'), 'ABANDONNATRICES : mot contenu structurellement vide (D-010)');
+    Assert::true(str_contains($htmlLong, 'Rund Um ABANDONNATRICES Spielen'), 'ABANDONNATRICES : titre de section relations attendu');
+    Assert::true(!str_contains($htmlLong, '<span>Einen Buchstaben Einfügen</span>'), 'ABANDONNATRICES : inserer une lettre structurellement vide (D-010)');
+    Assert::true(!str_contains($htmlLong, '<span>Anagramme Mit Einem Buchstaben Mehr</span>'), 'ABANDONNATRICES : anagrammes +1 lettre structurellement vide (D-010)');
+    Assert::true(!str_contains($htmlLong, '<span>Verlängerungen Nach Rechts</span>'), 'ABANDONNATRICES : rallonges a droite structurellement vide (D-010)');
+    Assert::true(!str_contains($htmlLong, '<span>Verlängerungen Nach Links</span>'), 'ABANDONNATRICES : rallonges a gauche structurellement vide (D-010)');
+    Assert::true(!str_contains($htmlLong, 'ABANDONNATRICES In Einem Längeren Wort'), 'ABANDONNATRICES : mot contenu structurellement vide (D-010)');
     Assert::true(str_contains($htmlLong, 'ABANDONNATRICE<mark>X</mark>'), 'ABANDONNATRICES : changeOneLetter doit surligner la derniere position');
 
     // -------------------------------------------------------------------
@@ -239,7 +241,7 @@ return function (): void {
     );
     $htmlNotAdmitted = $render($notAdmittedPage, null, $noConjugation, $noSenses);
     Assert::true(!str_contains($htmlNotAdmitted, 'class="relations"'), 'GHOSTER : francais non admis, aucune section relations');
-    Assert::true(!str_contains($htmlNotAdmitted, 'Recherches Liées'), 'GHOSTER : francais non admis, aucune recherche liee');
+    Assert::true(!str_contains($htmlNotAdmitted, 'Verwandte Suchen'), 'GHOSTER : francais non admis, aucune recherche liee');
     Assert::true(str_contains($htmlNotAdmitted, '<p class="pos-line">Verbe</p>'), 'GHOSTER : pos renseigne malgre le statut non admis, ligne attendue');
     Assert::true(!str_contains($htmlNotAdmitted, 'class="conjugation"'), 'GHOSTER : aucune donnee de conjugaison, aucune section');
 
@@ -258,7 +260,7 @@ return function (): void {
     );
     $htmlUnknown = $render($unknownPage, null, $noConjugation, $noSenses);
     Assert::true(!str_contains($htmlUnknown, 'class="relations"'), 'ZZZQQQXXX : inconnu, aucune section relations');
-    Assert::true(!str_contains($htmlUnknown, 'Recherches Liées'), 'ZZZQQQXXX : inconnu, aucune recherche liee');
+    Assert::true(!str_contains($htmlUnknown, 'Verwandte Suchen'), 'ZZZQQQXXX : inconnu, aucune recherche liee');
     Assert::true(!str_contains($htmlUnknown, 'class="pos-line"'), 'ZZZQQQXXX : pos absent (terme inconnu), aucune ligne nature grammaticale');
     Assert::true(!str_contains($htmlUnknown, 'class="conjugation"'), 'ZZZQQQXXX : pos absent, aucune section conjugaison');
 
