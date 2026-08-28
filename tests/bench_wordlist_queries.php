@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Chronometre et documente les requetes SQLite de la Phase 3 (listes /mots/...), telles
+ * Chronometre et documente les requetes SQLite de la Phase 3 (listes /woerter/...), telles
  * qu'executees par App\Search\WordListSolver -- la meme classe que le runtime, pas une
  * reimplementation separee (meme methodologie que tests/bench_rack_queries.php, Phase 2).
  *
@@ -90,20 +90,20 @@ function usesTableScan(array $planText): bool
 }
 
 $cases = [
-    ['label' => 'Longueur seule (route documentee : /mots/7-lettres)', 'path' => '7-lettres'],
-    ['label' => 'Commencant seul (route documentee : /mots/commencant/ch)', 'path' => 'commencant/ch'],
-    ['label' => 'Longueur + commencant (route documentee : /mots/7-lettres/commencant/ch)', 'path' => '7-lettres/commencant/ch'],
-    ['label' => 'Terminant seul (route documentee : /mots/terminant/tion)', 'path' => 'terminant/tion'],
-    ['label' => 'Contenant seul (route documentee : /mots/contenant/che) -- predicat non indexe', 'path' => 'contenant/che'],
-    ['label' => 'Avec, repetitions comptees (route documentee : /mots/avec/a/a/r) -- predicat non indexe, aucun ancrage', 'path' => 'avec/a/a/r'],
+    ['label' => 'Longueur seule (route documentee : /woerter/7-buchstaben)', 'path' => '7-buchstaben'],
+    ['label' => 'Beginnend-Mit seul (route documentee : /woerter/beginnend-mit/ch)', 'path' => 'beginnend-mit/ch'],
+    ['label' => 'Longueur + beginnend-mit (route documentee : /woerter/7-buchstaben/beginnend-mit/ch)', 'path' => '7-buchstaben/beginnend-mit/ch'],
+    ['label' => 'Endend-Mit seul (route documentee : /woerter/endend-mit/tion)', 'path' => 'endend-mit/tion'],
+    ['label' => 'Contenant seul (route documentee : /woerter/contenant/che) -- predicat non indexe', 'path' => 'contenant/che'],
+    ['label' => 'Avec, repetitions comptees (route documentee : /woerter/avec/a/a/r) -- predicat non indexe, aucun ancrage', 'path' => 'avec/a/a/r'],
     ['label' => 'Sans, lettre exclue -- predicat non indexe, aucun ancrage', 'path' => 'sans/z'],
-    ['label' => 'Motif (route documentee : /mots/5-lettres/motif/c--e-)', 'path' => '5-lettres/motif/c--e-'],
-    ['label' => 'Commencant + terminant -- PIRE CAS MESURE : panier ancre (CH, > 10 000 lignes) au-dessus du plafond', 'path' => 'commencant/ch/terminant/tion'],
-    ['label' => "Longueur seule sur le panier le plus grand de la base (11 lettres, 127 772 lignes) + avec impossible -- pire cas pathologique (0 resultat, plafond quand meme applique)", 'path' => '11-lettres/avec/z/z/z/z/z/q/q/q'],
+    ['label' => 'Motif (route documentee : /woerter/5-buchstaben/motif/c--e-)', 'path' => '5-buchstaben/motif/c--e-'],
+    ['label' => 'Beginnend-Mit + endend-mit -- PIRE CAS MESURE : panier ancre (CH, > 10 000 lignes) au-dessus du plafond', 'path' => 'beginnend-mit/ch/endend-mit/tion'],
+    ['label' => "Longueur seule sur le panier le plus grand de la base (11 lettres, 127 772 lignes) + avec impossible -- pire cas pathologique (0 resultat, plafond quand meme applique)", 'path' => '11-buchstaben/avec/z/z/z/z/z/q/q/q'],
 ];
 
 $lines = [
-    '# Plans De Requetes -- Phase 3 (Listes /mots/...)',
+    '# Plans De Requetes -- Phase 3 (Listes /woerter/...)',
     '',
     'Produit par `tests/bench_wordlist_queries.php`, lecture seule sur `storage/dictionary_fr.sqlite`,',
     'via `App\\Database\\Connection` et `App\\Search\\WordListSolver` -- les classes reellement',
@@ -195,7 +195,7 @@ foreach ($cases as $case) {
     }
 
     $exactMode = $isExactMethod->invoke($solver, $filters);
-    $lines[] = sprintf('Chemin : `/mots/%s`, canonique `%s`, regime **%s**.', $case['path'], $filters->canonicalPath(), $exactMode ? 'EXACT' : 'BORNE');
+    $lines[] = sprintf('Chemin : `/woerter/%s`, canonique `%s`, regime **%s**.', $case['path'], $filters->canonicalPath(), $exactMode ? 'EXACT' : 'BORNE');
     $lines[] = '';
 
     $timings = [];
@@ -283,7 +283,7 @@ foreach ($cases as $case) {
 $lines[] = '## Budget Par Page';
 $lines[] = '';
 $lines[] = sprintf(
-    'Pire cas mesure (commencant + terminant, panier ancre au-dessus du plafond) : %d requetes '
+    'Pire cas mesure (beginnend-mit + endend-mit, panier ancre au-dessus du plafond) : %d requetes '
     . 'indexees, mediane %.3f ms. Tous les cas testes restent a 2 requetes, tres en-dessous du '
     . 'budget de moins de 10 requetes par fiche (CLAUDE.md).',
     $namedWorstCaseQueries ?? 0,
@@ -293,8 +293,8 @@ $lines[] = '';
 
 $lines[] = '## Verification Croisee Par Force Brute (Hors Chronometrage)';
 $lines[] = '';
-$lines[] = 'tests/Search/WordListSolverTest.php verifie chaque contrainte (longueur, commencant,';
-$lines[] = 'contenant, terminant, avec, sans, motif) et plusieurs combinaisons par recalcul direct';
+$lines[] = 'tests/Search/WordListSolverTest.php verifie chaque contrainte (longueur, beginnend-mit,';
+$lines[] = 'contenant, endend-mit, avec, sans, motif) et plusieurs combinaisons par recalcul direct';
 $lines[] = '(instr(), array_count_values(), substr()) sur les lignes reelles de la base -- pas un';
 $lines[] = 'echantillon. Voir la sortie de `php tests/run.php`.';
 $lines[] = '';

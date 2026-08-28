@@ -38,20 +38,22 @@ $pdo = $connection->pdo();
 $suggester = new Suggester($connection);
 
 /** Bornes [inclusive, exclusive) -- copie litterale de Suggester::rangeBounds(), a des fins
- * d'EXPLAIN QUERY PLAN uniquement (meme convention que les scripts bench_* precedents). */
+ * d'EXPLAIN QUERY PLAN uniquement (meme convention que les scripts bench_* precedents).
+ * mb_str_split/mb_chr/mb_ord (pas str_split/chr/ord), plus de cas special sur 'Z' : cette
+ * copie locale etait restee sur l'ancienne version bogue avant le correctif Ä/Ö/Ü (audit
+ * independant, docs/DECISIONS.md D-DE-011). */
 function rangeBounds(string $prefix): array
 {
-    $chars = str_split($prefix);
+    $chars = mb_str_split($prefix);
+    $lastIndex = count($chars) - 1;
 
-    for ($i = count($chars) - 1; $i >= 0; $i--) {
-        if ($chars[$i] !== 'Z') {
-            $chars[$i] = chr(ord($chars[$i]) + 1);
-
-            return [$prefix, implode('', array_slice($chars, 0, $i + 1))];
-        }
+    if ($lastIndex < 0) {
+        return [$prefix, null];
     }
 
-    return [$prefix, null];
+    $chars[$lastIndex] = mb_chr(mb_ord($chars[$lastIndex]) + 1);
+
+    return [$prefix, implode('', $chars)];
 }
 
 /** Requete reellement executee par Suggester::suggest() -- copie litterale, memes placeholders. */

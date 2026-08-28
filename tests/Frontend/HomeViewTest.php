@@ -56,15 +56,15 @@ return function (): void {
     );
 
     // Un seul champ de saisie principal (rapprochement de prototype/index.html,
-    // Phase 2) : GET natif, action /verifier par defaut, nomme "q" (repli additif lu
+    // Phase 2) : GET natif, action /pruefen par defaut, nomme "q" (repli additif lu
     // par public/index.php en plus de "mot"/"lettres" existants -- voir l'entete de
     // public/index.php). Deux <form> distincts depuis l'audit final (bloquant F1) :
     // le constructeur de contraintes a son propre formulaire, jamais partage avec
     // "Trouver"/"Vérifier" -- une simple touche Entree dans un champ de contrainte
-    // declenchait sinon le premier bouton submit du DOCUMENT ("Trouver" -> /jouer),
+    // declenchait sinon le premier bouton submit du DOCUMENT ("Trouver" -> /wortsuche),
     // perdant toute la saisie.
-    Assert::true(str_contains($html, '<form action="/verifier" method="get">'), 'le formulaire de recherche doit avoir /verifier comme action GET par defaut');
-    Assert::true(str_contains($html, '<form action="/mots" method="get">'), 'le constructeur de contraintes doit avoir son propre formulaire, action /mots');
+    Assert::true(str_contains($html, '<form action="/pruefen" method="get">'), 'le formulaire de recherche doit avoir /pruefen comme action GET par defaut');
+    Assert::true(str_contains($html, '<form action="/woerter" method="get">'), 'le constructeur de contraintes doit avoir son propre formulaire, action /woerter');
     Assert::true(str_contains($html, 'name="q"'), 'le champ unique doit se nommer "q", lu en repli par public/index.php');
     Assert::true(
         substr_count($html, '<form') === 2,
@@ -76,15 +76,15 @@ return function (): void {
     );
 
     // Deux boutons de soumission natifs sur le meme champ (type="submit" +
-    // formaction), sans JavaScript requis : "Trouver" vers /jouer, "Vérifier" vers
-    // /verifier -- exactement le layout de prototype/index.html.
+    // formaction), sans JavaScript requis : "Trouver" vers /wortsuche, "Vérifier" vers
+    // /pruefen -- exactement le layout de prototype/index.html.
     Assert::true(
-        str_contains($html, 'type="submit" formaction="/jouer">Trouver</button>'),
-        'le bouton Trouver doit soumettre en GET vers /jouer via formaction',
+        str_contains($html, 'type="submit" formaction="/wortsuche">Trouver</button>'),
+        'le bouton Trouver doit soumettre en GET vers /wortsuche via formaction',
     );
     Assert::true(
-        str_contains($html, 'type="submit" formaction="/verifier">Vérifier</button>'),
-        'le bouton Vérifier doit soumettre en GET vers /verifier via formaction',
+        str_contains($html, 'type="submit" formaction="/pruefen">Vérifier</button>'),
+        'le bouton Vérifier doit soumettre en GET vers /pruefen via formaction',
     );
 
     // D-015 : aucun credit de source publie.
@@ -94,7 +94,7 @@ return function (): void {
         Assert::true(!str_contains($lowerHtml, $needle), 'mention de source interdite (D-015) : ' . $needle);
     }
 
-    // Liens contextuels (maillage interne vers /mots/..., signale par l'agent
+    // Liens contextuels (maillage interne vers /woerter/..., signale par l'agent
     // seo-registry en Phase 6, D-017) : rapproches du formulaire (comme
     // prototype/index.html : chips attachees au champ, pas une section separee plus
     // bas) -- places dans le formulaire, apres l'aide du champ, avant sa fermeture.
@@ -110,21 +110,21 @@ return function (): void {
     // Nombre raisonnable de liens (esprit de retenue du projet, pas un mur de liens) :
     // au moins un, jamais plus d'une dizaine.
     $contextLinksBlock = substr($html, $contextLinksPos, $contextPos - $contextLinksPos);
-    $linkCount = substr_count($contextLinksBlock, '<a href="/mots/');
+    $linkCount = substr_count($contextLinksBlock, '<a href="/woerter/');
     Assert::true($linkCount >= 1 && $linkCount <= 10, 'entre 1 et 10 liens contextuels, jamais un mur de liens : ' . $linkCount);
 
-    // Chaque lien contextuel pointe vers une URL canonique /mots/... (jamais construite
+    // Chaque lien contextuel pointe vers une URL canonique /woerter/... (jamais construite
     // a la main -- App\Search\WordListFilters::canonicalUrl(), meme discipline que
     // app/View/word.php) et reste un simple <a> sans JavaScript requis.
-    Assert::true((bool) preg_match_all('#<a href="(/mots/[^"]+)">#', $contextLinksBlock, $m) && $m[1] !== [], 'les liens contextuels doivent pointer vers /mots/...');
+    Assert::true((bool) preg_match_all('#<a href="(/woerter/[^"]+)">#', $contextLinksBlock, $m) && $m[1] !== [], 'les liens contextuels doivent pointer vers /woerter/...');
     foreach ($m[1] as $href) {
-        $filters = \App\Search\WordListFilters::fromPath(preg_replace('#^/mots/?#', '', $href) ?? '');
+        $filters = \App\Search\WordListFilters::fromPath(preg_replace('#^/woerter/?#', '', $href) ?? '');
         Assert::true($filters !== null && $filters->canonicalUrl() === $href, 'chaque lien contextuel doit deja etre sous forme canonique : ' . $href);
     }
 
     // Etat d'erreur visible (audit final, bloquant F3, WCAG 3.3.1) : absent par defaut,
     // rendu comme bandeau role="alert" dans le search-card quand public/index.php detecte
-    // une saisie invalide sur /verifier ou /jouer (?erreur=1) -- jamais une section vide.
+    // une saisie invalide sur /pruefen ou /wortsuche (?erreur=1) -- jamais une section vide.
     Assert::true(!str_contains($html, 'role="alert"'), 'aucun bandeau erreur sans indicateur erreur=true');
 
     $htmlWithError = $render($config['min_term_length'], $config['max_term_length'], true);

@@ -63,7 +63,7 @@ return function (): void {
         $statusLine = '';
         for ($attempt = 0; $attempt < 3 && $body === false; $attempt++) {
             usleep(700_000);
-            $body = @file_get_contents('http://' . $host . '/mot/poser', false, $context);
+            $body = @file_get_contents('http://' . $host . '/wort/poser', false, $context);
             $statusLine = $http_response_header[0] ?? '';
         }
 

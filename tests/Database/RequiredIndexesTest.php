@@ -25,14 +25,14 @@ return function (): void {
     $pdo = new PDO('sqlite:' . $dbPath, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 
     $requiredIndexes = [
-        'idx_terms_length_normalized' => 'longueur+prefixe (/mots/{N}-lettres et ses paginations)',
+        'idx_terms_length_normalized' => 'longueur+prefixe (/woerter/{N}-buchstaben et ses paginations)',
         'idx_terms_signature' => 'anagrammes exactes et point de depart des anagrammes +-1 lettre',
-        'idx_terms_reversed' => 'suffixe seul (/mots/terminant/...)',
-        'idx_terms_length_reversed' => 'longueur+terminant combines, herite : jusqu\'a 1 779 ms mesure sans lui cote francais',
+        'idx_terms_reversed' => 'suffixe seul (/woerter/endend-mit/...)',
+        'idx_terms_length_reversed' => 'longueur+endend-mit combines, herite : jusqu\'a 1 779 ms mesure sans lui cote francais',
         'idx_terms_length_admitted_normalized' => 'filtre statut EXACT, herite : jusqu\'a 1 286 ms mesure sans lui cote francais',
         'idx_terms_admitted_normalized' => 'filtre statut BORNE sans ancrage de longueur',
         'idx_terms_length_score_normalized' => 'tri par points EXACT, herite : jusqu\'a 870 ms mesure sans lui cote francais',
-        'idx_terms_startletter_endletter_normalized' => 'commencant+terminant mono-lettre, herite : jusqu\'a 6 675 ms mesure sans lui cote francais',
+        'idx_terms_startletter_endletter_normalized' => 'beginnend-mit+endend-mit mono-lettre, herite : jusqu\'a 6 675 ms mesure sans lui cote francais',
     ];
 
     foreach ($requiredIndexes as $indexName => $reason) {

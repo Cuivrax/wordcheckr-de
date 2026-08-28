@@ -263,18 +263,18 @@ return function (): void {
     Assert::same(75, count($bruteFullPlusOne), 'anagramsPlusOne STEIN : 75 mots au total (verifie a la main sur la base reelle)');
     $assertCategory(array_column($relations->anagramsPlusOne, 'normalized'), $bruteFullPlusOne, 'anagramsPlusOne');
 
-    // --- Recherches liees : au plus 12, toutes des URL /mots/..., /jouer/... ou le hub /mots
+    // --- Recherches liees : au plus 12, toutes des URL /woerter/..., /wortsuche/... ou le hub /woerter
     // bien formees. ---
     Assert::true(count($relations->relatedSearches) <= RelationsFinder::MAX_RELATED_SEARCHES, 'relatedSearches : plafond de 12');
     foreach ($relations->relatedSearches as $link) {
         Assert::true(
-            $link['url'] === '/mots' || str_starts_with($link['url'], '/mots/') || str_starts_with($link['url'], '/jouer/'),
+            $link['url'] === '/woerter' || str_starts_with($link['url'], '/woerter/') || str_starts_with($link['url'], '/wortsuche/'),
             'relatedSearches : URL bien formee -- ' . $link['url'],
         );
     }
-    Assert::same(['/mots/5-lettres', '/mots/commencant/s', '/mots/commencant/ste', '/mots/terminant/in', '/mots/5-lettres/avec/e/i/n', '/jouer/einst', '/mots'], array_column($relations->relatedSearches, 'url'), 'relatedSearches STEIN : selection exacte connue');
+    Assert::same(['/woerter/5-buchstaben', '/woerter/beginnend-mit/s', '/woerter/beginnend-mit/ste', '/woerter/endend-mit/in', '/woerter/5-buchstaben/avec/e/i/n', '/wortsuche/einst', '/woerter'], array_column($relations->relatedSearches, 'url'), 'relatedSearches STEIN : selection exacte connue');
     foreach ($relations->relatedSearches as $link) {
-        Assert::true(!str_starts_with($link['url'], '/mots/contenant/'), 'relatedSearches ne doit jamais emettre de lien "contenant" sans ancrage : ' . $link['url']);
+        Assert::true(!str_starts_with($link['url'], '/woerter/contenant/'), 'relatedSearches ne doit jamais emettre de lien "contenant" sans ancrage : ' . $link['url']);
     }
 
     // --- Plafond global "environ 160 liens de mots" (docs/01) : verification que la fiche

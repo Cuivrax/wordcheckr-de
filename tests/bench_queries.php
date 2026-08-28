@@ -34,19 +34,19 @@ $queries = [
         'label' => 'Fiche mot',
         'sql' => 'SELECT display_term, score, length, is_ods8, is_ods9 FROM terms WHERE normalized = ? LIMIT 1',
         'params' => ['POSER'],
-        'usage' => '/mot/{mot} -- App\\Search\\TermLookup::find(), requete 1/3',
+        'usage' => '/wort/{mot} -- App\\Search\\TermLookup::find(), requete 1/3',
     ],
     [
         'label' => 'Mot precedent',
         'sql' => 'SELECT normalized FROM terms WHERE normalized < ? ORDER BY normalized DESC LIMIT 1',
         'params' => ['POSER'],
-        'usage' => '/mot/{mot} -- navigation, App\\Search\\TermLookup::find(), requete 2/3',
+        'usage' => '/wort/{mot} -- navigation, App\\Search\\TermLookup::find(), requete 2/3',
     ],
     [
         'label' => 'Mot suivant',
         'sql' => 'SELECT normalized FROM terms WHERE normalized > ? ORDER BY normalized ASC LIMIT 1',
         'params' => ['POSER'],
-        'usage' => '/mot/{mot} -- navigation, App\\Search\\TermLookup::find(), requete 3/3',
+        'usage' => '/wort/{mot} -- navigation, App\\Search\\TermLookup::find(), requete 3/3',
     ],
 ];
 
@@ -144,8 +144,8 @@ $lines[] = '';
 $lines[] = '## Budget par fiche';
 $lines[] = '';
 $lines[] = sprintf(
-    '%d requetes indexees pour /mot/{mot} (App\\Search\\TermLookup::find() = fiche + precedent + '
-    . 'suivant), 0 pour /verifier (redirection pure vers /mot/{slug}, aucune connexion ouverte), '
+    '%d requetes indexees pour /wort/{mot} (App\\Search\\TermLookup::find() = fiche + precedent + '
+    . 'suivant), 0 pour /pruefen (redirection pure vers /wort/{slug}, aucune connexion ouverte), '
     . '0 pour / (Phase 1, pas de solveur).',
     count($queries)
 );

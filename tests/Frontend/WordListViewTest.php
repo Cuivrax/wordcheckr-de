@@ -19,7 +19,7 @@ return function (): void {
     require __DIR__ . '/../../app/bootstrap.php';
 
     $render = static function (WordListPage $page, ?array $refine = null, ?LengthLinks $lengthLinks = null): string {
-        $seo = \App\Seo\SeoMeta::noindex('https://exemple.fr/mots/' . $page->canonicalPath);
+        $seo = \App\Seo\SeoMeta::noindex('https://exemple.fr/woerter/' . $page->canonicalPath);
 
         ob_start();
         (static function (WordListPage $page, ?array $refine, ?LengthLinks $lengthLinks, \App\Seo\SeoMeta $seo): void {
@@ -46,7 +46,7 @@ return function (): void {
     // actifs par defaut, tri visible (longueur presente).
     // -------------------------------------------------------------------
     $lengthPage = new WordListPage(
-        canonicalPath: '13-lettres',
+        canonicalPath: '13-buchstaben',
         page: 1,
         pageSize: 50,
         items: [$item('ABACTERIENNES', 'french_not_admitted')],
@@ -60,13 +60,13 @@ return function (): void {
     $htmlLength = $render($lengthPage);
 
     Assert::true(str_contains($htmlLength, 'Affiner La Liste'), 'section toggles attendue');
-    Assert::true(str_contains($htmlLength, '<a href="/mots/13-lettres" aria-current="page">Tous</a>'), '"Tous" actif par defaut');
-    Assert::true(str_contains($htmlLength, '<a href="/mots/13-lettres/statut/admis">Admis</a>'), 'lien "Admis" non actif');
-    Assert::true(str_contains($htmlLength, '<a href="/mots/13-lettres/statut/non-admis">Non Admis</a>'), 'lien "Non Admis" non actif');
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben" aria-current="page">Tous</a>'), '"Tous" actif par defaut');
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/statut/admis">Admis</a>'), 'lien "Admis" non actif');
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/statut/non-admis">Non Admis</a>'), 'lien "Non Admis" non actif');
     Assert::true(str_contains($htmlLength, 'Trier la liste'), 'groupe tri attendu (longueur presente)');
-    Assert::true(str_contains($htmlLength, '<a href="/mots/13-lettres" aria-current="page">Alphabétique</a>'), '"Alphabétique" actif par defaut');
-    Assert::true(str_contains($htmlLength, '<a href="/mots/13-lettres/tri/points">Points Croissants</a>'));
-    Assert::true(str_contains($htmlLength, '<a href="/mots/13-lettres/tri/points-desc">Points Décroissants</a>'));
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben" aria-current="page">Alphabétique</a>'), '"Alphabétique" actif par defaut');
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/tri/points">Points Croissants</a>'));
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/tri/points-desc">Points Décroissants</a>'));
 
     // Aucun maillage interne sans $lengthLinks.
     Assert::true(!str_contains($htmlLength, 'Commençant Par'), 'aucune section de maillage sans $lengthLinks');
@@ -76,7 +76,7 @@ return function (): void {
     // Prefixe seul (pas de longueur) : pas de groupe tri (tri exige une longueur).
     // -------------------------------------------------------------------
     $prefixPage = new WordListPage(
-        canonicalPath: 'commencant/ch',
+        canonicalPath: 'beginnend-mit/ch',
         page: 1,
         pageSize: 50,
         items: [$item('CHAT')],
@@ -96,7 +96,7 @@ return function (): void {
     // pointent vers l'URL courante, les variantes preservent l'autre dimension.
     // -------------------------------------------------------------------
     $statusSortPage = new WordListPage(
-        canonicalPath: '13-lettres/statut/admis/tri/points-desc',
+        canonicalPath: '13-buchstaben/statut/admis/tri/points-desc',
         page: 1,
         pageSize: 50,
         items: [$item('ABACTERIENNES')],
@@ -108,26 +108,26 @@ return function (): void {
         queryCount: 2,
     );
     $htmlStatusSort = $render($statusSortPage);
-    Assert::true(str_contains($htmlStatusSort, '<a href="/mots/13-lettres/statut/admis/tri/points-desc" aria-current="page">Admis</a>'), '"Admis" actif');
-    Assert::true(str_contains($htmlStatusSort, '<a href="/mots/13-lettres/tri/points-desc">Tous</a>'), '"Tous" preserve le tri actif en le retirant du seul statut');
-    Assert::true(str_contains($htmlStatusSort, '<a href="/mots/13-lettres/statut/admis/tri/points-desc" aria-current="page">Points Décroissants</a>'), '"Points Décroissants" actif');
-    Assert::true(str_contains($htmlStatusSort, '<a href="/mots/13-lettres/statut/admis">Alphabétique</a>'), '"Alphabétique" preserve le statut actif en retirant seulement le tri');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/statut/admis/tri/points-desc" aria-current="page">Admis</a>'), '"Admis" actif');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/tri/points-desc">Tous</a>'), '"Tous" preserve le tri actif en le retirant du seul statut');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/statut/admis/tri/points-desc" aria-current="page">Points Décroissants</a>'), '"Points Décroissants" actif');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/statut/admis">Alphabétique</a>'), '"Alphabétique" preserve le statut actif en retirant seulement le tri');
 
     // -------------------------------------------------------------------
     // Maillage interne (D-022) : trois groupes + lien hub, aucune section vide.
     // -------------------------------------------------------------------
     $lengthLinks = new LengthLinks(
         byStart: [
-            ['letter' => 'A', 'url' => '/mots/13-lettres/commencant/a', 'count' => 4777],
-            ['letter' => 'B', 'url' => '/mots/13-lettres/commencant/b', 'count' => 3122],
+            ['letter' => 'A', 'url' => '/woerter/13-buchstaben/beginnend-mit/a', 'count' => 4777],
+            ['letter' => 'B', 'url' => '/woerter/13-buchstaben/beginnend-mit/b', 'count' => 3122],
         ],
         byEnd: [
-            ['letter' => 'E', 'url' => '/mots/13-lettres/terminant/e', 'count' => 9663],
+            ['letter' => 'E', 'url' => '/woerter/13-buchstaben/endend-mit/e', 'count' => 9663],
         ],
         byWith: [],
         byPosition: [
             ['position' => 3, 'letters' => [
-                ['letter' => 'R', 'url' => '/mots/13-lettres/position/3/r', 'count' => 1234],
+                ['letter' => 'R', 'url' => '/woerter/13-buchstaben/position/3/r', 'count' => 1234],
             ]],
         ],
         byStartEnd: [],
@@ -135,16 +135,16 @@ return function (): void {
     );
     $htmlWithLinks = $render($lengthPage, null, $lengthLinks);
 
-    Assert::true(str_contains($htmlWithLinks, 'Mots De 13 Lettres Commençant Par'), 'titre commencant attendu');
+    Assert::true(str_contains($htmlWithLinks, 'Mots De 13 Lettres Commençant Par'), 'titre beginnend-mit attendu');
     Assert::true(str_contains($htmlWithLinks, '<span class="explore-label">A</span> <span class="explore-count">(4 777)</span>'), 'lien A avec compte formate attendu');
-    Assert::true(str_contains($htmlWithLinks, 'href="/mots/13-lettres/commencant/a"'), 'URL du lien A attendue');
-    Assert::true(str_contains($htmlWithLinks, 'Mots De 13 Lettres Terminant Par'), 'titre terminant attendu');
-    Assert::true(str_contains($htmlWithLinks, '(9 663)'), 'compte terminant formate attendu');
+    Assert::true(str_contains($htmlWithLinks, 'href="/woerter/13-buchstaben/beginnend-mit/a"'), 'URL du lien A attendue');
+    Assert::true(str_contains($htmlWithLinks, 'Mots De 13 Lettres Terminant Par'), 'titre endend-mit attendu');
+    Assert::true(str_contains($htmlWithLinks, '(9 663)'), 'compte endend-mit formate attendu');
     Assert::true(!str_contains($htmlWithLinks, 'Mots De 13 Lettres Avec'), 'byWith vide -- aucune section rendue (jamais de groupe vide)');
     Assert::true(str_contains($htmlWithLinks, 'Mots De 13 Lettres Par Position De Lettre'), 'titre position attendu (C1, audit D-028)');
     Assert::true(str_contains($htmlWithLinks, '<summary>3e Lettre (1)</summary>'), 'sommaire replie par groupe de position attendu');
-    Assert::true(str_contains($htmlWithLinks, 'href="/mots/13-lettres/position/3/r"'), 'URL du lien position attendue');
-    Assert::true(str_contains($htmlWithLinks, 'href="/mots">Toutes Les Longueurs Et Lettres</a>'), 'lien hub vers /mots attendu quand $lengthLinks est fourni');
+    Assert::true(str_contains($htmlWithLinks, 'href="/woerter/13-buchstaben/position/3/r"'), 'URL du lien position attendue');
+    Assert::true(str_contains($htmlWithLinks, 'href="/woerter">Toutes Les Longueurs Et Lettres</a>'), 'lien hub vers /woerter attendu quand $lengthLinks est fourni');
 
     // -------------------------------------------------------------------
     // Plafond de profondeur de pagination sur les listes ancrees (D-030, audit
@@ -153,7 +153,7 @@ return function (): void {
     // suivi du lien change (chaque page /page/N reste noindex,follow par ailleurs).
     // -------------------------------------------------------------------
     $anchoredPageTwo = new WordListPage(
-        canonicalPath: '13-lettres',
+        canonicalPath: '13-buchstaben',
         page: 2,
         pageSize: 50,
         items: [$item('ABACTERIENNES', 'french_not_admitted')],
@@ -165,11 +165,11 @@ return function (): void {
         queryCount: 2,
     );
     $htmlAnchoredTwo = $render($anchoredPageTwo);
-    Assert::true(str_contains($htmlAnchoredTwo, '<a href="/mots/13-lettres">← Précédent</a>'), 'page 2->1 (profondeur <= 3) : follow, sans rel');
-    Assert::true(str_contains($htmlAnchoredTwo, '<a href="/mots/13-lettres/page/3">Suivant →</a>'), 'page 2->3 (profondeur <= 3) : follow, sans rel');
+    Assert::true(str_contains($htmlAnchoredTwo, '<a href="/woerter/13-buchstaben">← Précédent</a>'), 'page 2->1 (profondeur <= 3) : follow, sans rel');
+    Assert::true(str_contains($htmlAnchoredTwo, '<a href="/woerter/13-buchstaben/page/3">Suivant →</a>'), 'page 2->3 (profondeur <= 3) : follow, sans rel');
 
     $anchoredPageFour = new WordListPage(
-        canonicalPath: '13-lettres',
+        canonicalPath: '13-buchstaben',
         page: 4,
         pageSize: 50,
         items: [$item('ABACTERIENNES', 'french_not_admitted')],
@@ -181,8 +181,8 @@ return function (): void {
         queryCount: 2,
     );
     $htmlAnchoredFour = $render($anchoredPageFour);
-    Assert::true(str_contains($htmlAnchoredFour, '<a href="/mots/13-lettres/page/3">← Précédent</a>'), 'page 4->3 (profondeur <= 3) : follow, sans rel');
-    Assert::true(str_contains($htmlAnchoredFour, '<a href="/mots/13-lettres/page/5" rel="nofollow">Suivant →</a>'), 'page 4->5 (profondeur > 3) : nofollow');
+    Assert::true(str_contains($htmlAnchoredFour, '<a href="/woerter/13-buchstaben/page/3">← Précédent</a>'), 'page 4->3 (profondeur <= 3) : follow, sans rel');
+    Assert::true(str_contains($htmlAnchoredFour, '<a href="/woerter/13-buchstaben/page/5" rel="nofollow">Suivant →</a>'), 'page 4->5 (profondeur > 3) : nofollow');
 
     $unanchoredPage = new WordListPage(
         canonicalPath: 'contenant/cha',
@@ -197,14 +197,14 @@ return function (): void {
         queryCount: 1,
     );
     $htmlUnanchored = $render($unanchoredPage);
-    Assert::true(str_contains($htmlUnanchored, '<a href="/mots/contenant/cha/page/2" rel="nofollow">Suivant →</a>'), 'liste non ancree : nofollow des la page 2, quelle que soit la profondeur (I-1 historique)');
+    Assert::true(str_contains($htmlUnanchored, '<a href="/woerter/contenant/cha/page/2" rel="nofollow">Suivant →</a>'), 'liste non ancree : nofollow des la page 2, quelle que soit la profondeur (I-1 historique)');
 
     // -------------------------------------------------------------------
     // Meta title/description enrichis (audit D-031, constat I-3) : citent le(s) mot(s)
     // reel(s) plutot qu'une phrase entierement templatee, pour les listes courtes.
     // -------------------------------------------------------------------
     $onePage = new WordListPage(
-        canonicalPath: '3-lettres/avec/a/b/e',
+        canonicalPath: '3-buchstaben/avec/a/b/e',
         page: 1,
         pageSize: 50,
         items: [$item('ABE', 'french_not_admitted')],
@@ -223,7 +223,7 @@ return function (): void {
     // Page hors bornes (total = 1 mais items vide, ex. ".../page/2" sur une liste a 1
     // resultat) : repli sur la phrase generique, jamais un crash sur $page->items[0].
     $oneOutOfRangePage = new WordListPage(
-        canonicalPath: '3-lettres/avec/a/b/e',
+        canonicalPath: '3-buchstaben/avec/a/b/e',
         page: 2,
         pageSize: 50,
         items: [],
@@ -240,7 +240,7 @@ return function (): void {
 
     // Liste courte (2 a 5 resultats) : description enumere les mots reels.
     $shortListPage = new WordListPage(
-        canonicalPath: '4-lettres/avec/q/x',
+        canonicalPath: '4-buchstaben/avec/q/x',
         page: 1,
         pageSize: 50,
         items: [$item('QUXE'), $item('AXQU', 'french_not_admitted')],

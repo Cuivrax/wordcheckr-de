@@ -11,21 +11,21 @@ use Tests\Support\Assert;
  * base de donnees -- verifie des invariants structurels sur le HTML produit :
  * - capped = true ne rend jamais "0" resultat comme si rien n'avait ete trouve ;
  * - matches vide et non capped affiche un message "aucun mot", distinct du cas capped ;
- * - chaque mot liste lie vers /mot/{slug}, avec les badges ODS8/ODS9 (.edition-badge,
- *   composant deja unifie en Phase 1, reutilise tel quel) ;
+ * - chaque mot liste lie vers /wort/{slug}, avec une pastille .status-badge (D-DE-011 :
+ *   remplace les anciennes pastilles ODS8/ODS9, sans equivalent public en allemand) ;
  * - truncated = true mentionne le total reel et la limite d'affichage ;
  * - mots de longueur extreme (2 et 15 lettres, D-010) ne cassent pas le rendu ;
  * - aucune mention de source de donnees (D-015) ;
- * - le formulaire de repli reste un GET natif vers /jouer (fonctionne sans JavaScript).
+ * - le formulaire de repli reste un GET natif vers /wortsuche (fonctionne sans JavaScript).
  */
 return function (): void {
     require __DIR__ . '/../../app/bootstrap.php';
 
-    $tileScores = require __DIR__ . '/../../config/sites/fr.php';
+    $tileScores = require __DIR__ . '/../../config/sites/de.php';
     $tileScores = $tileScores['tile_scores'];
 
     $render = static function (RackPage $page) use ($tileScores): string {
-        $seo = \App\Seo\SeoMeta::noindex('https://exemple.fr/jouer/' . $page->slug);
+        $seo = \App\Seo\SeoMeta::noindex('https://exemple.fr/wortsuche/' . $page->slug);
 
         ob_start();
         (static function (RackPage $page, array $tileScores, \App\Seo\SeoMeta $seo): void {
@@ -101,24 +101,27 @@ return function (): void {
 
     foreach ($matches as $match) {
         Assert::true(
-            str_contains($htmlFound, '<a class="rack-result-word" href="/mot/' . $match['slug'] . '">' . $match['normalized'] . '</a>'),
-            $match['normalized'] . ' : doit lier vers sa fiche /mot/{slug}',
+            str_contains($htmlFound, '<a class="rack-result-word" href="/wort/' . $match['slug'] . '">' . $match['normalized'] . '</a>'),
+            $match['normalized'] . ' : doit lier vers sa fiche /wort/{slug}',
         );
     }
 
     $listItemCount = substr_count($htmlFound, 'class="rack-result-row"');
     Assert::same(count($matches), $listItemCount, 'une ligne par mot jouable, ni plus ni moins');
 
-    // Badges ODS8/ODS9 : composant deja unifie (Phase 1), reutilise tel quel, jamais
-    // redouble par une variante concurrente.
-    Assert::true(str_contains($htmlFound, 'edition-badge active ods8'), 'ODS8 actif doit apparaitre pour OS');
-    Assert::true(str_contains($htmlFound, 'edition-badge inactive'), 'ODS9 inactif doit apparaitre pour ABANDONNATRICES');
+    // Pastille de statut par ligne (D-DE-011) : une seule .status-badge--admitted par mot
+    // liste, jamais les anciennes pastilles ODS8/ODS9 (sans equivalent public en allemand).
+    // +1 : la pastille de statut GLOBALE de la page (.word-answer, deja verifiee ligne 97
+    // ci-dessus) porte le meme modificateur "admitted" pour ce cas ($page->totalMatches > 1).
+    $statusBadgeCount = substr_count($htmlFound, 'status-badge status-badge--admitted');
+    Assert::same(count($matches) + 1, $statusBadgeCount, 'une pastille de statut "admitted" par mot liste, plus la pastille globale de la page');
+    Assert::true(!str_contains($htmlFound, 'edition-badge'), 'aucune pastille ODS8/ODS9 ne doit plus apparaitre (D-DE-011)');
 
     foreach ([$htmlCapped, $htmlEmpty, $htmlFound] as $html) {
-        // Le formulaire de repli doit rester un GET natif vers /jouer, meme nom de
+        // Le formulaire de repli doit rester un GET natif vers /wortsuche, meme nom de
         // champ que le repli lu par public/index.php (?lettres=..).
         Assert::true(
-            str_contains($html, '<form class="inline-check" action="/jouer" method="get">'),
+            str_contains($html, '<form class="inline-check" action="/wortsuche" method="get">'),
             'le formulaire de repli doit rester un GET natif sans JavaScript',
         );
         Assert::true(str_contains($html, 'name="lettres"'), 'le champ doit se nommer "lettres", lu par public/index.php');

@@ -120,20 +120,25 @@ function usesTableScan(array $planText): bool
     return false;
 }
 
-/** Bornes [inclusive, exclusive), meme technique que RelationsFinder::rangeBounds(). */
+/**
+ * Bornes [inclusive, exclusive), copie litterale de RelationsFinder::rangeBounds() APRES son
+ * correctif Ä/Ö/Ü (signale par l'audit independant, docs/DECISIONS.md D-DE-011 -- cette copie
+ * locale etait restee sur l'ancienne version bogue "skip Z" qui traitait Z comme le dernier
+ * caractere de l'alphabet, faux des que Ä/Ö/Ü s'y ajoutent en tri BINARY : mb_str_split/mb_chr/
+ * mb_ord, jamais str_split/chr/ord, et plus de cas special sur 'Z').
+ */
 function rangeBounds(string $prefix): array
 {
-    $chars = str_split($prefix);
+    $chars = mb_str_split($prefix);
+    $lastIndex = count($chars) - 1;
 
-    for ($i = count($chars) - 1; $i >= 0; $i--) {
-        if ($chars[$i] !== 'Z') {
-            $chars[$i] = chr(ord($chars[$i]) + 1);
-
-            return [$prefix, implode('', array_slice($chars, 0, $i + 1))];
-        }
+    if ($lastIndex < 0) {
+        return [$prefix, null];
     }
 
-    return [$prefix, null];
+    $chars[$lastIndex] = mb_chr(mb_ord($chars[$lastIndex]) + 1);
+
+    return [$prefix, implode('', $chars)];
 }
 
 function reverseOf(string $w): string

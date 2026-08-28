@@ -105,7 +105,7 @@ return function (): void {
     // Bornes de la base : AA est le premier mot (ordre BINARY, comme en francais -- pure
     // coincidence alphabetique, pas une consequence du changement de langue). ÜPPIGSTES
     // est le dernier : Ü, codepoint le plus eleve de l'alphabet allemand dans notre
-    // convention de tri BINARY, trie apres tout mot commencant par A-Z ou meme Ä/Ö.
+    // convention de tri BINARY, trie apres tout mot beginnend-mit par A-Z ou meme Ä/Ö.
     $first = $lookup->find('AA');
     Assert::notNull($first);
     Assert::true($first->found);
