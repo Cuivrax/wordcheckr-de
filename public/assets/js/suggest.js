@@ -26,16 +26,20 @@
 
   /** Deux libelles exacts (ajustement UI post-Phase 5, demande directe du
    * coordinateur) : la distinction ODS8/ODS9 n'est plus affichee dans les
-   * suggestions -- un mot admis (isOds8 ou isOds9 vrai) affiche simplement "Admis",
-   * un mot non admis affiche "Non Admis" (meme casse, sans prefixe "Français ·").
-   * isOds8/isOds9/status restent inchanges cote donnees (App\Search\Suggester) ; seul
-   * ce rendu change. Ne pas confondre avec .edition-badge (app/View/word.php) ou
-   * app/View/play.php, qui continuent de distinguer ODS8/ODS9. */
+   * suggestions -- un mot admis (isOds8 ou isOds9 vrai) affiche simplement "Gültig",
+   * un mot non admis affiche "Nicht Gültig". isOds8/isOds9/status restent inchanges
+   * cote donnees (App\Search\Suggester) ; seul ce rendu change.
+   * ADAPTATION ALLEMANDE (cette passe) : "Gültig"/"Nicht Gültig" reprend le meme
+   * registre que app/View/word.php (statusMeta, D-DE-009) -- jamais "zulässig". Pour
+   * l'allemand, isOds8/isOds9 valent toujours is_admitted des deux cotes (D-DE-003),
+   * donc ce branchement est fonctionnellement equivalent a `item.status === "admitted"`
+   * ici, mais laisse tel quel pour rester au plus pres du contrat partage avec
+   * app/Search/Suggester.php (non modifie par cette tache de traduction). */
   function statusLabel(item) {
     if (item.isOds8 || item.isOds9) {
-      return "Admis";
+      return "Gültig";
     }
-    return "Non Admis";
+    return "Nicht Gültig";
   }
 
   /** Reutilise .status-badge tel quel (public/assets/css/site.css), meme modificateur que
@@ -51,7 +55,7 @@
     listbox.className = "suggest-list";
     listbox.id = "q-suggest-listbox";
     listbox.setAttribute("role", "listbox");
-    listbox.setAttribute("aria-label", "Suggestions");
+    listbox.setAttribute("aria-label", "Vorschläge");
     listbox.hidden = true;
     wrap.appendChild(listbox);
 
