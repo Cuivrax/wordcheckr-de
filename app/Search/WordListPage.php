@@ -7,7 +7,7 @@ namespace App\Search;
 /**
  * Resultat de /mots/... (Phase 3, docs/08), consomme par la couche de rendu (app/View/,
  * hors perimetre de cet agent -- structure prete a rendre, meme principe que TermPage pour
- * /mot/{mot} et RackPage pour /jouer/{lettres}).
+ * /wort/{wort} et RackPage pour /wortsuche/{lettres} -- D-DE-009 : URL localisees).
  *
  * Cette liste couvre TOUTE la base -- une fiche par forme presente en base, chaque entree
  * porte un statut explicite parmi les trois valeurs fermees de TermPage::STATUS_* (jamais

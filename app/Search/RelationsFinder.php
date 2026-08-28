@@ -455,7 +455,14 @@ final class RelationsFinder
      */
     private static function plusOneSignatures(string $word): array
     {
-        if (strlen($word) >= Normalizer::MAX_LENGTH) {
+        // mb_strlen (pas strlen octets) : correctif signale (audit independant,
+        // docs/DECISIONS.md, D-DE-011) -- meme raison que insertOneLetterCandidates()
+        // ci-dessus, dont le commentaire pretendait deja couvrir cette fonction-ci sans que
+        // le code le fasse reellement. Un mot de 13-14 caracteres dont l'UTF-8 fait 15+
+        // octets (ex. ABFRÜHSTÜCKEN, 13 caracteres/15 octets) declenchait ce garde-fou a
+        // tort, videre silencieusement la section anagrammes +1 lettre alors que de vrais
+        // candidats existent en base.
+        if (mb_strlen($word) >= Normalizer::MAX_LENGTH) {
             return [];
         }
 
@@ -714,8 +721,9 @@ final class RelationsFinder
     // ------------------------------------------------------------------
 
     /**
-     * Jusqu'a MAX_RELATED_SEARCHES liens purs (docs/08) : longueur, commencant (deux
-     * granularites), terminant, avec (jusqu'a 3 lettres distinctes), /jouer/{signature}.
+     * Jusqu'a MAX_RELATED_SEARCHES liens purs (docs/08) : longueur, beginnend-mit (deux
+     * granularites), endend-mit, avec (jusqu'a 3 lettres distinctes), /wortsuche/{signature}
+     * (D-DE-009 : URL localisees en allemand, voir App\Search\WordListFilters).
      * Reutilise WordListFilters::fromPath()->canonicalUrl() et Rack::fromInput()->slug --
      * jamais de concatenation manuelle d'URL, meme discipline que le reste du code (docs/08 :
      * "Reutilise... pour construire ces URL"). Plus de lien "contenant" ici (retire, audit
@@ -745,30 +753,35 @@ final class RelationsFinder
             $links[] = ['type' => $type, 'url' => $url];
         };
 
-        $add('length', $length . '-lettres');
+        // ADAPTATION ALLEMANDE (D-DE-009) : "-lettres" -> "-buchstaben", "commencant"/
+        // "terminant" -> "beginnend-mit"/"endend-mit" -- voir App\Search\WordListFilters
+        // pour la justification complete (recherche concurrentielle).
+        $add('length', $length . '-buchstaben');
 
         // mb_substr/mb_strtolower (pas substr/strtolower) : $word peut commencer/finir par
         // Ä/Ö/Ü -- substr() couperait un octet isole, et strtolower() (ASCII uniquement)
         // laisserait Ä/Ö/Ü inchangees en majuscule dans une URL sinon minuscule.
-        $add('startsWith', 'commencant/' . mb_strtolower(mb_substr($word, 0, 1), 'UTF-8'));
+        $add('startsWith', 'beginnend-mit/' . mb_strtolower(mb_substr($word, 0, 1), 'UTF-8'));
 
         if ($length > 3) {
-            $add('startsWith', 'commencant/' . mb_strtolower(mb_substr($word, 0, 3), 'UTF-8'));
+            $add('startsWith', 'beginnend-mit/' . mb_strtolower(mb_substr($word, 0, 3), 'UTF-8'));
         }
 
-        $add('endsWith', 'terminant/' . mb_strtolower(mb_substr($word, -min(2, $length)), 'UTF-8'));
+        $add('endsWith', 'endend-mit/' . mb_strtolower(mb_substr($word, -min(2, $length)), 'UTF-8'));
 
         // Liens "contenant" SANS ancrage retires (audit final, 3e passe, code-reviewer/
-        // code-optimizer, bloquant) : /mots/contenant/{sous-chaine} sans longueur/debut/fin en
-        // complement force WordListSolver::solveBounded() a parcourir la table entiere
+        // code-optimizer, bloquant) : /woerter/contenant/{sous-chaine} sans longueur/debut/fin
+        // en complement force WordListSolver::solveBounded() a parcourir la table entiere
         // (App\Seo\Family::WORD_LIST_CONTENANT reste noindex,follow, mais un robot doit d'abord
         // FETCHER la page pour decouvrir ce noindex -- fetch qui coute le parcours complet).
-        // Emis inconditionnellement sur CHAQUE fiche de mot admis (403 060 pages, toutes
-        // index,follow, D-017), ce lien a ete mesure comme ~1 675 000 cibles de crawl distinctes,
-        // chacune a 240-400 ms -- risque reel d'epuisement du pool de workers PHP sous simple
-        // crawl, pas seulement un depassement de budget TTFB occasionnel. L'outil "Contenant" du
-        // hub /mots (App\View\explore-hub.php, saisie humaine volontaire, jamais auto-genere en
-        // masse) reste la seule porte d'entree vers cette recherche.
+        // Emis inconditionnellement sur CHAQUE fiche de mot admis (mesure d'origine cote
+        // francais, meme risque structurel ici : "contenant" reste un mot-cle non localise
+        // cette passe, voir App\Search\WordListFilters), ce lien a ete mesure comme
+        // ~1 675 000 cibles de crawl distinctes cote francais, chacune a 240-400 ms -- risque
+        // reel d'epuisement du pool de workers PHP sous simple crawl, pas seulement un
+        // depassement de budget TTFB occasionnel. L'outil "Contenant" du hub /woerter
+        // (App\View\explore-hub.php, saisie humaine volontaire, jamais auto-genere en masse)
+        // reste la seule porte d'entree vers cette recherche.
 
         // mb_str_split (pas str_split) : meme raison que changeOneLetterCandidates.
         $distinctLetters = array_unique(mb_str_split($word));
@@ -780,20 +793,22 @@ final class RelationsFinder
                 static fn (string $l): string => mb_strtolower($l, 'UTF-8'),
                 $lettersForAvec,
             ));
-            $add('with', $length . '-lettres/avec/' . $segments);
+            $add('with', $length . '-buchstaben/avec/' . $segments);
         }
 
         $rack = Rack::fromInput($word);
 
         if ($rack !== null) {
-            $links[] = ['type' => 'play', 'url' => '/jouer/' . $rack->slug];
+            // "/jouer/" -> "/wortsuche/" (D-DE-009).
+            $links[] = ['type' => 'play', 'url' => '/wortsuche/' . $rack->slug];
         }
 
-        // Page hub /mots (audit SEO final, C4/C5 : maillage interne insuffisant vers les
-        // pages de listes). Toujours ajoutee en dernier, apres les liens specifiques au mot
-        // -- generique, jamais redondante avec les URL deja ajoutees ci-dessus (aucune
-        // collision possible : /mots seul n'est jamais construit par $add()).
-        $links[] = ['type' => 'exploreAll', 'url' => '/mots'];
+        // Page hub /woerter (D-DE-009 : localise depuis /mots ; audit SEO final, C4/C5 :
+        // maillage interne insuffisant vers les pages de listes). Toujours ajoutee en dernier,
+        // apres les liens specifiques au mot -- generique, jamais redondante avec les URL deja
+        // ajoutees ci-dessus (aucune collision possible : /woerter seul n'est jamais construit
+        // par $add()).
+        $links[] = ['type' => 'exploreAll', 'url' => '/woerter'];
 
         return array_slice($links, 0, self::MAX_RELATED_SEARCHES);
     }

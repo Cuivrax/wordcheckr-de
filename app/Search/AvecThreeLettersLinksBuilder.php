@@ -380,7 +380,8 @@ final class AvecThreeLettersLinksBuilder
             }
 
             $count = (int) $row['count'];
-            $path = $length . '-lettres/avec/' . strtolower($x) . '/' . strtolower($y) . '/' . strtolower($partner);
+            // D-DE-010 : "-lettres" -> "-buchstaben" (localisation d'URL, voir docs/DECISIONS.md).
+            $path = $length . '-buchstaben/avec/' . strtolower($x) . '/' . strtolower($y) . '/' . strtolower($partner);
             $url = WordListFilters::fromPath($path)?->canonicalUrl();
 
             if ($url !== null) {

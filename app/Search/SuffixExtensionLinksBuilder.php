@@ -168,7 +168,8 @@ final class SuffixExtensionLinksBuilder
                 continue;
             }
 
-            $url = WordListFilters::fromPath('terminant/' . strtolower($extendedSuffix))?->canonicalUrl();
+            // D-DE-010 : "terminant" -> "endend-mit" (localisation d'URL, voir docs/DECISIONS.md).
+            $url = WordListFilters::fromPath('endend-mit/' . strtolower($extendedSuffix))?->canonicalUrl();
 
             if ($url !== null) {
                 $links[] = ['suffix' => $extendedSuffix, 'url' => $url, 'count' => (int) $row['count']];

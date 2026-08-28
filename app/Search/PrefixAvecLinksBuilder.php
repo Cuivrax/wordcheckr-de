@@ -133,14 +133,15 @@ final class PrefixAvecLinksBuilder
         );
         $statement->execute([$prefix . ':%']);
 
-        $parentUrl = WordListFilters::fromPath('commencant/' . strtolower($prefix))?->canonicalUrl();
+        // D-DE-010 : "commencant" -> "beginnend-mit" (localisation d'URL, voir docs/DECISIONS.md).
+        $parentUrl = WordListFilters::fromPath('beginnend-mit/' . strtolower($prefix))?->canonicalUrl();
 
         $links = [];
 
         foreach ($statement as $row) {
             [, $letter] = explode(':', (string) $row['list_key'], 2);
 
-            $path = 'commencant/' . strtolower($prefix) . '/avec/' . strtolower($letter);
+            $path = 'beginnend-mit/' . strtolower($prefix) . '/avec/' . strtolower($letter);
             $url = WordListFilters::fromPath($path)?->canonicalUrl();
 
             if ($url === null || $url === $parentUrl) {

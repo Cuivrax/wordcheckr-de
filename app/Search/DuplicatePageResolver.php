@@ -348,11 +348,12 @@ final class DuplicatePageResolver
 
     private static function filtersFor(string $routePath): WordListFilters
     {
-        if (!str_starts_with($routePath, '/mots')) {
-            throw new \InvalidArgumentException("route_path hors de /mots : {$routePath}");
+        // D-DE-010 : "/mots" -> "/woerter" (localisation d'URL, voir docs/DECISIONS.md).
+        if (!str_starts_with($routePath, '/woerter')) {
+            throw new \InvalidArgumentException("route_path hors de /woerter : {$routePath}");
         }
 
-        $filters = WordListFilters::fromPath(substr($routePath, strlen('/mots')));
+        $filters = WordListFilters::fromPath(substr($routePath, strlen('/woerter')));
 
         if ($filters === null) {
             throw new \InvalidArgumentException("route_path inexploitable par WordListFilters::fromPath() : {$routePath}");

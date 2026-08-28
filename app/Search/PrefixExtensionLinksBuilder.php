@@ -88,7 +88,8 @@ final class PrefixExtensionLinksBuilder
                 continue;
             }
 
-            $url = WordListFilters::fromPath('commencant/' . strtolower($extendedPrefix))?->canonicalUrl();
+            // D-DE-010 : "commencant" -> "beginnend-mit" (localisation d'URL, voir docs/DECISIONS.md).
+            $url = WordListFilters::fromPath('beginnend-mit/' . strtolower($extendedPrefix))?->canonicalUrl();
 
             if ($url !== null) {
                 $links[] = ['prefix' => $extendedPrefix, 'url' => $url, 'count' => (int) $row['count']];

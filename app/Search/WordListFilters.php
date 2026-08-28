@@ -5,42 +5,55 @@ declare(strict_types=1);
 namespace App\Search;
 
 /**
- * Analyse et canonicalise les contraintes de /mots/... (Phase 3, docs/08).
+ * Analyse et canonicalise les contraintes de /woerter/... (Phase 3, docs/08).
+ *
+ * ADAPTATION ALLEMANDE (localisation d'URL, D-DE-009) : "commencant"/"terminant" (mots-cles
+ * ET route prefixe "/mots") sont devenus "beginnend-mit"/"endend-mit" (et "/woerter") --
+ * transformation confirmee par recherche concurrentielle (reports/de-serp-terminology-
+ * research.md, section 2.3/2.4 : "beginnend mit X" chez buchstaben.com, "endend mit X" chez
+ * wortlisten.com, paire symetrique attestee sur deux sources independantes). "contenant",
+ * "position", "avec", "sans", "motif", "statut", "tri" restent VOLONTAIREMENT en francais
+ * cette passe -- non couverts par la recherche concurrentielle citee (portee explicite de la
+ * tache de routage, docs/DECISIONS.md D-DE-009), et jamais indexes/SEO de toute facon (voir
+ * App\Seo\Family::NEVER_SITEMAP pour avec/sans/motif/contenant) -- traduction laissee a un
+ * futur lot dedie, PAS un oubli.
  *
  * Ordre canonique impose partout -- URL, cles, canonicals (docs/05_URL_SEO_INDEXATION.md) :
  *
- *   longueur -> commencant -> contenant -> terminant -> position -> avec -> sans -> motif
+ *   longueur -> beginnend-mit -> contenant -> endend-mit -> position -> avec -> sans -> motif
  *   -> statut -> tri
  *
  * "position" (D-023, ajoutee a la place reservee dans l'ordre ci-dessus) : une lettre connue
- * a UNE position precise, ex. "9-lettres/position/3/a" = mots de 9 lettres avec A en 3e
+ * a UNE position precise, ex. "9-buchstaben/position/3/a" = mots de 9 lettres avec A en 3e
  * position. Exige TOUJOURS une longueur explicite (comme "tri", meme raison : sans longueur,
  * "position 3" n'a pas de sens borne). Espace de combinaisons volontairement restreint par
  * rapport a "motif" general (une seule lettre connue, jamais plusieurs simultanement) --
  * ~2 366 combinaisons reelles au total (26 lettres x positions 2 a longueur-1 x 14 longueurs),
  * largement borne, contrairement a "motif" (2^15 combinaisons par longueur, jamais indexable
  * -- D-012/NEVER_SITEMAP). position/1/{lettre} et position/{longueur}/{lettre} (premiere et
- * derniere lettre) sont des cas degeneres deja couverts par "commencant"/"terminant" -- pour
- * eviter le contenu duplique constate sur "motif" (un "motif/a----" et un "commencant/a"
- * produisant la meme liste sous deux URL canoniques distinctes, jamais rapproche), fromPath()
- * les COLLAPSE silencieusement vers prefix/suffix (meme mecanisme que la correction de
- * longueur derivee du motif ci-dessous) -- $position/$positionLetter ne portent jamais les
- * positions 1 ou longueur, canonicalPath() n'emet donc jamais "position/1/..." ni
- * "position/{longueur}/...".
+ * derniere lettre) sont des cas degeneres deja couverts par "beginnend-mit"/"endend-mit" --
+ * pour eviter le contenu duplique constate sur "motif" (un "motif/a----" et un
+ * "beginnend-mit/a" produisant la meme liste sous deux URL canoniques distinctes, jamais
+ * rapproche), fromPath() les COLLAPSE silencieusement vers prefix/suffix (meme mecanisme que
+ * la correction de longueur derivee du motif ci-dessous) -- $position/$positionLetter ne
+ * portent jamais les positions 1 ou longueur, canonicalPath() n'emet donc jamais
+ * "position/1/..." ni "position/{longueur}/...".
  *
- * "avec/X" redondant avec un "commencant/X"/"terminant/X" d'UNE SEULE LETTRE (D-032) : meme
- * mecanisme de collapse silencieux que "position" ci-dessus, applique cette fois a "avec".
- * "commencant/X/avec/X" (minCount = 1, l'occurrence unique par defaut) est logiquement toujours
- * vrai des que le mot commence deja par X -- garder cette entree withLetters ferait basculer a
- * tort needsUnindexedPredicates() en regime BORNE plafonne (ROW_EXAMINATION_CEILING) pour une
- * contrainte qui n'exclut jamais aucune ligne, produisant un total tronque et trompeur au lieu
- * du vrai total (regime EXACT, sans plafond) deja disponible via "commencant/X" seul. fromPath()
- * retire alors cette entree $withLetters plutot que de traiter le cas dans WordListSolver --
- * canonicalPath() n'emet donc plus jamais "avec/X" a cote de "commencant"/"terminant/X" pour la
- * meme lettre X, le routeur redirige en 301. Seule la forme mono-lettre est concernee (minCount
- * strictement egal a 1) : un "avec/X/X" (minCount = 2, un DEUXIEME X) reste un vrai predicat,
- * jamais garanti par le seul prefixe/suffixe. Mesure : reports/query-plans/
- * commencant-avec-no-length-full-sweep.md section 5 (17/26 cas affectes, jusqu'a 224 205 pour R).
+ * "avec/X" redondant avec un "beginnend-mit/X"/"endend-mit/X" d'UNE SEULE LETTRE (D-032) :
+ * meme mecanisme de collapse silencieux que "position" ci-dessus, applique cette fois a
+ * "avec". "beginnend-mit/X/avec/X" (minCount = 1, l'occurrence unique par defaut) est
+ * logiquement toujours vrai des que le mot commence deja par X -- garder cette entree
+ * withLetters ferait basculer a tort needsUnindexedPredicates() en regime BORNE plafonne
+ * (ROW_EXAMINATION_CEILING) pour une contrainte qui n'exclut jamais aucune ligne, produisant
+ * un total tronque et trompeur au lieu du vrai total (regime EXACT, sans plafond) deja
+ * disponible via "beginnend-mit/X" seul. fromPath() retire alors cette entree $withLetters
+ * plutot que de traiter le cas dans WordListSolver -- canonicalPath() n'emet donc plus jamais
+ * "avec/X" a cote de "beginnend-mit"/"endend-mit/X" pour la meme lettre X, le routeur
+ * redirige en 301. Seule la forme mono-lettre est concernee (minCount strictement egal a 1) :
+ * un "avec/X/X" (minCount = 2, un DEUXIEME X) reste un vrai predicat, jamais garanti par le
+ * seul prefixe/suffixe. Mesure (avant localisation, sous les anciens noms francais) :
+ * reports/query-plans/commencant-avec-no-length-full-sweep.md section 5 (17/26 cas affectes,
+ * jusqu'a 224 205 pour R).
  *
  * "statut" et "tri" (D-022) sont des RAFFINEMENTS d'affichage, pas des contraintes de
  * recherche a proprement parler -- places en derniere position de l'ordre canonique, apres
@@ -63,8 +76,9 @@ namespace App\Search;
  */
 final class WordListFilters
 {
-    /** Mots-cles reconnus, dans l'ordre canonique (D-023 : "position" ajoutee). */
-    private const KEYWORDS = ['commencant', 'contenant', 'terminant', 'position', 'avec', 'sans', 'motif', 'statut', 'tri'];
+    /** Mots-cles reconnus, dans l'ordre canonique (D-023 : "position" ajoutee ; D-DE-009 :
+     * "commencant"/"terminant" localises en "beginnend-mit"/"endend-mit"). */
+    private const KEYWORDS = ['beginnend-mit', 'contenant', 'endend-mit', 'position', 'avec', 'sans', 'motif', 'statut', 'tri'];
 
     /** Valeurs acceptees pour le segment "statut" (D-022). */
     private const STATUS_VALUES = ['admis', 'non-admis'];
@@ -74,8 +88,8 @@ final class WordListFilters
 
     /**
      * @param int|null $length longueur exacte demandee, 2 a 15
-     * @param string|null $prefix forme normalisee (A-Z), commencant
-     * @param string|null $suffix forme normalisee (A-Z), terminant
+     * @param string|null $prefix forme normalisee (A-Z), beginnend-mit
+     * @param string|null $suffix forme normalisee (A-Z), endend-mit
      * @param string|null $contains forme normalisee (A-Z), contenant
      * @param array<string, int> $withLetters lettre normalisee => nombre minimum d'occurrences
      *        (avec, repetitions comptees), triees par cle
@@ -111,7 +125,7 @@ final class WordListFilters
 
     /**
      * Construit les filtres a partir du chemin brut recu par le routeur (deja debarrasse du
-     * prefixe "/mots", ex. "/7-lettres/commencant/ch" ou "" pour /mots seul).
+     * prefixe "/woerter", ex. "/7-buchstaben/beginnend-mit/ch" ou "" pour /woerter seul).
      *
      * Renvoie null pour toute forme non exploitable : mot-cle inconnu, mot-cle duplique,
      * valeur manquante ou invalide, "avec"/"sans" sans lettre, longueur hors bornes, motif
@@ -148,8 +162,8 @@ final class WordListFilters
         $count = count($segments);
 
         // La longueur, si presente, doit ouvrir la liste -- c'est un token positionnel
-        // ("{N}-lettres"), pas un mot-cle suivi d'une valeur comme les autres.
-        if ($count > 0 && preg_match('/^(\d{1,2})-lettres\z/', $segments[0], $m) === 1) {
+        // ("{N}-buchstaben", D-DE-009), pas un mot-cle suivi d'une valeur comme les autres.
+        if ($count > 0 && preg_match('/^(\d{1,2})-buchstaben\z/', $segments[0], $m) === 1) {
             $length = (int) $m[1];
 
             if ($length < Normalizer::MIN_LENGTH || $length > Normalizer::MAX_LENGTH) {
@@ -163,7 +177,7 @@ final class WordListFilters
             $keyword = $segments[$i];
 
             if (!in_array($keyword, self::KEYWORDS, true)) {
-                // Inclut le cas "{N}-lettres" hors premiere position, et tout mot-cle
+                // Inclut le cas "{N}-buchstaben" hors premiere position, et tout mot-cle
                 // inconnu : 404, jamais 301.
                 return null;
             }
@@ -176,7 +190,7 @@ final class WordListFilters
             $i++;
 
             switch ($keyword) {
-                case 'commencant':
+                case 'beginnend-mit':
                     [$prefix, $i] = self::readSingleLetterRun($segments, $i, $count);
                     if ($prefix === null) {
                         return null;
@@ -190,7 +204,7 @@ final class WordListFilters
                     }
                     break;
 
-                case 'terminant':
+                case 'endend-mit':
                     [$suffix, $i] = self::readSingleLetterRun($segments, $i, $count);
                     if ($suffix === null) {
                         return null;
@@ -263,7 +277,7 @@ final class WordListFilters
             // Positions degenerees (premiere/derniere lettre) : collapse silencieux vers
             // prefix/suffix plutot que de servir une seconde URL canonique pour la meme
             // liste de mots -- evite le contenu duplique deja constate sur "motif" (voir
-            // docblock de classe). Un conflit avec un "commencant"/"terminant" explicite
+            // docblock de classe). Un conflit avec un "beginnend-mit"/"endend-mit" explicite
             // portant une lettre DIFFERENTE reste une contrainte contradictoire -> 404.
             if ($position === 1) {
                 if ($prefix !== null && $prefix !== $positionLetter) {
@@ -282,20 +296,21 @@ final class WordListFilters
             }
         }
 
-        // "avec" redondant avec un prefixe/suffixe D'UNE SEULE LETTRE (D-032) : "commencant/X/
+        // "avec" redondant avec un prefixe/suffixe D'UNE SEULE LETTRE (D-032) : "beginnend-mit/X/
         // avec/X" (minCount === 1) est TOUJOURS vrai des que "commence par X" l'est deja --
         // conserver cette entree withLetters ferait basculer a tort needsUnindexedPredicates()
         // en regime BORNE plafonne (ROW_EXAMINATION_CEILING) pour une contrainte qui n'exclut
         // jamais aucune ligne, produisant un total tronque et trompeur au lieu du vrai total
-        // deja disponible sans plafond via le regime EXACT de "commencant/X" seul (mesure :
-        // reports/query-plans/commencant-avec-no-length-full-sweep.md section 5 -- 17 des 26
-        // combinaisons commencant/X/avec/X affichaient un total plafonne a 10 000 au lieu du
-        // vrai total, jusqu'a 224 205 pour R). Retire silencieusement cette entree plutot que de
-        // traiter le cas dans WordListSolver -- meme principe que le collapse "position"
-        // degeneree ci-dessus (D-023) : canonicalPath() n'emet alors plus jamais "avec/X" a cote
-        // de "commencant"/"terminant/X", le routeur redirige en 301 vers la forme simplifiee.
+        // deja disponible sans plafond via le regime EXACT de "beginnend-mit/X" seul (mesure,
+        // sous les anciens noms francais avant D-DE-009 : reports/query-plans/
+        // commencant-avec-no-length-full-sweep.md section 5 -- 17 des 26 combinaisons
+        // commencant/X/avec/X affichaient un total plafonne a 10 000 au lieu du vrai total,
+        // jusqu'a 224 205 pour R). Retire silencieusement cette entree plutot que de traiter le
+        // cas dans WordListSolver -- meme principe que le collapse "position" degeneree
+        // ci-dessus (D-023) : canonicalPath() n'emet alors plus jamais "avec/X" a cote de
+        // "beginnend-mit"/"endend-mit/X", le routeur redirige en 301 vers la forme simplifiee.
         // Ne retire QUE l'entree strictement redondante : minCount === 1 exactement -- un
-        // minCount >= 2 (ex. avec/x/x, "commencant/x/avec/x/x") exige un DEUXIEME X, jamais
+        // minCount >= 2 (ex. avec/x/x, "beginnend-mit/x/avec/x/x") exige un DEUXIEME X, jamais
         // garanti par le seul prefixe/suffixe d'une lettre, donc jamais retire ici. Un prefixe/
         // suffixe de PLUSIEURS lettres n'est volontairement pas traite (hors perimetre mesure de
         // cette correction, voir le rapport cite) : seule la forme mono-lettre l'est.
@@ -314,7 +329,7 @@ final class WordListFilters
         // "tri" (D-022) exige une longueur explicite, quel que soit l'ordre de saisie des
         // segments -- verifie ici, apres la longueur derivee du motif ci-dessus, plutot que
         // dans le case 'tri' du switch (une saisie non canonique pourrait sinon placer "tri"
-        // avant "motif"/le token positionnel "{N}-lettres" dans les segments recus). Mesure
+        // avant "motif"/le token positionnel "{N}-buchstaben" dans les segments recus). Mesure
         // (schema.sql, idx_terms_length_score_normalized) : seul le sous-ensemble ancre sur une
         // longueur reste dans le budget TTFB pour un tri par points.
         if ($sort !== null && $length === null) {
@@ -322,7 +337,7 @@ final class WordListFilters
         }
 
         // Aucune contrainte du tout ($length === null && ... && $pattern === null) reste un
-        // etat valide : /mots seul = parcours complet, pagine (voir isEmpty()). Ce n'est pas
+        // etat valide : /woerter seul = parcours complet, pagine (voir isEmpty()). Ce n'est pas
         // une route annoncee par docs/05 -- le routeur decide s'il l'expose.
 
         ksort($withLetters, SORT_STRING);
@@ -332,7 +347,7 @@ final class WordListFilters
     }
 
     /**
-     * Un seul segment lettres-uniquement (commencant / contenant / terminant). Renvoie
+     * Un seul segment lettres-uniquement (beginnend-mit / contenant / endend-mit). Renvoie
      * [null, $i] si absent, vide ou invalide.
      *
      * @param list<string> $segments
@@ -345,7 +360,7 @@ final class WordListFilters
         }
 
         // [A-ZÄÖÜ] + /u, mb_strlen (pas [A-Z]/strlen) : Ä/Ö/Ü sont des lettres allemandes
-        // valides ici (ex. /mots/commencant/ö), pas des variantes de A/O/U -- meme
+        // valides ici (ex. /woerter/beginnend-mit/ö), pas des variantes de A/O/U -- meme
         // correctif que Normalizer::VALID_PATTERN.
         $normalized = Normalizer::normalize($segments[$i]);
 
@@ -543,7 +558,7 @@ final class WordListFilters
     }
 
     /**
-     * Chemin canonique, sans le "/mots" initial ni le "/page/{n}" final (la pagination est
+     * Chemin canonique, sans le "/woerter" initial ni le "/page/{n}" final (la pagination est
      * geree separement par le routeur/la vue, pas par cette representation de filtre --
      * meme raison que "page 1" n'apparait jamais dans l'URL). Toujours reconstruit dans
      * l'ordre impose, quel que soit l'ordre recu en entree.
@@ -559,11 +574,11 @@ final class WordListFilters
         $segments = [];
 
         if ($this->length !== null) {
-            $segments[] = $this->length . '-lettres';
+            $segments[] = $this->length . '-buchstaben';
         }
 
         if ($this->prefix !== null) {
-            $segments[] = 'commencant';
+            $segments[] = 'beginnend-mit';
             $segments[] = mb_strtolower($this->prefix, 'UTF-8');
         }
 
@@ -573,7 +588,7 @@ final class WordListFilters
         }
 
         if ($this->suffix !== null) {
-            $segments[] = 'terminant';
+            $segments[] = 'endend-mit';
             $segments[] = mb_strtolower($this->suffix, 'UTF-8');
         }
 
@@ -617,10 +632,11 @@ final class WordListFilters
         return implode('/', $segments);
     }
 
-    /** Chemin canonique complet, "/page/{n}" inclus si $this->page > 1. */
+    /** Chemin canonique complet, "/page/{n}" inclus si $this->page > 1. Prefixe "/woerter"
+     * (D-DE-009, localise depuis "/mots" -- voir docs/DECISIONS.md). */
     public function canonicalUrl(): string
     {
-        $base = '/mots' . ($this->canonicalPath() !== '' ? '/' . $this->canonicalPath() : '');
+        $base = '/woerter' . ($this->canonicalPath() !== '' ? '/' . $this->canonicalPath() : '');
 
         return $this->page > 1 ? $base . '/page/' . $this->page : $base;
     }
@@ -628,7 +644,7 @@ final class WordListFilters
     /**
      * true si le filtre ne pose aucune contrainte (parcours complet de la base). "tri" seul
      * ne peut jamais rendre ce test faux a lui seul (il exige toujours une longueur, voir
-     * fromPath()) ; "statut" le peut (ex. /mots/statut/admis, sans autre contrainte) -- une
+     * fromPath()) ; "statut" le peut (ex. /woerter/statut/admis, sans autre contrainte) -- une
      * vraie restriction du panier, pas un parcours complet.
      */
     public function isEmpty(): bool

@@ -136,8 +136,10 @@ final class LengthCombinedLinksBuilder
             [, $start, $end] = explode(':', $key, 3);
             $other = $fromStart ? $end : $start;
 
+            // D-DE-010 : "-lettres"/"commencant"/"terminant" -> "-buchstaben"/"beginnend-mit"/
+            // "endend-mit" (localisation d'URL, voir docs/DECISIONS.md).
             $url = WordListFilters::fromPath(
-                $length . '-lettres/commencant/' . strtolower($start) . '/terminant/' . strtolower($end)
+                $length . '-buchstaben/beginnend-mit/' . strtolower($start) . '/endend-mit/' . strtolower($end)
             )?->canonicalUrl();
 
             if ($url !== null) {

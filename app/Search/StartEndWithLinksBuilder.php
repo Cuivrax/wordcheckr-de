@@ -402,8 +402,10 @@ final class StartEndWithLinksBuilder
         // produiraient un lien dont l'URL est IDENTIQUE a celle de la page source elle-meme --
         // un doublon trompeur (deux lettres "avec" differentes menant chacune vers la MEME URL
         // que la page qui les propose), pas seulement une page en moins.
+        // D-DE-010 : "commencant"/"terminant" -> "beginnend-mit"/"endend-mit" (localisation
+        // d'URL, voir docs/DECISIONS.md).
         $parentUrl = WordListFilters::fromPath(
-            'commencant/' . strtolower($startLetter) . '/terminant/' . strtolower($endLetter)
+            'beginnend-mit/' . strtolower($startLetter) . '/endend-mit/' . strtolower($endLetter)
         )?->canonicalUrl();
 
         $links = [];
@@ -413,7 +415,7 @@ final class StartEndWithLinksBuilder
             $letter = $parts[2];
             $count = (int) $row['count'];
 
-            $path = 'commencant/' . strtolower($startLetter) . '/terminant/' . strtolower($endLetter)
+            $path = 'beginnend-mit/' . strtolower($startLetter) . '/endend-mit/' . strtolower($endLetter)
                 . '/avec/' . strtolower($letter);
             $url = WordListFilters::fromPath($path)?->canonicalUrl();
 

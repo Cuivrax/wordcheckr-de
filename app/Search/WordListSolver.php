@@ -7,7 +7,8 @@ namespace App\Search;
 use App\Database\Connection;
 
 /**
- * Solveur /mots/... (Phase 3, docs/08) : listes de mots par longueur, prefixe, suffixe,
+ * Solveur /woerter/... (Phase 3, docs/08 ; D-DE-009 : localise depuis /mots) : listes de
+ * mots par longueur, prefixe, suffixe,
  * sous-chaine contenue, lettres obligatoires (avec repetitions), lettres exclues, et motif de
  * cases connues -- seules ou combinees dans l'ordre canonique (docs/05).
  *
@@ -86,7 +87,7 @@ final class WordListSolver
      */
     public const ROW_EXAMINATION_CEILING = 10_000;
 
-    /** Taille de page des listes /mots/.... Aucune convention documentee ailleurs : valeur
+    /** Taille de page des listes /woerter/.... Aucune convention documentee ailleurs : valeur
      * choisie pour rester tres en-dessous de ROW_EXAMINATION_CEILING (200 pages disponibles
      * au plafond) tout en restant une page web raisonnable. */
     public const PAGE_SIZE = 50;
@@ -112,9 +113,11 @@ final class WordListSolver
         }
 
         if ($filters->isEmpty()) {
-            // /mots seul (aucune contrainte) : hors perimetre de cette phase. docs/05 ne
+            // /woerter seul (aucune contrainte) : hors perimetre de cette phase. docs/05 ne
             // liste aucune route sans au moins une contrainte, et un COUNT()/parcours sans
-            // aucune clause WHERE visiterait l'index sur la totalite des 838 180 lignes --
+            // aucune clause WHERE visiterait l'index sur la totalite des 590 856 lignes
+            // (compte allemand reel, corrige -- audit independant, docs/DECISIONS.md D-DE-011 ;
+            // 838 180 est le compte francais herite du scaffold) --
             // un parcours complet en tout point comparable a un SCAN TABLE, meme s'il passe
             // techniquement par un index couvrant. Refuse plutot que d'exposer une route non
             // gouvernee : erreur de routage, pas un resultat de recherche (meme convention

@@ -74,10 +74,12 @@ final class PositionLinksBuilder
             $position = (int) $parts[2];
             $count = (int) $row['count'];
 
+            // D-DE-010 : "-lettres"/"commencant"/"terminant" -> "-buchstaben"/"beginnend-mit"/
+            // "endend-mit" (localisation d'URL, voir docs/DECISIONS.md).
             $path = match (true) {
-                $position === 1 => $length . '-lettres/commencant/' . strtolower($letter),
-                $position === $length => $length . '-lettres/terminant/' . strtolower($letter),
-                default => $length . '-lettres/position/' . $position . '/' . strtolower($letter),
+                $position === 1 => $length . '-buchstaben/beginnend-mit/' . strtolower($letter),
+                $position === $length => $length . '-buchstaben/endend-mit/' . strtolower($letter),
+                default => $length . '-buchstaben/position/' . $position . '/' . strtolower($letter),
             };
 
             $url = WordListFilters::fromPath($path)?->canonicalUrl();

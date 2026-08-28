@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Search;
 
 /**
- * Resultat de /jouer/{lettres} (Phase 2, docs/08), consomme par la couche de rendu
+ * Resultat de /wortsuche/{lettres} (Phase 2, docs/08 ; D-DE-009 : localise depuis
+ * /jouer), consomme par la couche de rendu
  * (app/View/, hors perimetre de cet agent -- structure prete a rendre, meme principe
  * que TermPage pour /mot/{mot}).
  *

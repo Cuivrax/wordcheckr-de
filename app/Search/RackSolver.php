@@ -7,7 +7,8 @@ namespace App\Search;
 use App\Database\Connection;
 
 /**
- * Solveur /jouer/{lettres} (Phase 2, docs/08) : quels mots admis au Scrabble peut-on
+ * Solveur /wortsuche/{lettres} (Phase 2, docs/08 ; D-DE-009 : localise depuis /jouer) :
+ * quels mots admis au Scrabble peut-on
  * former avec un chevalet, jokers compris.
  *
  * Strategie retenue apres mesure, validee explicitement par le coordinateur avant

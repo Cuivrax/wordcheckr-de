@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Search;
 
 /**
- * Chevalet analyse a partir de l'entree brute de /jouer/{lettres} (Phase 2, docs/08).
+ * Chevalet analyse a partir de l'entree brute de /wortsuche/{lettres} (Phase 2, docs/08 ;
+ * D-DE-009 : localise depuis /jouer).
  *
  * Reutilise Normalizer::normalize() (D-009, source unique de la regle de normalisation)
  * sur la chaine COMPLETE, jokers inclus : '?' et '*' ne sont ni des ligatures, ni des
