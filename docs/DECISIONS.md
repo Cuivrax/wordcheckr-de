@@ -3497,3 +3497,64 @@ schema/import modifie. La recherche de faisabilite initiale (DWDS/kaikki.org/Hun
 ecartees pour licence) reste la reference complete des pistes deja explorees et fermees ;
 celle-ci s'y ajoute, fermee pour une raison differente (donnees, pas licence).
 
+## D-DE-008 — Recoupement Ponctuel Avec Le Turnier-Checker Officiel SDeV (Mesure, Aucune Correction)
+
+Date : 2026-08-28
+Statut : information, aucune action corrective decidee
+
+Recherche menee a la demande du porteur de projet : confirmation independante que
+`scrabble-info.de` est un site WordPress communautaire (articles, pages, rencontres
+regionales) sans aucune fiche par mot ni sitemap de mots exploitable -- le seul point d'acces
+utile reste le "Turnier-Checker" officiel SDeV, un simple formulaire HTML sans JavaScript
+(`https://scrabble-info.de/scripts/checker29/checker9.php`, POST, champ `Testwort`), verifie
+directement (pas suppose). `robots.txt` du domaine n'interdit pas ce chemin (seuls `/extern/`,
+`/wp-json/`, `/search/`, `/?s=` le sont) -- recoupement mene par lots avec delai de 1,5 s entre
+chaque requete, aucun contournement de limite technique ou legale.
+
+Constat technique prealable : le checker officiel plafonne a 9 lettres (confirme directement --
+un mot de 10 lettres renvoie une reponse vide, pas une erreur explicite) et n'accepte PAS le
+caractere ß litteral en entree (`STRAßE` -> UNGÜLTIG), mais accepte la graphie `SS` a la place
+(`STRASSE` -> GÜLTIG) -- confirme la convention deja retenue par `Normalizer::normalize()`
+(ß -> SS, D-DE-002).
+
+44 mots reels verifies (echantillon, PAS une verification exhaustive de la base) :
+
+```text
+8/8    mots courants sans diacritique (HAUS, KATZE, HUND, WASSER, TISCH...) -- GÜLTIG
+4/4    mots avec Eszett en graphie SS (GROSS, STRASSE, WEISS, FUSS) -- GÜLTIG
+6/6    mots presents dans les DEUX sources (enz ET hippler) -- GÜLTIG
+2/6    mots UNIQUEMENT presents dans hippler (les 6 au total, population exhaustive, pas un
+       echantillon) -- BÄT et KÄM confirmes GÜLTIG, ALF/ALFE/ELAK/ETH confirmes UNGÜLTIG
+17/20  mots UNIQUEMENT presents dans enz (echantillon aleatoire) -- GÜLTIG, 3 UNGÜLTIG
+       (SKOPEN, RODLEST, WÜSTITS)
+```
+
+Total : 37/44 (84,1 %) confirmes GÜLTIG par le checker officiel sur cet echantillon precis.
+Sanity checks (QXZQX, ZZZZZ, X) tous correctement UNGÜLTIG, confirmant que le checker repond
+de facon coherente (pas un signal casse).
+
+Lecture du resultat, explicitement AUCUNE correction decidee ici :
+
+```text
+ce recoupement CONFIRME (ne contredit pas) la decision deja prise et documentee (D-DE-001,
+  CLAUDE.md) de badger la liste allemande "Wortliste" (communautaire) et jamais "officiel" --
+  un ecart de 16% mesure ici, meme sur un petit echantillon, est coherent avec l'absence de
+  liste officielle librement accessible constatee par la recherche de faisabilite initiale
+le taux d'ecart le PLUS ELEVE porte sur les mots hippler-seuls (4/6, echantillon exhaustif) --
+  coherent avec le README d'origine de hippler/german-wordlist, qui reconnait explicitement
+  "the wordlist and blacklist are far from being complete and still contain a lot of mistakes"
+  -- mais 2 des 6 (BÄT, KÄM) sont neanmoins confirmes officiellement valides, donc la decision
+  D-DE-006 d'inclure les mots hippler-seuls n'etait pas non plus sans fondement
+les mots presents dans LES DEUX sources (6/6 confirmes) et les mots courants sans diacritique
+  (8/8 confirmes) montrent le taux d'accord le plus eleve -- attendu, ce sont les mots les
+  moins susceptibles d'etre des erreurs de collecte
+```
+
+Decision explicite : **aucune modification de la base n'est faite sur la base de cette seule
+mesure.** Un echantillon de 44 mots (dont seulement 6 hippler-seuls, deja la population
+exhaustive de ce sous-ensemble) n'est pas une verification systematique -- retirer des mots un
+par un sur la seule foi d'un recoupement partiel serait une curation incoherente et non
+demandee. Cette mesure reste une INFORMATION documentee pour une decision future eventuelle
+(reconciliation plus large, ou contact direct SDeV comme deja identifie non resolu en
+`reports/de-site-feasibility-audit.md` §6), pas une action a mener ici.
+
