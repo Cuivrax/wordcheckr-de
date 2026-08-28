@@ -127,29 +127,69 @@ return function (): void {
     Assert::null($lookup->find('haus' . "\n"), 'HAUS suivi d\'un saut de ligne');
 
     // Verification exhaustive : score/signature/reversed/length recalcules pour les
-    // 590 850 lignes reelles, compares aux colonnes stockees par scripts/import_de.py.
-    // Curseur PDO en streaming (pas de fetchAll) : ne charge pas la table en memoire.
+    // 590 856 lignes reelles (590 850 enz + 6 formes uniquement hippler, D-DE-006), compares
+    // aux colonnes stockees par scripts/import_de.py. Curseur PDO en streaming (pas de
+    // fetchAll) : ne charge pas la table en memoire.
     $pdo = $connection->pdo();
-    $statement = $pdo->query('SELECT normalized, score, length, signature, reversed, is_admitted FROM terms');
+    $statement = $pdo->query('SELECT normalized, score, length, signature, reversed, is_enz, is_hippler, is_admitted FROM terms');
 
     $rows = 0;
     $withUmlaut = 0;
+    $enzOnly = 0;
+    $hipplerOnly = 0;
+    $both = 0;
     foreach ($statement as $row) {
         $rows++;
         $normalized = $row['normalized'];
+        $isEnz = (int) $row['is_enz'];
+        $isHippler = (int) $row['is_hippler'];
 
         Assert::true(Normalizer::isValid($normalized), 'forme invalide en base : ' . $normalized);
         Assert::same((int) $row['score'], Normalizer::score($normalized, $tileScores), 'score de ' . $normalized);
         Assert::same((int) $row['length'], mb_strlen($normalized), 'length de ' . $normalized);
         Assert::same($row['signature'], Normalizer::signature($normalized), 'signature de ' . $normalized);
         Assert::same($row['reversed'], Normalizer::reverse($normalized), 'reversed de ' . $normalized);
-        Assert::same(1, (int) $row['is_admitted'], 'toute ligne doit etre is_admitted = 1 (source unique, cette passe) : ' . $normalized);
+
+        // D-DE-006 : provenance par mot -- toute ligne vient d'AU MOINS une des deux
+        // sources (jamais ni l'une ni l'autre, cette ligne n'existerait pas), et
+        // is_admitted reste un OR REEL de is_enz/is_hippler, jamais une constante.
+        Assert::true($isEnz === 1 || $isHippler === 1, $normalized . ' doit venir d\'au moins une source');
+        Assert::same($isEnz || $isHippler ? 1 : 0, (int) $row['is_admitted'], 'is_admitted doit toujours egaler is_enz OR is_hippler : ' . $normalized);
+
+        if ($isEnz && $isHippler) {
+            $both++;
+        } elseif ($isEnz) {
+            $enzOnly++;
+        } else {
+            $hipplerOnly++;
+        }
 
         if (str_contains($normalized, 'Ä') || str_contains($normalized, 'Ö') || str_contains($normalized, 'Ü')) {
             $withUmlaut++;
         }
     }
 
-    Assert::same(590850, $rows, 'nombre total de lignes verifiees, doit correspondre a docs/PHASE_STATUS.md');
+    Assert::same(590856, $rows, 'nombre total de lignes verifiees, doit correspondre a docs/PHASE_STATUS.md');
     Assert::true($withUmlaut > 10000, 'sanity check : un nombre substantiel de mots doit contenir Ä/Ö/Ü (mesure reelle attendue bien au-dessus de 10 000)');
+
+    // Comptes de provenance (D-DE-006), mesures au build et re-verifies ici independamment
+    // sur la base reelle -- pas seulement fait confiance au rapport import-summary.json.
+    Assert::same(297690, $enzOnly, 'termes presents uniquement dans enz');
+    Assert::same(6, $hipplerOnly, 'termes presents uniquement dans hippler (confirme empiriquement : la quasi-totalite des ~6 400 formes brutes hippler-seules sont des doublons de graphie ß/ss, pas une perte de couverture reelle)');
+    Assert::same(293160, $both, 'termes presents dans les deux sources');
+
+    // Coeur de la decouverte D-DE-006 : ABSCHIEDSGRUSS existe cote hippler (graphie suisse
+    // "ss") ET cote enz (graphie standard "ß") -- les deux formes brutes distinctes se
+    // rejoignent en UNE seule forme normalisee (Eszett -> SS), donc en UNE seule ligne
+    // marquee presente dans les DEUX sources, pas une collision a departager.
+    $abschiedsgruss = $lookup->find('Abschiedsgruss');
+    Assert::notNull($abschiedsgruss, 'ABSCHIEDSGRUSS devrait etre trouve');
+    Assert::true($abschiedsgruss->isOds8, 'ABSCHIEDSGRUSS doit rester admis (au moins une source), meme si isOds8 reflete ici is_admitted (voir TermLookup, ADAPTATION ALLEMANDE)');
+
+    // Un des 6 termes reellement uniques a hippler : trouvable normalement, admis (une
+    // source suffit), meme si absent d'enz.
+    $eth = $lookup->find('ETH');
+    Assert::notNull($eth, 'ETH (unique a hippler) devrait quand meme etre trouve');
+    Assert::true($eth->found);
+    Assert::same(TermPage::STATUS_ADMITTED, $eth->status, 'ETH doit rester admis : une seule source suffit (is_admitted = is_enz OR is_hippler)');
 };
