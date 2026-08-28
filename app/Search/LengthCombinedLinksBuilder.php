@@ -138,8 +138,10 @@ final class LengthCombinedLinksBuilder
 
             // D-DE-010 : "-lettres"/"commencant"/"terminant" -> "-buchstaben"/"beginnend-mit"/
             // "endend-mit" (localisation d'URL, voir docs/DECISIONS.md).
+            // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- $start/$end
+            // peuvent contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
             $url = WordListFilters::fromPath(
-                $length . '-buchstaben/beginnend-mit/' . strtolower($start) . '/endend-mit/' . strtolower($end)
+                $length . '-buchstaben/beginnend-mit/' . mb_strtolower($start, 'UTF-8') . '/endend-mit/' . mb_strtolower($end, 'UTF-8')
             )?->canonicalUrl();
 
             if ($url !== null) {

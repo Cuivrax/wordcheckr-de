@@ -127,7 +127,9 @@ final class LengthLinksBuilder
                 }
 
                 // D-DE-010 : "-lettres" -> "-buchstaben" (localisation d'URL, voir docs/DECISIONS.md).
-                $url = WordListFilters::fromPath($length . '-buchstaben/position/' . $position . '/' . strtolower($letter))?->canonicalUrl();
+                // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- $letter peut
+                // contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
+                $url = WordListFilters::fromPath($length . '-buchstaben/position/' . $position . '/' . mb_strtolower($letter, 'UTF-8'))?->canonicalUrl();
 
                 if ($url !== null) {
                     $byPositionGrouped[$position][] = ['letter' => $letter, 'url' => $url, 'count' => $count];
@@ -158,8 +160,10 @@ final class LengthLinksBuilder
 
                 // D-DE-010 : "-lettres"/"commencant"/"terminant" -> "-buchstaben"/"beginnend-mit"/
                 // "endend-mit" (localisation d'URL, voir docs/DECISIONS.md).
+                // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- $start/$end
+                // peuvent contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
                 $url = WordListFilters::fromPath(
-                    $length . '-buchstaben/beginnend-mit/' . strtolower($start) . '/endend-mit/' . strtolower($end)
+                    $length . '-buchstaben/beginnend-mit/' . mb_strtolower($start, 'UTF-8') . '/endend-mit/' . mb_strtolower($end, 'UTF-8')
                 )?->canonicalUrl();
 
                 if ($url !== null) {
@@ -174,7 +178,8 @@ final class LengthLinksBuilder
             switch ($row['list_type']) {
                 case 'length_start':
                     // D-DE-010 : "-lettres"/"commencant" -> "-buchstaben"/"beginnend-mit".
-                    $url = WordListFilters::fromPath($length . '-buchstaben/beginnend-mit/' . strtolower($letter))?->canonicalUrl();
+                    // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8').
+                    $url = WordListFilters::fromPath($length . '-buchstaben/beginnend-mit/' . mb_strtolower($letter, 'UTF-8'))?->canonicalUrl();
 
                     if ($url !== null) {
                         $byStart[] = ['letter' => $letter, 'url' => $url, 'count' => $count];
@@ -183,7 +188,8 @@ final class LengthLinksBuilder
 
                 case 'length_end':
                     // D-DE-010 : "-lettres"/"terminant" -> "-buchstaben"/"endend-mit".
-                    $url = WordListFilters::fromPath($length . '-buchstaben/endend-mit/' . strtolower($letter))?->canonicalUrl();
+                    // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8').
+                    $url = WordListFilters::fromPath($length . '-buchstaben/endend-mit/' . mb_strtolower($letter, 'UTF-8'))?->canonicalUrl();
 
                     if ($url !== null) {
                         $byEnd[] = ['letter' => $letter, 'url' => $url, 'count' => $count];
@@ -198,7 +204,8 @@ final class LengthLinksBuilder
                     }
 
                     // D-DE-010 : "-lettres" -> "-buchstaben" (localisation d'URL, voir docs/DECISIONS.md).
-                    $url = WordListFilters::fromPath($length . '-buchstaben/avec/' . strtolower($letter))?->canonicalUrl();
+                    // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8').
+                    $url = WordListFilters::fromPath($length . '-buchstaben/avec/' . mb_strtolower($letter, 'UTF-8'))?->canonicalUrl();
 
                     if ($url !== null) {
                         $byWith[] = ['letter' => $letter, 'url' => $url, 'count' => $count];

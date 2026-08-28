@@ -94,7 +94,9 @@ final class LetterCombinedLinksBuilder
 
             // D-DE-010 : "commencant"/"terminant" -> "beginnend-mit"/"endend-mit" (localisation
             // d'URL, voir docs/DECISIONS.md).
-            $url = WordListFilters::fromPath('beginnend-mit/' . strtolower($start) . '/endend-mit/' . strtolower($end))?->canonicalUrl();
+            // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- $start/$end
+            // peuvent contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
+            $url = WordListFilters::fromPath('beginnend-mit/' . mb_strtolower($start, 'UTF-8') . '/endend-mit/' . mb_strtolower($end, 'UTF-8'))?->canonicalUrl();
 
             if ($url !== null) {
                 $links[] = ['letter' => $other, 'url' => $url, 'count' => (int) $row['count']];

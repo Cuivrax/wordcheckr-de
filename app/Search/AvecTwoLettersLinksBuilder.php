@@ -179,7 +179,9 @@ final class AvecTwoLettersLinksBuilder
             $count = (int) $row['count'];
 
             // D-DE-010 : "-lettres" -> "-buchstaben" (localisation d'URL, voir docs/DECISIONS.md).
-            $path = $length . '-buchstaben/avec/' . strtolower($letter) . '/' . strtolower($partner);
+            // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- ces lettres
+            // peuvent contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
+            $path = $length . '-buchstaben/avec/' . mb_strtolower($letter, 'UTF-8') . '/' . mb_strtolower($partner, 'UTF-8');
             $url = WordListFilters::fromPath($path)?->canonicalUrl();
 
             if ($url !== null) {

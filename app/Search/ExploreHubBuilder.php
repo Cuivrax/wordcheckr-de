@@ -42,6 +42,8 @@ final class ExploreHubBuilder
             // "endend-mit" (localisation d'URL, voir docs/DECISIONS.md) -- App\Search\
             // WordListFilters::KEYWORDS ne reconnait plus les anciens mots-cles francais,
             // fromPath() y renverrait silencieusement null (aucun lien genere) sinon.
+            // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') ci-dessous --
+            // $key peut contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
             switch ($row['list_type']) {
                 case 'length':
                     $url = WordListFilters::fromPath($key . '-buchstaben')?->canonicalUrl();
@@ -52,7 +54,7 @@ final class ExploreHubBuilder
                     break;
 
                 case 'start':
-                    $url = WordListFilters::fromPath('beginnend-mit/' . strtolower($key))?->canonicalUrl();
+                    $url = WordListFilters::fromPath('beginnend-mit/' . mb_strtolower($key, 'UTF-8'))?->canonicalUrl();
 
                     if ($url !== null) {
                         $byStart[] = ['letter' => $key, 'url' => $url, 'count' => $count];
@@ -60,7 +62,7 @@ final class ExploreHubBuilder
                     break;
 
                 case 'end':
-                    $url = WordListFilters::fromPath('endend-mit/' . strtolower($key))?->canonicalUrl();
+                    $url = WordListFilters::fromPath('endend-mit/' . mb_strtolower($key, 'UTF-8'))?->canonicalUrl();
 
                     if ($url !== null) {
                         $byEnd[] = ['letter' => $key, 'url' => $url, 'count' => $count];

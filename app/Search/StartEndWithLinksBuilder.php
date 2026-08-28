@@ -404,8 +404,11 @@ final class StartEndWithLinksBuilder
         // que la page qui les propose), pas seulement une page en moins.
         // D-DE-010 : "commencant"/"terminant" -> "beginnend-mit"/"endend-mit" (localisation
         // d'URL, voir docs/DECISIONS.md).
+        // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- $startLetter/
+        // $endLetter/$letter peuvent contenir Ä/Ö/Ü (list_counts), signale par l'audit
+        // independant.
         $parentUrl = WordListFilters::fromPath(
-            'beginnend-mit/' . strtolower($startLetter) . '/endend-mit/' . strtolower($endLetter)
+            'beginnend-mit/' . mb_strtolower($startLetter, 'UTF-8') . '/endend-mit/' . mb_strtolower($endLetter, 'UTF-8')
         )?->canonicalUrl();
 
         $links = [];
@@ -415,8 +418,8 @@ final class StartEndWithLinksBuilder
             $letter = $parts[2];
             $count = (int) $row['count'];
 
-            $path = 'beginnend-mit/' . strtolower($startLetter) . '/endend-mit/' . strtolower($endLetter)
-                . '/avec/' . strtolower($letter);
+            $path = 'beginnend-mit/' . mb_strtolower($startLetter, 'UTF-8') . '/endend-mit/' . mb_strtolower($endLetter, 'UTF-8')
+                . '/avec/' . mb_strtolower($letter, 'UTF-8');
             $url = WordListFilters::fromPath($path)?->canonicalUrl();
 
             if ($url === null || $url === $parentUrl) {

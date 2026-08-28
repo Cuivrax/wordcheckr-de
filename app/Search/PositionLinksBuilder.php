@@ -76,10 +76,12 @@ final class PositionLinksBuilder
 
             // D-DE-010 : "-lettres"/"commencant"/"terminant" -> "-buchstaben"/"beginnend-mit"/
             // "endend-mit" (localisation d'URL, voir docs/DECISIONS.md).
+            // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- $letter peut
+            // contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
             $path = match (true) {
-                $position === 1 => $length . '-buchstaben/beginnend-mit/' . strtolower($letter),
-                $position === $length => $length . '-buchstaben/endend-mit/' . strtolower($letter),
-                default => $length . '-buchstaben/position/' . $position . '/' . strtolower($letter),
+                $position === 1 => $length . '-buchstaben/beginnend-mit/' . mb_strtolower($letter, 'UTF-8'),
+                $position === $length => $length . '-buchstaben/endend-mit/' . mb_strtolower($letter, 'UTF-8'),
+                default => $length . '-buchstaben/position/' . $position . '/' . mb_strtolower($letter, 'UTF-8'),
             };
 
             $url = WordListFilters::fromPath($path)?->canonicalUrl();
