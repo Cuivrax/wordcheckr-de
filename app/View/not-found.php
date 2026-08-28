@@ -27,8 +27,8 @@ require __DIR__ . '/helpers.php';
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="<?= e($seo->robots) ?>">
-<title>Page Introuvable | WORD CHECKR</title>
-<meta name="description" content="Cette page n’existe pas. Vérifiez un mot ou trouvez les mots jouables avec vos lettres.">
+<title>Seite Nicht Gefunden | WORD CHECKR</title>
+<meta name="description" content="Diese Seite existiert nicht. Prüfen Sie ein Wort oder finden Sie spielbare Wörter mit Ihren Buchstaben.">
 <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -38,34 +38,36 @@ require __DIR__ . '/helpers.php';
 <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
-<a class="skip-link" href="#main">Aller au contenu</a>
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
 <header class="header">
   <div class="site header-row">
     <a class="logo" href="/"><img class="logo-mark" src="/assets/img/logo.png" alt="" width="32" height="32">WORD CHECKR</a>
-    <nav class="nav" aria-label="Navigation principale"><a href="/">Nouvelle recherche</a></nav>
+    <nav class="nav" aria-label="Hauptnavigation"><a href="/">Neue Suche</a></nav>
   </div>
 </header>
 
 <main class="word-shell main" id="main">
   <article class="word-card">
     <section class="word-answer">
-      <span class="status-badge status-badge--unknown">Page introuvable</span>
+      <span class="status-badge status-badge--unknown">Seite Nicht Gefunden</span>
       <h1 class="word-title">404</h1>
-      <p>Cette page n’existe pas.</p>
+      <p>Diese Seite existiert nicht.</p>
     </section>
 
     <form class="inline-check" action="/pruefen" method="get">
-      <label class="sr-only" for="mot-check">Vérifier un mot</label>
-      <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Vérifier un mot">
-      <button class="btn btn-primary" type="submit">Vérifier</button>
+      <label class="sr-only" for="mot-check">Ein Wort prüfen</label>
+      <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Ein Wort prüfen">
+      <button class="btn btn-primary" type="submit">Prüfen</button>
     </form>
   </article>
 </main>
 
 <footer class="footer">
   <div class="word-shell footer-row">
-    <span>Outil indépendant d’aide aux jeux de lettres.</span>
-    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Contact</a></span>
+    <span>Unabhängiges Tool für Buchstabenspiele.</span>
+    <?php // Voir app/View/word.php pour la justification complete de ce choix (footer
+    // repete a l'identique sur toutes les vues). ?>
+    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Kontakt</a></span>
   </div>
 </footer>
 </body>
