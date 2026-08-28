@@ -3852,3 +3852,180 @@ docs/DECISIONS.md, entree D-DE-011 : phrase corrigee ci-dessus (voir juste au-de
 Resultat final : `php tests/run.php` = 17 reussis, 1 echoue (`Frontend\WordListViewTest.php`,
 pre-existant, inchange par ce lot -- voir correction ci-dessus).
 
+## D-DE-013 — Registre SEO Allemand : Infrastructure Complète + Premier Palier (Home + 14 Longueurs)
+
+Date : 2026-08-29
+Statut : accepté
+
+Contexte : tâche lancée en suivant de près le précédent du dépôt espagnol cousin (ES-009/
+ES-010, `storage/seo_es.sqlite`, `home` + 2 longueurs liées depuis `home.php` + `word_admitted`
+au complet). En cours de tâche, une revue indépendante sur CE lot équivalent côté espagnol est
+tombée **NO GO** — la coordination a demandé une correction de trajectoire avant tout commit
+côté allemand. Cette entrée documente l'état CORRIGÉ, pas le plan initial.
+
+Décision :
+
+```text
+storage/seo_de.sqlite construite -- architecture identique aux depots francais/espagnol cousins
+  (app/Seo/Family.php/Registry.php/SeoMeta.php/schema.sql, scripts/build_seo_registry.php/
+  apply_seo_batch.php/build_sitemaps.php, tests/Seo/) -- ADAPTEE : aucune famille "non admis en
+  masse" (WORD_FRENCH_NOT_ADMITTED/WORD_SPANISH_NOT_ADMITTED n'ont pas d'equivalent allemand --
+  aucune source de donnees "allemand non admis" n'existe dans storage/dictionary_de.sqlite,
+  CLAUDE.md "Modele A Statuts" -- rien a reserver pour une donnee qui n'existe pas).
+Palier applique : home ('/' UNIQUEMENT, pas le hub '/woerter') + les 14 listes de longueur
+  /woerter/{N}-buchstaben (2 a 15 lettres, integralite de la famille, pas un sous-ensemble).
+  15 URL au total, 2 fragments sitemap (core-0001 = 1 URL, letters-0001 = 14 URL), 0 page a
+  resultat vide, 0 alias/doublon, moyenne 61,80 liens internes/page (echantillon n=15, home +
+  14 listes, verifie par HTTP reel sur php -S).
+word_admitted (590 856 pages /wort/{mot} potentielles) VOLONTAIREMENT NON appliquee -- voir
+  "Corrections Par Rapport Au Plan Initial" ci-dessous, deux blocages distincts documentes.
+```
+
+### Corrections Par Rapport Au Plan Initial (suite à la revue sur le lot équivalent côté ES)
+
+Le plan initial (avant correction) reproduisait quatre éléments du lot ES équivalent, révélés
+comme des défauts pendant la tâche elle-même (aucun n'a nécessité d'annuler un commit — rien
+n'avait encore été committé côté allemand au moment de la correction) :
+
+```text
+1. PREMISE FAUSSE sur le maillage des listes de longueur. Le plan initial reprenait "seules 2
+   longueurs sur 14 ont un lien interne reel" (base sur app/View/home.php uniquement, qui ne lie
+   explicitement que 7 et 9 buchstaben). FAUX, verifie directement dans App\Search\
+   RelationsFinder::relatedSearches() : CHAQUE fiche de mot admis emet inconditionnellement un
+   lien vers /woerter/{sa-longueur}-buchstaben (premiere entree ajoutee, jamais evincee par
+   MAX_RELATED_SEARCHES=12) -- verifie en direct sur un vrai serveur php -S avec un mot reel de
+   chaque longueur 2 a 15 (14 verifications HTTP independantes, toutes 200 avec le lien present).
+   CORRIGE : les 14 longueurs sont ouvertes, pas 2 -- toutes ont un maillage interne reel
+   demontre (au minimum 78 pages sources pour 2 lettres, jusqu'a 83 825 pour 9 lettres), un
+   resultat non vide, et une requete rapide et indexee (0/14 au-dessus du budget TTFB p95 < 250
+   ms, max 8,7 ms, EXPLAIN QUERY PLAN : SEARCH ... USING COVERING INDEX, jamais un SCAN).
+
+2. CONTOURNEMENT DES REGLES R1-R7 pour word_admitted. Le plan initial ecrivait
+   scripts/apply_word_admitted_rollout.php avec `robots = 'index,follow'` code en dur dans le
+   SQL, sans aucune des regles R1/R3/R4/R5/R7 de scripts/apply_seo_batch.php appliquee
+   mecaniquement -- seulement affirmees en prose ("respectees par construction"). CORRIGE :
+   assertRow() applique desormais ces memes controles pour CHAQUE ligne avant ecriture,
+   interrompt le script (exit 1) en cas de violation -- toujours pas d'appel litteral a
+   apply_seo_batch.php (memoire CLI insuffisante a cette echelle, 590 856 lignes), mais les
+   memes garanties, verifiees mecaniquement.
+
+3. VOLUME DE LOT NON DISCUTE pour word_admitted. Le plan initial appliquait les 590 856 lignes
+   en un seul lot, sans decision explicite du proprietaire du produit sur le dimensionnement --
+   contraire a la contrainte de role dure ("never propose indexing an entire word family at once
+   without discussing batch size first"). Le depot francais (D-017) a ouvert sa famille
+   equivalente en un seul lot, mais APRES une decision explicite et documentee du proprietaire du
+   produit, "contre l'avis initial de l'agent seo-registry" -- pas une decision unilaterale de
+   l'agent. CORRIGE : scripts/apply_word_admitted_rollout.php refuse desormais d'ecrire sans
+   argument explicite (--dry-run/--limit=N/--confirm-full-rollout), et refuse tout --limit
+   au-dessus de 100 000 sans --confirm-full-rollout. AUCUNE ligne word_admitted n'est appliquee
+   dans ce lot -- options chiffrees ci-dessous, en attente d'une decision explicite.
+
+4. DEFAUT DE TITRE NON DETECTE, INDEPENDANT DES TROIS POINTS CI-DESSUS. Mesure exhaustive (pas
+   un echantillon) : le gabarit <title> de app/View/word.php ('Ja, %s Ist Ein Gültiges
+   Scrabble-Wort (%d Punkte) | WORD CHECKR') depasse 60 caracteres pour 590 856/590 856 mots
+   admis (100%), et 70 caracteres pour 379 079/590 856 (64%) -- pire cas mesure : 76 caracteres
+   pour HYPOMIXOLYDISCH (15 lettres, 53 points). Hors perimetre de l'agent seo-registry
+   (app/View/, CLAUDE.md) -- SIGNALE, pas corrige ici. Bloque a lui seul toute ouverture de
+   word_admitted, independamment du point 3 (meme si un volume de lot etait tranche demain, ce
+   defaut de gabarit resterait un blocage separe).
+```
+
+### Autres Corrections, Trouvées Pendant La Même Revue
+
+```text
+5. Hub '/woerter' NON inclus dans ce lot, contrairement au lot ES equivalent (qui l'avait
+   inclus malgre le meme defaut). Verifie en direct (curl contre un vrai serveur php -S, pas
+   suppose) : list_counts est vide sur ce depot (meme decision D-DE-equivalente que cote
+   espagnol) -- les trois sections de grille ("Nach Länge"/"Beginnend Mit"/"Endend Mit")
+   rendent <div class="related-links"></div> strictement VIDE, aucun garde d'etat vide
+   equivalent a celui de app/View/word-list.php. Reste noindex,follow.
+6. docs/05_URL_SEO_INDEXATION.md etait une copie non modifiee du document francais (routes
+   /mot/, /mots/commencant, familles francaises, section "Fiches Francaises" sans equivalent
+   allemand) SANS aucun preambule de portee -- contrairement a CLAUDE.md/PHASE_STATUS.md, qui
+   ont chacun une note explicite "site francais d'origine". Corrige : note de portee ajoutee en
+   tete (meme convention que PHASE_STATUS.md), section "Section Allemande" ajoutee en fin de
+   fichier decrivant les routes/familles/etat reels de ce depot.
+7. scripts/build_sitemaps.php n'encodait pas en pourcent (RFC 3986) les segments non-ASCII de
+   route_path avant ecriture dans <loc> -- 115 536 mots admis (19,6% de la base) contiennent
+   Ä/Ö/Ü. XMLWriter::writeElement() echappe les caracteres XML reserves mais n'encode pas
+   l'UTF-8 non-ASCII en pourcent-encodage, ce qui produirait un <loc> valide en XML/UTF-8 mais
+   pas un URI valide au sens du protocole sitemap. Corrige (encodeRoutePath(), rawurlencode()
+   par segment, '/' preserve) -- verifie sur /wort/äpfel -> /wort/%C3%A4pfel. Sans effet sur ce
+   lot precis (aucune route appliquee ne contient de caractere non-ASCII), corrige par
+   construction avant que word_admitted n'ouvre.
+8. Surface de crawl noindex generee par relatedSearches() (beginnend-mit jusqu'a 3 lettres,
+   endend-mit jusqu'a 2 lettres, {N}-buchstaben/avec/jusqu'a 3 lettres, emise sur CHAQUE fiche
+   de mot, meme non indexee -- noindex,follow continue de faire suivre ces liens) : sondage
+   borne (14 mots, ~40 URL cibles) le 2026-08-29, EXPLAIN QUERY PLAN toujours un SEARCH via
+   index (idx_terms_reversed, sqlite_autoindex_terms_1), jamais un SCAN, 0/40 au-dessus de 150
+   ms. Signal favorable, PAS un balayage exhaustif au sens de D-024/D-025/D-029 a D-031 cote
+   depot francais (agent data-engine, toutes les combinaisons reelles, pas un echantillon) --
+   a mener avant toute decision d'ouverture de ces familles, signale explicitement plutot que
+   suppose sur.
+9. Meta descriptions (word-list.php, $statusMeta) : verifie que la branche par defaut ("Entdecken
+   Sie %d gültige Scrabble-Wörter...") ne peut jamais etre trompeuse ici -- storage/
+   dictionary_de.sqlite n'a AUCUNE ligne is_admitted=0 dans ce premier palier de donnees (CLAUDE.md,
+   modele a deux statuts), donc toute liste /woerter/{N}-buchstaben ne contient QUE des mots admis
+   par construction. A reverifier si une famille "allemand non admis" est un jour ajoutee.
+```
+
+### Options Chiffrées Pour Word_admitted (en attente de décision explicite)
+
+```text
+tranche 2-6 lettres     70 967 mots (78+745+3462+9558+20720+36404)
+tranche 2-9 lettres    211 777 mots (+ 56985 [7 lettres] + ... voir repartition par longueur)
+tranche complete       590 856 mots (famille entiere)
+```
+
+Aucune de ces options n'est appliquée par ce lot. Bloqué par le point 4 (titre) indépendamment
+du choix de volume — recommandation : router le correctif de gabarit vers l'agent frontend
+AVANT toute décision de volume, plutôt que les traiter comme deux décisions indépendantes.
+
+Raison (identique à ES-009, réaffirmée après correction) :
+
+```text
+meme discipline de rollout progressif que le site francais (D-017, D-029 a D-031) : ne
+  jamais ouvrir l'indexation d'une famille de pages sans verifier d'abord qu'elle a un
+  maillage entrant reel VERIFIE (pas suppose depuis un seul point d'entree comme home.php) --
+  et ne jamais ouvrir une famille volumineuse sans une decision de dimensionnement explicite,
+  separee de la question de savoir si son contenu est individuellement correct.
+```
+
+Conséquences :
+
+```text
+app/Seo/, scripts/build_seo_registry.php, apply_seo_batch.php, build_sitemaps.php, tests/Seo/
+  (3 fichiers, recrees pour ce qui existe reellement ici, meme raison que ES-009)
+scripts/apply_word_admitted_rollout.php : outil pret et teste (--dry-run), PAS ENCORE EXECUTE
+  contre le registre reel -- voir points 3/4 ci-dessus
+public/robots.txt (ligne Sitemap: ajoutee, pointant vers
+  https://www.wordcheckr.de/sitemap-index.xml -- correcte des maintenant meme si le domaine
+  n'est pas encore deploye)
+storage/seo_de.sqlite, public/sitemaps/*.xml (2 fragments), public/sitemap-index.xml
+  (storage/ gitignore comme storage/dictionary_de.sqlite ; public/sitemaps/ et
+  public/sitemap-index.xml versionnes, meme convention que le depot espagnol cousin)
+docs/05_URL_SEO_INDEXATION.md : note de portee + section allemande ajoutees (point 6)
+Nettoyage en marge : 115 Mo de scripts/seo-batches/*.php francais perimes supprimes (URLs
+  /mots/commencant/... jamais applicables au schema D-DE-009), scripts/apply_full_word_rollout.php
+  (heritage francais non adapte, referencait storage/seo_fr.sqlite) supprime, remplace par
+  scripts/apply_word_admitted_rollout.php (non applique, voir ci-dessus)
+```
+
+Non touchés (hors périmètre explicite de cette tâche, signalés plutôt que oubliés) :
+
+```text
+scripts/propose_seo_batch.php (2851 lignes) et scripts/check_combinatorial_duplicates.php
+  restent NON modifies, specifiques au francais, et inertes (code mort tant qu'aucune famille
+  combinatoire n'est ouverte ici) -- a reecrire avant tout palier futur qui les utiliserait
+scripts/bench_*.php (13 fichiers, familles combinatoires "avec"/"position"/"combined"/
+  "commencant-terminant" francaises), scripts/add_length_reversed_index.php,
+  scripts/add_startletter_endletter_index.php : perimetre data-engine (deja executes, les
+  index qu'ils ajoutent existent deja dans storage/dictionary_de.sqlite), non touches
+app/View/word.php : defaut de gabarit <title> (point 4) -- a router vers l'agent frontend
+app/Search/ExploreHubBuilder / list_counts (vide) -- a router vers l'agent data-engine pour
+  ouvrir '/woerter' et les familles beginnend-mit/endend-mit a un futur palier
+```
+
+`php tests/run.php` : 20 réussis, 1 échoué (`Frontend\WordListViewTest.php`, pré-existant,
+documenté D-DE-004/D-DE-011, inchangé par ce lot).
+
