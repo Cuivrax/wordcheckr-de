@@ -6,13 +6,13 @@ namespace App\Seo;
 
 /**
  * Métadonnées SEO résolues pour une route, consommées directement par la couche de rendu
- * (app/View/, hors périmètre de cet agent — contrat livré au rapport AFTER pour que la
- * session principale branche public/index.php et app/View/*.php).
+ * (app/View/, hors périmètre de cet agent — déjà branchées dans public/index.php et
+ * app/View/*.php sur ce dépôt, héritage du scaffold FR->DE).
  *
  * $canonicalUrl est déjà une URL ABSOLUE (domaine inclus), prête à imprimer telle quelle dans
- * <link rel="canonical" href="...">. Le calcul du domaine (Config::$canonicalBaseUrl, valeur
- * proposée, pas encore ajoutée à config/sites/fr.php — fichier partagé, CLAUDE.md) reste dans
- * Registry, jamais dans la vue.
+ * <link rel="canonical" href="...">. Le calcul du domaine (Config::$canonicalBaseUrl, déjà
+ * renseigné dans config/sites/de.php — fichier partagé, CLAUDE.md) reste dans Registry, jamais
+ * dans la vue.
  *
  * $canonicalUrl peut être null (ex. page 404 : aucune URL canonique n'a de sens pour une
  * route qui n'existe pas) — la vue omet alors la balise <link rel="canonical"> plutôt que

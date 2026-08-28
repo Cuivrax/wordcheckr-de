@@ -3,32 +3,36 @@
 declare(strict_types=1);
 
 /**
- * Génère les fragments de sitemap et sitemap-index.xml depuis storage/seo_fr.sqlite
- * (Phase 6, docs/08). Hors ligne uniquement (CLI) -- jamais appelé au runtime, même principe
- * que scripts/build_seo_registry.php et scripts/apply_seo_batch.php.
+ * Génère les fragments de sitemap et sitemap-index.xml depuis storage/seo_de.sqlite.
+ * Hors ligne uniquement (CLI) -- jamais appelé au runtime, même principe que
+ * scripts/build_seo_registry.php et scripts/apply_seo_batch.php. Adapté des dépôts français
+ * et espagnol cousins (scripts/build_sitemaps.php, FR/ES) -- URLs wordcheckr.de, JAMAIS
+ * wordcheckr.fr ni l'ancien schéma d'URL français (/mots/...) -- erreur déjà trouvée et
+ * corrigée une fois sur CE dépôt (public/robots.txt et public/sitemaps/ hérités du scaffold
+ * FR->DE pointaient vers le mauvais domaine ET l'ancien schéma, D-DE-012) ; ne pas la
+ * réintroduire.
  *
  * Usage :
- *     php scripts/build_sitemaps.php --base-url=https://exemple.fr
+ *     php scripts/build_sitemaps.php --base-url=https://www.wordcheckr.de
  *
- * --base-url est OBLIGATOIRE : aucun domaine par défaut n'est supposé (le domaine réel du
- * site n'est pas encore fixé dans ce dépôt -- voir le rapport AFTER de l'agent seo-registry).
- * Un domaine faux publié dans un sitemap serait pire qu'aucun sitemap.
+ * --base-url est OBLIGATOIRE : aucun domaine par défaut n'est supposé. Un domaine faux publié
+ * dans un sitemap serait pire qu'aucun sitemap.
  *
- * Ne lit QUE storage/seo_fr.sqlite : les colonnes route_path/canonical_path/sitemap_fragment
- * suffisent, aucun accès à storage/dictionary_fr.sqlite n'est nécessaire ici (D-002 -- les
- * deux bases restent indépendantes même à la génération des sitemaps).
+ * Ne lit QUE storage/seo_de.sqlite : les colonnes route_path/canonical_path/sitemap_fragment
+ * suffisent, aucun accès à storage/dictionary_de.sqlite n'est nécessaire ici (les deux bases
+ * restent indépendantes même à la génération des sitemaps).
  *
- * Règles dures appliquées (docs/05_URL_SEO_INDEXATION.md, section Sitemaps) :
+ * Règles dures appliquées (docs/05_URL_SEO_INDEXATION.md, section Sitemaps, hérité -- toujours
+ * valable) :
  *   - seules les lignes robots = 'index,follow' ET sitemap_fragment NOT NULL sont émises ;
  *     une ligne 'noindex,follow' n'apparaît JAMAIS dans un sitemap, même si sitemap_fragment
  *     était renseigné par erreur (défendu aussi en amont par scripts/apply_seo_batch.php, R4) ;
  *   - 40 000 URL au plus par fragment -- vérifié ici en sortie, pas seulement supposé respecté
  *     par la donnée en entrée (défense en profondeur : si un fragment dépasse la limite, le
  *     script s'arrête en erreur plutôt que d'écrire un fragment non conforme) ;
- *   - la famille détermine le PRÉFIXE attendu du fragment (words-, invalid-french-, starts-,
- *     ends-, contains-, letters-, core-) -- un fragment dont le préfixe ne correspond pas à la
- *     famille de toutes ses lignes est un signal d'incohérence de nommage, rejeté ici plutôt
- *     que publié silencieusement.
+ *   - la famille détermine le PRÉFIXE attendu du fragment -- un fragment dont le préfixe ne
+ *     correspond pas à la famille de toutes ses lignes est un signal d'incohérence de
+ *     nommage, rejeté ici plutôt que publié silencieusement.
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -38,81 +42,51 @@ if (PHP_SAPI !== 'cli') {
 
 const MAX_URLS_PER_FRAGMENT = 40_000;
 
-/** @var array<string, string> */
+/**
+ * Encode chaque SEGMENT de route_path par rawurlencode() (RFC 3986), sans toucher aux '/'
+ * separateurs -- necessaire pour toute route contenant Ä/Ö/Ü (D-DE-002 : lettres allemandes
+ * distinctes, jamais repliees sur A/O/U, donc presentes telles quelles dans normalized/slug).
+ * 115 536 mots admis (19,6% de storage/dictionary_de.sqlite) contiennent au moins une de ces
+ * trois lettres -- un <loc> XML valide en UTF-8 n'est PAS pour autant un URI valide au sens du
+ * protocole sitemap (sitemaps.org/RFC 3986 : un <loc> doit rester une sequence ASCII, tout
+ * caractere non-ASCII doit etre pourcent-encode) ; XMLWriter::writeElement() echappe les
+ * caracteres XML reserves (&, <, >...) mais n'encode PAS l'UTF-8 non-ASCII en pourcent-encodage
+ * -- laisser passer un octet UTF-8 brut dans <loc> est rejete ou mal interprete par certains
+ * lecteurs de sitemap. Trouve et corrige avant toute application reelle de la famille
+ * word_admitted (aucune ligne appliquee sur des mots Ä/Ö/Ü a ce stade, D-DE-013, mais le script
+ * doit rester correct par construction, pas seulement pour le lot actuellement applique).
+ */
+function encodeRoutePath(string $routePath): string
+{
+    $segments = explode('/', $routePath);
+
+    return implode('/', array_map(
+        static fn (string $segment): string => rawurlencode($segment),
+        $segments,
+    ));
+}
+
+/**
+ * Familles REELLEMENT peuplees sur ce depot a ce stade (docs/DECISIONS.md D-DE-013). Toute
+ * famille combinatoire future (beginnend-mit, endend-mit, avec, position, combined...) devra
+ * ajouter sa propre entree ici au moment ou elle sera reellement ouverte -- jamais avant, meme
+ * discipline que les depots francais/espagnol cousins (voir leur FAMILY_FRAGMENT_PREFIXES).
+ *
+ * @var array<string, string>
+ */
 const FAMILY_FRAGMENT_PREFIXES = [
+    // home (racine '/' + hub de navigation '/woerter') : 2 pages au total, D-DE-013.
     'home' => 'core',
+    // word_admitted (/wort/{mot}, mots admis enz/german-wordlist + hippler/german-wordlist) :
+    // D-DE-013.
     'word_admitted' => 'words',
-    'word_french_not_admitted' => 'invalid-french',
+    // word_list_length (/woerter/{N}-buchstaben) : SEULEMENT 7 et 9 buchstaben, D-DE-013 --
+    // les 12 autres longueurs restent noindex,follow (aucun lien entrant reel demontre tant
+    // que list_counts reste vide).
     'word_list_length' => 'letters',
-    'word_list_commencant' => 'starts',
-    'word_list_terminant' => 'ends',
-    'word_list_contenant' => 'contains',
-    // word_list_combined (D-024 correctif, D-025) : retiree de NEVER_SITEMAP le 2026-08-09,
-    // espace borne (26x26 ou 14x26x26), pas une combinaison infinie -- prefixe 'combined',
-    // ajoute a docs/05_URL_SEO_INDEXATION.md (section Sitemaps) dans le meme lot.
-    'word_list_combined' => 'combined',
-    // word_list_position (D-023, jamais dans NEVER_SITEMAP) : une seule lettre connue a une
-    // seule position, espace borne par construction (2 366 combinaisons reelles au total,
-    // WordListFilters::readPosition() n'accepte qu'un seul couple position/lettre) -- prefixe
-    // 'position', ajoute a docs/05_URL_SEO_INDEXATION.md (section Sitemaps) dans le meme lot.
-    // Balayage complet des 2 366 combinaisons : 0 au-dessus du budget TTFB, voir
-    // reports/query-plans/position-full-sweep.md.
-    'word_list_position' => 'position',
-    // word_list_avec_single_letter (demande produit du 2026-08-17, jamais dans NEVER_SITEMAP) :
-    // PALIER 1 de l'ouverture en entonnoir de "avec" -- longueur explicite ET exactement une
-    // lettre "avec" (occurrence unique), 14 x 26 = 364 combinaisons au plus, borne de la famille
-    // elle-meme sur ce perimetre precis -- distincte en permanence de word_list_avec (multiensemble
-    // general, ci-dessous, NEVER_SITEMAP) et de tout futur palier (2 lettres, 3 lettres...), qui
-    // devra recevoir sa PROPRE constante Family et son propre prefixe, jamais celui-ci. Prefixe
-    // 'avec-single', ajoute a docs/05_URL_SEO_INDEXATION.md (section Sitemaps) dans le meme lot.
-    // Balayage complet des 364 combinaisons : 0 au-dessus du budget TTFB, voir
-    // reports/query-plans/avec-length-1-letter-full-sweep.md et app/Seo/Family.php.
-    'word_list_avec_single_letter' => 'avec-single',
-    // word_list_avec_two_letters (demande produit du 2026-08-17, jamais dans NEVER_SITEMAP) :
-    // PALIER 2 de l'ouverture en entonnoir de "avec" -- longueur explicite ET exactement deux
-    // lettres "avec" DISTINCTES (occurrence unique chacune), 14 x C(26,2) = 4 550 combinaisons au
-    // plus, borne de la famille elle-meme sur ce perimetre precis -- distincte en permanence de
-    // word_list_avec_single_letter (palier 1, ci-dessus) et de word_list_avec (multiensemble
-    // general, ci-dessous, NEVER_SITEMAP). Prefixe 'avec-pair', ajoute a
-    // docs/05_URL_SEO_INDEXATION.md (section Sitemaps) dans le meme lot. Balayage complet des
-    // 4 550 combinaisons (agent data-engine, 3 runs) : voir reports/query-plans/
-    // avec-length-2-letters-full-sweep.md et app/Seo/Family.php pour le detail complet, dont la
-    // re-verification independante effectuee par l'agent seo-registry avant application.
-    'word_list_avec_two_letters' => 'avec-pair',
-    // word_list_avec_three_letters (demande produit du 2026-08-18, jamais dans NEVER_SITEMAP) :
-    // PALIER 3 de l'ouverture en entonnoir de "avec" -- longueur explicite ET exactement trois
-    // lettres "avec" DISTINCTES (occurrence unique chacune), 14 x C(26,3) = 36 400 combinaisons au
-    // plus, borne de la famille elle-meme sur ce perimetre precis -- distincte en permanence de
-    // word_list_avec_single_letter (palier 1), word_list_avec_two_letters (palier 2, ci-dessus) et
-    // de word_list_avec (multiensemble general, ci-dessous, NEVER_SITEMAP). Prefixe 'avec-triple',
-    // ajoute a docs/05_URL_SEO_INDEXATION.md (section Sitemaps) dans le meme lot. Balayage complet
-    // des 36 400 combinaisons (agent data-engine, un seul passage) : 28 827 a >= 1 resultat, voir
-    // reports/query-plans/avec-length-3-letters-full-sweep.md et app/Seo/Family.php pour le detail
-    // complet, dont l'investigation d'un pic de latence isole juge non structurel.
-    'word_list_avec_three_letters' => 'avec-triple',
-    // word_list_combined_with_letter (demande produit du 2026-08-18, jamais dans NEVER_SITEMAP,
-    // D-033) : NOUVELLE classification, DISTINCTE de word_list_combined -- prefixe ET suffixe
-    // chacun d'une seule lettre, SANS longueur, PLUS une lettre "avec" d'occurrence unique,
-    // 611 paires commencant+terminant reelles x 26 lettres = 15 886 combinaisons candidates au
-    // plus, borne de la famille elle-meme sur ce perimetre precis. Prefixe 'combined-with',
-    // ajoute a docs/05_URL_SEO_INDEXATION.md (section Sitemaps) dans le meme lot. Balayage
-    // complet des 15 886 combinaisons : 0 au-dessus du budget TTFB, voir reports/query-plans/
-    // commencant-terminant-avec-full-sweep.md et app/Seo/Family.php.
-    'word_list_combined_with_letter' => 'combined-with',
-    // word_list_commencant_with_letter (demande produit du 2026-08-18, dernier des quatre axes
-    // commencant/terminant/avec travailles ce jour, jamais dans NEVER_SITEMAP, D-032) : NOUVELLE
-    // classification, distincte de word_list_commencant (prefixe seul) ET de
-    // word_list_combined_with_letter (ci-dessus, prefixe+terminant+avec) -- prefixe d'une seule
-    // lettre, SANS longueur, SANS terminant, PLUS une lettre "avec" d'occurrence unique, 26
-    // prefixes reels x 26 lettres = 676 combinaisons brutes au plus, borne de la famille
-    // elle-meme sur ce perimetre precis. Prefixe 'commencant-avec', ajoute a
-    // docs/05_URL_SEO_INDEXATION.md (section Sitemaps) dans le meme lot. Balayage complet des
-    // 650 combinaisons non degenerees : 0 au-dessus du budget TTFB, voir reports/query-plans/
-    // commencant-avec-no-length-full-sweep.md, reports/query-plans/commencant-avec-maillage.md
-    // et app/Seo/Family.php.
-    'word_list_commencant_with_letter' => 'commencant-avec',
-    // word_list_avec, word_list_sans, word_list_motif, rack : absents volontairement --
-    // App\Seo\Family::NEVER_SITEMAP, jamais de prefixe de fragment.
+    // rack, contenant/avec/sans/motif, et toute famille beginnend-mit/endend-mit/position/
+    // combined future : absents volontairement -- soit App\Seo\Family::NEVER_SITEMAP (jamais
+    // de prefixe), soit non encore ouverts (D-DE-013).
 ];
 
 $baseUrl = null;
@@ -134,7 +108,7 @@ $root = dirname(__DIR__);
 // SCRABBLE_SEO_DB_PATH / SCRABBLE_PUBLIC_DIR : reserves aux tests (tests/Seo/), jamais
 // definis en usage normal -- meme raison que scripts/apply_seo_batch.php : permet de verifier
 // ce script sans jamais ecrire dans le vrai public/ pendant la suite de tests.
-$dbPath = getenv('SCRABBLE_SEO_DB_PATH') ?: $root . '/storage/seo_fr.sqlite';
+$dbPath = getenv('SCRABBLE_SEO_DB_PATH') ?: $root . '/storage/seo_de.sqlite';
 $publicDir = getenv('SCRABBLE_PUBLIC_DIR') ?: $root . '/public';
 
 if (!is_file($dbPath)) {
@@ -148,11 +122,11 @@ $pdo = new PDO('sqlite:' . $dbPath, null, null, [
 ]);
 
 // Iteration en flux (PDOStatement parcouru directement, jamais fetchAll) : un registre a
-// l'echelle du dictionnaire (plus de 800 000 lignes en famille word_admitted +
-// word_french_not_admitted, D-017) epuise la memoire CLI par defaut (128 Mo) si tout est
-// charge en tableau avant traitement -- teste et confirme. La requete trie deja par
-// sitemap_fragment : un seul fragment (au plus MAX_URLS_PER_FRAGMENT lignes) est jamais
-// retenu en memoire a la fois, jamais le registre entier.
+// l'echelle du dictionnaire (plusieurs centaines de milliers de lignes en famille
+// word_admitted, D-DE-013) epuise la memoire CLI par defaut (128 Mo) si tout est charge en
+// tableau avant traitement -- meme constat que les depots francais/espagnol cousins. La
+// requete trie deja par sitemap_fragment : un seul fragment (au plus MAX_URLS_PER_FRAGMENT
+// lignes) est jamais retenu en memoire a la fois, jamais le registre entier.
 $statement = $pdo->query(
     "SELECT route_path, family, canonical_path, sitemap_fragment FROM registry "
     . "WHERE robots = 'index,follow' AND sitemap_fragment IS NOT NULL "
@@ -196,7 +170,7 @@ $flushFragment = static function (?string $fragment, array $rows) use ($sitemaps
 
     foreach ($rows as $row) {
         $xml->startElement('url');
-        $xml->writeElement('loc', $baseUrl . $row['route_path']);
+        $xml->writeElement('loc', $baseUrl . encodeRoutePath($row['route_path']));
         $xml->endElement();
     }
 

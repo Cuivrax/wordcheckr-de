@@ -1,17 +1,27 @@
 # WordCheckr -- site allemand (wordcheckr.de).
 # Perimetre normal : agent seo-registry (CLAUDE.md).
 #
-# Version minimale temporaire -- remplace un fichier herite de la copie initiale FR->DE
-# (scaffold ed847d6) qui pointait activement vers https://www.wordcheckr.fr/sitemap-index.xml
-# (mauvais domaine ET ancien schema d'URL francais, /mots, jamais nettoye) -- corrige a la
-# demande explicite du porteur de projet suite a un audit independant (housekeeping avant
-# tout deploiement, docs/DECISIONS.md D-DE-011), PAS une construction du registre SEO
-# allemand complet -- ce registre (storage/seo_de.sqlite, App\Seo\Registry, sitemaps reels)
-# reste hors perimetre de ce lot et a construire par l'agent seo-registry.
+# Registre SEO construit (storage/seo_de.sqlite, docs/DECISIONS.md D-DE-013) : premier palier
+# applique -- home ('/' uniquement, PAS le hub '/woerter' -- voir D-DE-013) et les 14 listes
+# par longueur (/woerter/{N}-buchstaben, 2 a 15 lettres). Toute route absente du registre reste
+# noindex,follow par defaut (App\Seo\Registry::resolve()) -- ce fichier ne fait qu'autoriser le
+# crawl, il ne decide jamais lui-meme de l'indexation.
 #
-# Aucune ligne "Sitemap:" ci-dessous tant qu'aucun sitemap allemand reel n'existe -- publier
-# une URL de sitemap qui renvoie 404 serait aussi trompeur que l'ancienne, pointee vers le
-# mauvais domaine.
+# Build local uniquement a ce stade (docs/PHASE_STATUS.md) -- build et verification (XML bien
+# forme, echantillon de reponses 200/robots/canonical sur un vrai serveur php -S) faites le
+# 2026-08-29, MAIS le domaine wordcheckr.de n'est pas encore deploye. La ligne Sitemap:
+# ci-dessous est correcte pour la production future ; ne pas la retirer avant deploiement
+# (contrairement au retrait fait en D-DE-011/D-DE-012, qui visait un domaine et un schema d'URL
+# FAUX herites du scaffold FR->DE -- celui-ci est correct des maintenant).
+#
+# word_admitted (590 856 pages /wort/{mot} potentielles) reste ENTIEREMENT noindex,follow :
+# deux blocages distincts non leves a ce stade (voir docs/05_URL_SEO_INDEXATION.md, section
+# allemande, et docs/DECISIONS.md D-DE-013 pour le detail complet) -- gabarit <title> de
+# app/View/word.php trop long pour 100% des mots admis (hors perimetre de cet agent), et aucune
+# decision explicite de dimensionnement de lot prise par le proprietaire du produit pour cette
+# famille (contrainte de role : jamais une famille entiere sans discussion prealable du volume).
 
 User-agent: *
 Allow: /
+
+Sitemap: https://www.wordcheckr.de/sitemap-index.xml

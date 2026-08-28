@@ -1,5 +1,22 @@
 # 05 — URL, SEO Et Indexation
 
+> **Note de portée (site allemand).** Comme le reste de `docs/01` à `docs/08` (CLAUDE.md), ce
+> fichier décrit le **site français d'origine** dont ce dépôt est une copie indépendante :
+> l'architecture (registre unique, ordre canonique des contraintes, règles de sitemap, règle
+> "pages à un résultat", pagination) reste valable telle quelle, mais **toute route concrète
+> listée ci-dessous (`/mot/qi`, `/mots/commencant/ch`...), toute famille de sitemap
+> (`starts-*`, `avec-triple-*`, `combined-with-*`...) et la section « Fiches Françaises »
+> décrivent le site français, pas ce dépôt**. Signalé ici (trouvé absent, 2026-08-29,
+> D-DE-013) plutôt que laissé sans préambule comme le reste du fichier, pour éviter qu'un futur
+> agent lise une route `/mots/commencant/ch` et la croie réellement servie ici (elle ne l'est
+> pas — schéma réel : `/woerter/beginnend-mit/{lettre}`, D-DE-009). État réel de CE dépôt :
+> voir la section « Section Allemande » en fin de fichier.
+>
+> Pas de section « Fiches Françaises » équivalente ici : `is_french` n'existe pas côté allemand
+> (CLAUDE.md, "Modèle À Statuts" — deux statuts peuplés seulement, aucune source de
+> dictionnaire général allemand indépendante retenue, `data/raw/PROVENANCE.md`) — rien à
+> indexer "en masse" sous ce nom tant que cette donnée n'existe pas.
+
 ## Registre Unique
 
 Le registre SEO est l’unique source de vérité pour :
@@ -336,3 +353,120 @@ aucune redirection
 Canonical autonome et vrais liens précédent/suivant.
 
 Les tris et paramètres ne sont pas indexables.
+
+---
+
+# Section Allemande
+
+État réel de CE dépôt (indépendant du site français ci-dessus), mis à jour le 2026-08-29
+(D-DE-013). Toutes les règles génériques ci-dessus (registre unique, ordre canonique, règle
+"pages à un résultat", limite de 40 000 URL/fragment, pagination) s'appliquent telles quelles ;
+seules les routes concrètes et les familles réellement peuplées diffèrent.
+
+## Routes Réelles (D-DE-009)
+
+```text
+/
+/wort/qi
+/wort/schreiben
+/pruefen/{wort}          (redirection pure vers /wort/{wort})
+/wortsuche/{buchstaben}
+/woerter                 (hub de navigation, App\Search\ExploreHub)
+/woerter/7-buchstaben
+/woerter/beginnend-mit/ch
+/woerter/7-buchstaben/beginnend-mit/ch
+/woerter/endend-mit/ung
+/woerter/contenant/sch
+/woerter/avec/a/a/r
+/woerter/5-buchstaben/motif/c--e-
+```
+
+`contenant`/`avec`/`sans`/`motif`/`statut`/`tri`/`position`/`page` restent volontairement en
+français (D-DE-009) : hors périmètre de la recherche concurrentielle qui a localisé le reste,
+et de toute façon jamais indexés (`contenant`/`avec`/`sans`/`motif` restent dans
+`App\Seo\Family::NEVER_SITEMAP` en permanence ; `statut`/`tri`/`position` sont des raffinements
+d'affichage).
+
+## Ordre Canonique
+
+Identique à l'ordre générique ci-dessus, mots-clés localisés :
+
+```text
+longueur (N-buchstaben)
+beginnend-mit
+contenant
+endend-mit
+position
+avec
+sans
+motif
+```
+
+## Modèle À Statuts (différence structurelle avec le dépôt français)
+
+Aucune section « Fiches Françaises » équivalente : `is_french`/`is_german`-non-admis n'existe
+pas dans `storage/dictionary_de.sqlite` (CLAUDE.md, "Modèle À Statuts" — deux statuts peuplés
+seulement : `is_admitted` / inconnu). `App\Seo\Family` n'a donc aucune constante équivalente à
+`WORD_FRENCH_NOT_ADMITTED`/`WORD_SPANISH_NOT_ADMITTED` des dépôts cousins — à ajouter le jour où
+une source réelle existera, jamais avant (voir `app/Seo/Family.php`).
+
+## Familles Réellement Peuplées (D-DE-013)
+
+```text
+home              '/' uniquement (PAS '/woerter' -- voir plus bas)
+word_list_length  /woerter/{N}-buchstaben, les 14 longueurs (2 à 15)
+```
+
+`word_admitted` (590 856 pages potentielles, `/wort/{mot}`) reste **entièrement noindex,follow**
+à ce stade — deux blocages distincts, aucun des deux un simple oubli :
+
+```text
+1. app/View/word.php : le gabarit <title> dépasse 60 caractères pour 100% des mots admis
+   (mesure exhaustive, pas un échantillon), 70 caractères pour 64% d'entre eux -- hors
+   périmètre de l'agent seo-registry (app/View/), signalé à l'agent frontend.
+2. Contrainte de rôle dure ("never propose indexing an entire word family at once without
+   discussing batch size first") -- aucune décision de dimensionnement de lot n'a encore été
+   prise par le propriétaire du produit pour cette famille (contrairement à D-017 côté dépôt
+   français, décision explicite et documentée). scripts/apply_word_admitted_rollout.php est prêt
+   (testé en --dry-run, règles R1/R3/R4/R5/R7 appliquées mécaniquement par assertRow(), refuse
+   d'écrire au-delà d'un plafond de sécurité sans --confirm-full-rollout) mais n'a pas encore
+   été exécuté contre storage/seo_de.sqlite.
+```
+
+`/woerter` (hub) reste **noindex,follow** : `list_counts` est vide sur ce dépôt (même décision
+que côté espagnol cousin) — les trois sections de grille ("Nach Länge"/"Beginnend
+Mit"/"Endend Mit") rendent `<div class="related-links"></div>` strictement vide, vérifié en
+direct (`curl` contre un vrai serveur `php -S`), pas seulement en lisant le code. Seuls les
+formulaires "Enthält"/"Prüfen" et le texte d'introduction constituent un contenu réel — jugé
+insuffisant pour indexer une page dont les trois quarts du contenu annoncé sont vides.
+
+## Maillage Interne Vérifié (D-DE-013)
+
+`App\Search\RelationsFinder::relatedSearches()` émet, sur **chaque** fiche de mot admis
+(qu'elle soit elle-même indexée ou non — `noindex,follow` continue de faire suivre ses liens
+sortants), un lien vers `/woerter/{sa-longueur}-buchstaben` en première position (jamais évincé
+par `MAX_RELATED_SEARCHES = 12`) — vérifié en direct pour les 14 longueurs (2 à 15) sur un vrai
+serveur `php -S`, pas supposé depuis `app/View/home.php` seul. `app/View/home.php` ajoute en
+plus deux liens statiques (7 et 9 lettres) et un lien vers le hub.
+
+La même fonction émet aussi, sur chaque fiche, un lien `beginnend-mit` (1 et, si longueur > 3,
+3 lettres), `endend-mit` (jusqu'à 2 lettres) et `{N}-buchstaben/avec/{jusqu'à 3 lettres}` — ces
+familles (`word_list_commencant`, `word_list_terminant`, variante longueur+avec de
+`word_list_avec`) restent **noindex,follow** dans ce lot : espace combinatoire non borné par un
+simple compte de lettres réel (contrairement à `word_list_length`), aucun balayage complet
+(`EXPLAIN QUERY PLAN` + TTFB sur TOUTES les combinaisons réelles, pas un échantillon) n'a été
+mené à ce stade. Un sondage borné (14 mots, ~40 URL cibles) le 2026-08-29 n'a trouvé aucun scan
+de table complet (`SEARCH ... USING INDEX`, jamais `SCAN`) et aucun temps de réponse au-dessus
+de 150 ms — signal favorable, PAS un balayage exhaustif au sens de D-024/D-025/D-029 à D-031
+côté dépôt français ; à mener par l'agent data-engine avant toute décision d'ouverture.
+
+## Sitemaps Réellement Générés
+
+```text
+core-0001.xml     1 URL ('/')
+letters-0001.xml  14 URL (/woerter/{N}-buchstaben)
+```
+
+Préfixes réservés mais non générés à ce stade : `words-*` (word_admitted, en attente des deux
+blocages ci-dessus), `starts-*`/`ends-*`/`contains-*`/`combined-*`/`position-*`/`avec-*` (aucune
+famille correspondante mesurée ni ouverte sur ce dépôt).
