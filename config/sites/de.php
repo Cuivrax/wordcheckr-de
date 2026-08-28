@@ -28,7 +28,9 @@ return [
     // premiere passe (pas d'equivalent is_french/Kartmaan -- voir data/raw/PROVENANCE.md,
     // section "Ce Qui N'est PAS Construit"). Modele a DEUX statuts pour l'instant : admis
     // / inconnu -- le troisieme statut du modele ferme (CLAUDE.md) reste structurellement
-    // possible (TermPage::STATUS_NOT_ADMITTED) mais n'est produit par aucune donnee
+    // possible (TermPage::STATUS_FRENCH_NOT_ADMITTED, nom herite du site francais -- pas
+    // renomme, changer un nom de constante partagee par tout app/Search est hors perimetre
+    // d'un correctif de commentaire) mais n'est produit par aucune donnee
     // actuelle. null : cette cle n'est lue nulle part ailleurs dans app/ (verifie par
     // recherche exhaustive avant ce choix) -- app/Config.php la declare nullable pour ce
     // site, changement signale (fichier partage, CLAUDE.md).

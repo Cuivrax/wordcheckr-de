@@ -3,15 +3,18 @@
 declare(strict_types=1);
 
 /**
- * Page hub /mots, appelee par public/index.php avec $hub (App\Search\ExploreHub). Trois
- * grilles completes vers les familles deja indexees et finies (longueur, commencant,
- * terminant -- 66 liens, D-017), chacune avec son compte reel. Corrige l'absence de lien
+ * Page hub /woerter, appelee par public/index.php avec $hub (App\Search\ExploreHub). Trois
+ * grilles completes vers les familles deja indexees et finies (longueur, beginnend-mit,
+ * endend-mit -- 66 liens, D-017), chacune avec son compte reel. Corrige l'absence de lien
  * entrant vers ces pages, releve par l'audit SEO final (seo-technical-auditor, C4).
+ *
+ * ADAPTATION ALLEMANDE (D-DE-009, docs/DECISIONS.md) : route localisee depuis "/mots" --
+ * "commencant"/"terminant" -> "beginnend-mit"/"endend-mit" partout ci-dessous.
  *
  * "Contenant" n'a JAMAIS de grille ici (App\Seo\Family::NEVER_SITEMAP, combinaisons
  * infinies) -- seulement un outil de recherche borne a 3 lettres (decision produit), qui
- * soumet en GET vers /mots?contenant=... (repli sans JavaScript deja cable par
- * public/index.php, redirection pure vers la forme canonique /mots/contenant/{lettres}).
+ * soumet en GET vers /woerter?contenant=... (repli sans JavaScript deja cable par
+ * public/index.php, redirection pure vers la forme canonique /woerter/contenant/{lettres}).
  *
  * Aucun credit de source (D-015). noindex/canonical deja resolus par public/index.php.
  */
@@ -25,7 +28,7 @@ use App\Search\ExploreHub;
 /** @var \App\Seo\SeoMeta $seo */
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -74,7 +77,7 @@ use App\Search\ExploreHub;
     </section>
 
     <section class="explore-group">
-      <h2>Commençant Par</h2>
+      <h2>Beginnend Mit</h2>
       <div class="related-links">
 <?php foreach ($hub->byStart as $entry): ?>
         <a href="<?= e($entry['url']) ?>"><span class="explore-label"><?= e($entry['letter']) ?></span> <span class="explore-count">(<?= e(number_format($entry['count'], 0, ',', ' ')) ?>)</span></a>
@@ -83,7 +86,7 @@ use App\Search\ExploreHub;
     </section>
 
     <section class="explore-group">
-      <h2>Terminant Par</h2>
+      <h2>Endend Mit</h2>
       <div class="related-links">
 <?php foreach ($hub->byEnd as $entry): ?>
         <a href="<?= e($entry['url']) ?>"><span class="explore-label"><?= e($entry['letter']) ?></span> <span class="explore-count">(<?= e(number_format($entry['count'], 0, ',', ' ')) ?>)</span></a>
@@ -93,7 +96,7 @@ use App\Search\ExploreHub;
 
     <section class="explore-group">
       <h2>Contenant</h2>
-      <form class="inline-check" action="/mots" method="get">
+      <form class="inline-check" action="/woerter" method="get">
         <label class="sr-only" for="contenant">Lettres contenues (3 maximum)</label>
         <input class="field" type="text" id="contenant" name="contenant" maxlength="3" autocomplete="off" spellcheck="false" placeholder="Ex. CHA">
         <button class="btn btn-primary" type="submit">Chercher</button>
@@ -101,7 +104,7 @@ use App\Search\ExploreHub;
       <p class="help">Jusqu’à 3 lettres, dans l’ordre où elles apparaissent dans le mot.</p>
     </section>
 
-    <form class="inline-check" action="/verifier" method="get">
+    <form class="inline-check" action="/pruefen" method="get">
       <label class="sr-only" for="mot-check">Vérifier un mot</label>
       <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Vérifier un mot">
       <button class="btn btn-primary" type="submit">Vérifier</button>

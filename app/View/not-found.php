@@ -5,7 +5,8 @@ declare(strict_types=1);
 /**
  * Vue 404, appelee par public/index.php avec $requestPath pour :
  * - une route qui ne correspond a aucune des trois routes de la Phase 1 ;
- * - un segment /mot/{...} dont la forme normalisee n'est pas valide (hors bornes
+ * - un segment /wort/{...} (D-DE-009, localise depuis /mot/{...}) dont la forme normalisee
+ *   n'est pas valide (hors bornes
  *   de longueur 2-15, ou caracteres hors A-Z apres normalisation) : ce n'est pas
  *   le statut "terme inconnu" (qui a sa propre fiche, voir app/View/word.php),
  *   c'est une erreur de saisie sur laquelle aucune fiche ne peut etre construite
@@ -21,7 +22,7 @@ require __DIR__ . '/helpers.php';
 /** @var \App\Seo\SeoMeta $seo */
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -53,7 +54,7 @@ require __DIR__ . '/helpers.php';
       <p>Cette page n’existe pas.</p>
     </section>
 
-    <form class="inline-check" action="/verifier" method="get">
+    <form class="inline-check" action="/pruefen" method="get">
       <label class="sr-only" for="mot-check">Vérifier un mot</label>
       <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Vérifier un mot">
       <button class="btn btn-primary" type="submit">Vérifier</button>

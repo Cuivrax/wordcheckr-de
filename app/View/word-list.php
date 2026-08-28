@@ -234,7 +234,7 @@ $pageUrl = static function (int $targetPage) use ($page): string {
     $path = $page->canonicalPath . ($targetPage > 1 ? '/page/' . $targetPage : '');
     $targetFilters = WordListFilters::fromPath($path);
 
-    return $targetFilters?->canonicalUrl() ?? '/mots';
+    return $targetFilters?->canonicalUrl() ?? '/woerter';
 };
 
 // Chaine de pagination en nofollow quand la liste n'a AUCUN ancrage indexe (ni longueur, ni
@@ -263,6 +263,13 @@ $paginationRelFor = static function (int $targetPage) use ($isAnchored, $paginat
     return ($isAnchored && $targetPage <= $paginationFollowDepth) ? '' : ' rel="nofollow"';
 };
 
+// ADAPTATION ALLEMANDE (D-DE-009) : le contenu TEXTUEL (titre lisible, phrases de reponse
+// directe ci-dessous) reste VOLONTAIREMENT en francais dans ce fichier -- contrairement aux
+// URL/routage (WordListFilters, corrigees dans tout ce fichier), leur traduction complete
+// en allemand idiomatique (accord grammatical selon le compte, ordre des mots different)
+// depasse le perimetre de cette tache de localisation d'URL et n'est appuyee par aucune
+// recherche terminologique dediee (contrairement au patron H1 de app/View/word.php,
+// explicitement fourni par le porteur de projet) -- a traiter dans un futur lot microcopy.
 // Titre lisible, ordre canonique impose (docs/05) : longueur -> commencant ->
 // contenant -> terminant -> avec -> sans -> motif ("position" hors perimetre).
 $titleParts = [];
@@ -447,7 +454,7 @@ $rowStatusMeta = static fn (string $status): array => $status === TermPage::STAT
 $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -521,7 +528,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <?php foreach ($page->items as $item): ?>
 <?php $rowStatus = $rowStatusMeta($item['status']); ?>
         <li class="rack-result-row">
-          <a class="rack-result-word" href="/mot/<?= e($item['slug']) ?>"><?= e($item['normalized']) ?></a>
+          <a class="rack-result-word" href="/wort/<?= e($item['slug']) ?>"><?= e($item['normalized']) ?></a>
           <span class="status-badge status-badge--<?= e($rowStatus['modifier']) ?>"><?= e($rowStatus['label']) ?></span>
           <span class="rack-result-points" aria-label="<?= e($item['score']) ?> points"><?= e($item['score']) ?></span>
           <span class="rack-result-length" aria-label="<?= e($item['length']) ?> lettres"><?= e($item['length']) ?></span>
@@ -634,7 +641,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
     <section class="explore-group">
       <h2>Explorer</h2>
       <div class="related-links">
-        <a href="/mots">Toutes Les Longueurs Et Lettres</a>
+        <a href="/woerter">Alle Längen Und Buchstaben</a>
       </div>
     </section>
 <?php endif; ?>
@@ -774,7 +781,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
     </section>
 <?php endif; ?>
 
-    <form class="inline-check" action="/verifier" method="get">
+    <form class="inline-check" action="/pruefen" method="get">
       <label class="sr-only" for="mot-check">Vérifier un mot</label>
       <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Vérifier un mot">
       <button class="btn btn-primary" type="submit">Vérifier</button>

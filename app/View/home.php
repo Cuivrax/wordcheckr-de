@@ -4,15 +4,22 @@ declare(strict_types=1);
 
 /**
  * Vue home, appelee par public/index.php avec $minTermLength et $maxTermLength
- * (App\Config, config/sites/fr.php).
+ * (App\Config, config/sites/de.php).
  *
  * Ordre impose (docs/04_UI_PAGES.md), sans paragraphe entre le H1 et le formulaire :
  * header -> badge -> H1 -> formulaire -> resultats -> liens contextuels ->
  * deux paragraphes courts -> footer.
  *
- * Phase 1 n'a livre que la verification d'un mot (route /verifier, redirection pure
- * vers /mot/{slug} -- voir reports/query-plans/phase1.md : 0 requete SQLite pour /).
- * Phase 2 ajoute le solveur par chevalet (route /jouer/{lettres}, App\Search\RackSolver).
+ * Phase 1 n'a livre que la verification d'un mot (route /pruefen, redirection pure
+ * vers /wort/{slug} -- voir reports/query-plans/phase1.md : 0 requete SQLite pour /).
+ * Phase 2 ajoute le solveur par chevalet (route /wortsuche/{buchstaben}, App\Search\RackSolver).
+ *
+ * ADAPTATION ALLEMANDE (D-DE-009, docs/DECISIONS.md) : toutes les routes citees dans ce
+ * docblock et tout le formulaire de contraintes ci-dessous sont localisees depuis le
+ * schema francais d'origine (/verifier -> /pruefen, /mot -> /wort, /jouer -> /wortsuche,
+ * /mots -> /woerter, "commencant"/"terminant" -> "beginnend-mit"/"endend-mit", noms de
+ * champ du formulaire de contraintes inclus). "contenant"/"avec"/"sans"/"motif" restent
+ * volontairement en francais cette passe (App\Search\WordListFilters, docblock de classe).
  *
  * Refonte du bloc de recherche (Phase 2, rapprochement de prototype/index.html a la
  * demande du coordinateur) : un seul champ <input name="q">, deux boutons de
@@ -21,7 +28,7 @@ declare(strict_types=1);
  * form sont un mecanisme standard, aucun JavaScript requis. Ce champ unique ne peut
  * porter qu'un seul nom -- "mot" et "lettres" restent lus en priorite par
  * public/index.php (repli existant, non supprime), "q" est le repli additif qui
- * permet a un seul input de nourrir /verifier ET /jouer (voir l'entete de
+ * permet a un seul input de nourrir /pruefen ET /wortsuche (voir l'entete de
  * public/index.php pour le detail, fichier partage, ajout signale).
  *
  * Les contraintes (longueur, prefixe, motif...) restent Phase 3 : tant que ces routes
@@ -31,19 +38,19 @@ declare(strict_types=1);
  * rien a afficher dans cette phase : aucune section vide n'est rendue (meme principe
  * que les relations de la fiche mot, docs/01_MASTER_BRIEF.md). Pas de tableau de
  * resultats sur la home (divergence assumee du prototype) : chaque reponse a sa propre
- * URL canonique indexable (docs/05), la soumission redirige toujours vers /mot/{mot}
- * ou /jouer/{lettres}.
+ * URL canonique indexable (docs/05), la soumission redirige toujours vers /wort/{mot}
+ * ou /wortsuche/{lettres}.
  *
  * Liens contextuels (remontee du coordinateur, apres le rapport de l'agent seo-registry
- * en Phase 6) : /mots/... est desormais indexe (D-017) mais la home n'y liait jamais --
+ * en Phase 6) : /woerter/... est desormais indexe (D-017) mais la home n'y liait jamais --
  * mauvais maillage interne, ces pages dependaient uniquement du sitemap pour leur
  * decouverte. Selection volontairement restreinte (esprit de retenue du projet, pas une
  * liste exhaustive) : quelques longueurs parmi les plus recherchees au Scrabble (7
  * lettres = le tirage complet) et quelques lettres initiales frequentes, en
- * /mots/{N}-lettres et /mots/commencant/{lettre} (App\Search\WordListFilters, Phase 3).
- * URL toujours obtenue via WordListFilters::canonicalUrl(), jamais construite a la main
- * (meme discipline que app/View/word.php). Simples liens <a>, aucun JavaScript requis --
- * reutilise .related-links tel quel (meme composant que "Recherches Liees" sur
+ * /woerter/{N}-buchstaben et /woerter/beginnend-mit/{lettre} (App\Search\WordListFilters,
+ * Phase 3). URL toujours obtenue via WordListFilters::canonicalUrl(), jamais construite a
+ * la main (meme discipline que app/View/word.php). Simples liens <a>, aucun JavaScript
+ * requis -- reutilise .related-links tel quel (meme composant que "Recherches Liees" sur
  * app/View/word.php et app/View/play.php), pas un nouveau motif visuel.
  *
  * Autocompletion (Phase 5, docs/08) : la combobox ARIA (role="combobox" sur #q,
@@ -70,14 +77,14 @@ use App\Search\WordListFilters;
 // main, pour ne jamais servir un lien qui divergerait de la forme canonique attendue par
 // le routeur (public/index.php) si l'ordre des mots-cles venait a changer.
 //
-// Simplifie (audit SEO final, C4/C5) au profit de la page hub /mots (App\Search\ExploreHub) :
-// celle-ci couvre desormais les 66 pages longueur/commencant/terminant de facon exhaustive,
+// Simplifie (audit SEO final, C4/C5) au profit de la page hub /woerter (App\Search\ExploreHub) :
+// celle-ci couvre desormais les 66 pages longueur/beginnend-mit/endend-mit de facon exhaustive,
 // avec leurs comptes reels -- la home n'a plus besoin de dupliquer une selection partielle,
 // juste d'illustrer puis de renvoyer vers le hub complet.
 $contextLinkSpecs = [
-    ['path' => '7-lettres', 'label' => 'Mots De 7 Lettres'],
-    ['path' => 'commencant/a', 'label' => 'Commençant Par A'],
-    ['path' => 'terminant/s', 'label' => 'Terminant Par S'],
+    ['path' => '7-buchstaben', 'label' => 'Wörter Mit 7 Buchstaben'],
+    ['path' => 'beginnend-mit/a', 'label' => 'Beginnend Mit A'],
+    ['path' => 'endend-mit/s', 'label' => 'Endend Mit S'],
 ];
 
 $contextLinks = [];
@@ -92,16 +99,16 @@ foreach ($contextLinkSpecs as $spec) {
 // Liens dans la phrase d'aide (retour utilisateur, 2026-08-09) : chaque type de contrainte
 // mentionne dans le paragraphe pointe vers un exemple reel plutot que de rester du texte plat
 // -- meme discipline que $contextLinks ci-dessus (WordListFilters::fromPath()->canonicalUrl(),
-// jamais une URL construite a la main). Un aller-retour a ete fait vers un lien unique "/mots"
+// jamais une URL construite a la main). Un aller-retour a ete fait vers un lien unique "/woerter"
 // pour les huit (retour utilisateur : "n'a aucun sens", huit ancres de texte vers la meme URL
 // n'apporte rien) -- revenu a des exemples concrets differencies : "longueur"/"debut"/"fin" ont
-// une vraie grille dans le hub /mots, mais contenant/avec/sans/position n'en ont AUCUNE par
+// une vraie grille dans le hub /woerter, mais contenant/avec/sans/position n'en ont AUCUNE par
 // conception (D-012, combinaisons non bornees) -- un exemple reel reste le seul moyen concret
 // de les montrer. Question posee et tranchee au meme moment : un hub dedie "choisir la lettre
 // de debut PUIS la lettre de fin" (grille 26x26) n'apporterait rien au-dela d'eviter les pages
-// orphelines, deja resolu autrement (D-024, maillage /mots -> /mots/commencant/{X} ->
-// /mots/commencant/{X}/terminant/{Y}) -- pas construit, juste redondant avec ce cheminement en
-// deux etapes deja en place. Un mot-cle sans URL valide (ne devrait jamais arriver ici, tous
+// orphelines, deja resolu autrement (D-024, maillage /woerter -> /woerter/beginnend-mit/{X} ->
+// /woerter/beginnend-mit/{X}/endend-mit/{Y}) -- pas construit, juste redondant avec ce
+// cheminement en deux etapes deja en place. Un mot-cle sans URL valide (ne devrait jamais arriver ici, tous
 // ces chemins sont des contraintes de base deja couvertes par les tests WordListFiltersTest)
 // reste du texte simple plutot que d'interrompre le rendu.
 $phraseLink = static function (string $path, string $label): string {
@@ -111,7 +118,7 @@ $phraseLink = static function (string $path, string $label): string {
 };
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -152,7 +159,7 @@ $phraseLink = static function (string $path, string $label): string {
            contrainte declenchait le PREMIER bouton submit du document ("Trouver" -> /jouer),
            perdant toute la saisie. Chaque mecanisme a maintenant son propre formulaire, la
            soumission implicite (Entree) reste scopee au bon bouton dans chaque cas. -->
-      <form action="/verifier" method="get">
+      <form action="/pruefen" method="get">
         <label class="label" for="q">Vos lettres ou le mot à vérifier</label>
         <div class="rack-wrap" data-tile-preview>
           <input
@@ -169,8 +176,8 @@ $phraseLink = static function (string $path, string $label): string {
           <div class="tiles" aria-hidden="true"></div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" type="submit" formaction="/jouer">Trouver</button>
-          <button class="btn btn-soft" type="submit" formaction="/verifier">Vérifier</button>
+          <button class="btn btn-primary" type="submit" formaction="/wortsuche">Trouver</button>
+          <button class="btn btn-soft" type="submit" formaction="/pruefen">Vérifier</button>
         </div>
         <p class="help" id="q-help">De <?= e($minTermLength) ?> à <?= e($maxTermLength) ?> lettres. Ajoutez ? ou * pour un joker, deux au maximum. Les accents sont retirés automatiquement.</p>
       </form>
@@ -178,12 +185,14 @@ $phraseLink = static function (string $path, string $label): string {
       <!-- Constructeur de contraintes, repris de prototype/index.html (champs exacts,
            labels, maxlength, placeholders) -- <details>/<summary> natif, aucun JavaScript
            requis pour l'ouverture/fermeture ni pour la recherche : soumission GET native
-           vers /mots (public/index.php assemble les segments et redirige vers la forme
+           vers /woerter (public/index.php assemble les segments et redirige vers la forme
            canonique, App\Search\WordListFilters). "avec"/"sans" eclatent chaque lettre en
            segment individuel cote serveur -- un seul champ texte suffit ici. "Cases connues"
            utilise '-' pour une case inconnue (docs/05), pas '.' comme dans le prototype :
-           adapte a la grammaire d'URL reelle du site plutot que copiee telle quelle. -->
-      <form action="/mots" method="get">
+           adapte a la grammaire d'URL reelle du site plutot que copiee telle quelle.
+           D-DE-009 : noms de champ "beginnend-mit"/"endend-mit" (localises depuis
+           "commencant"/"terminant"), voir public/index.php pour le cote serveur. -->
+      <form action="/woerter" method="get">
         <details class="constraint-builder">
           <summary class="constraint-toggle">+ Ajouter Une Contrainte</summary>
           <p class="constraint-panel-intro">Recherche indépendante du champ ci-dessus : parcourt tous les mots correspondant aux contraintes choisies.</p>
@@ -198,12 +207,12 @@ $phraseLink = static function (string $path, string $label): string {
               </select>
             </div>
             <div class="constraint-field">
-              <label class="label" for="commencant">Commence Par</label>
-              <input class="field" type="text" id="commencant" name="commencant" maxlength="5" placeholder="CH" autocomplete="off" spellcheck="false">
+              <label class="label" for="beginnend-mit">Beginnend Mit</label>
+              <input class="field" type="text" id="beginnend-mit" name="beginnend-mit" maxlength="5" placeholder="CH" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
-              <label class="label" for="terminant">Termine Par</label>
-              <input class="field" type="text" id="terminant" name="terminant" maxlength="5" placeholder="TION" autocomplete="off" spellcheck="false">
+              <label class="label" for="endend-mit">Endend Mit</label>
+              <input class="field" type="text" id="endend-mit" name="endend-mit" maxlength="5" placeholder="TION" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
               <label class="label" for="contenant">Contient La Suite</label>
@@ -231,7 +240,7 @@ $phraseLink = static function (string $path, string $label): string {
 <?php foreach ($contextLinks as $link): ?>
         <a href="<?= e($link['url']) ?>"><?= e($link['label']) ?></a>
 <?php endforeach; ?>
-        <a href="/mots">Explorer Tous Les Mots →</a>
+        <a href="/woerter">Alle Wörter Durchsuchen →</a>
       </div>
 <?php endif; ?>
     </div>
@@ -241,14 +250,14 @@ $phraseLink = static function (string $path, string $label): string {
     <h2>Une Aide Rapide Pour Les Jeux De Lettres</h2>
     <p>Utilisez cet outil pour le Scrabble, les mots croisés, les mots fléchés et les autres jeux de lettres. Vérifiez si un mot est admis, recherchez ses anagrammes ou trouvez les meilleurs mots jouables avec votre tirage.</p>
     <p>
-      Vous pouvez aussi préciser <?= $phraseLink('9-lettres', 'une longueur') ?>,
-      <?= $phraseLink('commencant/a', 'un début') ?>,
-      <?= $phraseLink('terminant/s', 'une fin') ?>,
-      <?= $phraseLink('commencant/a/terminant/e', 'un début et une fin combinés') ?>,
+      Vous pouvez aussi préciser <?= $phraseLink('9-buchstaben', 'une longueur') ?>,
+      <?= $phraseLink('beginnend-mit/a', 'un début') ?>,
+      <?= $phraseLink('endend-mit/s', 'une fin') ?>,
+      <?= $phraseLink('beginnend-mit/a/endend-mit/e', 'un début et une fin combinés') ?>,
       <?= $phraseLink('contenant/ch', 'une suite de lettres') ?>,
       <?= $phraseLink('avec/e', 'des lettres obligatoires') ?>,
       <?= $phraseLink('sans/e', 'des lettres à exclure') ?>
-      ou même <?= $phraseLink('9-lettres/position/3/a', 'une lettre à une position précise') ?>
+      ou même <?= $phraseLink('9-buchstaben/position/3/a', 'une lettre à une position précise') ?>
       dans le mot, afin d’obtenir une réponse plus précise.
     </p>
   </section>

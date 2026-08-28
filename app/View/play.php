@@ -3,17 +3,21 @@
 declare(strict_types=1);
 
 /**
- * Vue solveur /jouer/{lettres}, appelee par public/index.php avec $page
+ * Vue solveur /wortsuche/{buchstaben}, appelee par public/index.php avec $page
  * (App\Search\RackPage, Phase 2). Meme gabarit que app/View/word.php (statut,
  * tuiles, reponse directe, formulaire de repli) -- reutilise a l'identique les
  * composants deja unifies (.status-badge, .letter-tile, .edition-badge,
  * .inline-check), etendus uniquement d'une liste de resultats.
  *
+ * ADAPTATION ALLEMANDE (D-DE-009, docs/DECISIONS.md) : route localisee depuis
+ * "/jouer/{lettres}" -- voir App\Search\WordListFilters pour la justification complete du
+ * schema d'URL allemand.
+ *
  * Trois cas distincts (voir App\Search\RackPage) :
  * - capped = true       : aucune requete executee, pas d'erreur -- message
  *                         explicite invitant a preciser le tirage.
  * - matches = [] non capped : zero mot jouable avec ce tirage.
- * - matches non vide    : liste triee, chaque mot lie vers sa fiche /mot/{slug}.
+ * - matches non vide    : liste triee, chaque mot lie vers sa fiche /wort/{slug}.
  *   totalMatches est le compte REEL (jamais limite par displayLimit) ; si
  *   truncated, une mention courte indique que seuls displayLimit resultats
  *   sont affiches.
@@ -91,7 +95,7 @@ $statusMeta = match (true) {
 };
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -163,16 +167,17 @@ $statusMeta = match (true) {
       <p class="help rack-results-note">Meilleurs <?= e($page->displayLimit) ?> mots affichés, sur <?= e($page->totalMatches) ?> au total.</p>
 <?php endif; ?>
       <div class="rack-result-head" aria-hidden="true">
-        <span>Mot</span><span class="rack-result-head-center">Éditions</span><span class="rack-result-head-right">Points</span><span class="rack-result-head-length">Lettres</span>
+        <span>Wort</span><span class="rack-result-head-center">Status</span><span class="rack-result-head-right">Points</span><span class="rack-result-head-length">Lettres</span>
       </div>
       <ul class="rack-result-list">
 <?php foreach ($page->matches as $match): ?>
         <li class="rack-result-row">
-          <a class="rack-result-word" href="/mot/<?= e($match['slug']) ?>"><?= e($match['normalized']) ?></a>
-          <span class="edition-badges">
-            <span class="edition-badge <?= $match['isOds8'] ? 'active ods8' : 'inactive' ?>">ODS8</span>
-            <span class="edition-badge <?= $match['isOds9'] ? 'active ods9' : 'inactive' ?>">ODS9</span>
-          </span>
+          <a class="rack-result-word" href="/wort/<?= e($match['slug']) ?>"><?= e($match['normalized']) ?></a>
+          <!-- D-DE-011 (docs/DECISIONS.md) : une seule pastille .status-badge (deja definie,
+               reutilisee telle quelle, aucun CSS ajoute) reflete is_admitted -- remplace les
+               deux pastilles ODS8/ODS9, sans equivalent public en allemand. Toujours
+               "admitted" ici : RackSolver ne renvoie que des mots effectivement jouables. -->
+          <span class="status-badge status-badge--admitted">Gültig</span>
           <span class="rack-result-points" aria-label="<?= e($match['score']) ?> points"><?= e($match['score']) ?></span>
           <span class="rack-result-length" aria-label="<?= e($match['length']) ?> lettres"><?= e($match['length']) ?></span>
         </li>
@@ -181,7 +186,7 @@ $statusMeta = match (true) {
     </section>
 <?php endif; ?>
 
-    <form class="inline-check" action="/jouer" method="get">
+    <form class="inline-check" action="/wortsuche" method="get">
       <label class="sr-only" for="lettres-check">Essayer un autre tirage</label>
       <input class="field" type="text" id="lettres-check" name="lettres" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Essayer un autre tirage">
       <button class="btn btn-primary" type="submit">Jouer</button>

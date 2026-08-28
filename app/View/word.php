@@ -52,37 +52,46 @@ use App\Search\WordSenses;
 /** @var Conjugation $conjugation */
 /** @var WordSenses $senses */
 
+// ADAPTATION ALLEMANDE (D-DE-009, localisation d'URL + patron de reponse directe) :
+// texte traduit d'apres reports/de-serp-terminology-research.md section 2.1 -- "gültig"
+// (pas "zulässig", vocabulaire officiel SDeV volontairement hors perimetre de cette tache
+// de routage, voir docs/DECISIONS.md D-DE-009) est le terme grand public dominant chez les
+// concurrents pour "valide au Scrabble". Patron H1/reponse directe de type question-reponse
+// vu chez UN SEUL concurrent (scrabble123.de, confiance plus faible que cote FR/ES ou deux
+// sites independants confirmaient la meme formule) -- retenu quand meme a la demande
+// explicite du porteur de projet, coherent avec le patron "Reponse Directe" deja en place
+// cote FR et ES.
 $statusMeta = match ($page->status) {
     TermPage::STATUS_ADMITTED => [
         'modifier' => 'admitted',
-        'badge' => 'Oui, Mot Admis',
-        'subtitle' => 'Vous pouvez le jouer.',
+        'badge' => 'Ja, Gültiges Wort',
+        'subtitle' => 'Sie können es spielen.',
         'direct' => sprintf(
-            '%s est valide dans le dictionnaire officiel du Scrabble. Son score brut est de %d points, hors bonus de plateau.',
+            'Das Wort %s ist ein gültiges Scrabble-Wort. Der Grundwert beträgt %d Punkte, ohne Feldbonus.',
             $page->normalized,
             $page->score,
         ),
-        'title' => sprintf('Oui, %s Est Admis Au Scrabble (%d Points)', $page->normalized, $page->score),
+        'title' => sprintf('Ja, %s Ist Ein Gültiges Scrabble-Wort (%d Punkte)', $page->normalized, $page->score),
     ],
     TermPage::STATUS_FRENCH_NOT_ADMITTED => [
         'modifier' => 'not-admitted',
-        'badge' => 'Non Admis',
-        'subtitle' => 'Vous ne pouvez pas le jouer.',
+        'badge' => 'Nicht Gültig',
+        'subtitle' => 'Sie können es nicht spielen.',
         'direct' => sprintf(
-            '%s existe en français, mais ce mot n’est pas admis dans le dictionnaire officiel du Scrabble.',
+            'Das Wort %s ist kein gültiges Scrabble-Wort in dieser Datenbank.',
             $page->normalized,
         ),
-        'title' => sprintf('Non, %s N’est Pas Admis Au Scrabble', $page->normalized),
+        'title' => sprintf('Nein, %s Ist Kein Gültiges Scrabble-Wort', $page->normalized),
     ],
     default => [
         'modifier' => 'unknown',
-        'badge' => 'Terme Inconnu',
-        'subtitle' => 'Absent de la base.',
+        'badge' => 'Unbekannter Begriff',
+        'subtitle' => 'Nicht in der Datenbank.',
         'direct' => sprintf(
-            '%s n’a pas été trouvé dans la base du site. Il ne peut pas être vérifié comme mot valide au Scrabble.',
+            'Das Wort %s wurde nicht in der Datenbank gefunden. Es kann nicht als gültiges Scrabble-Wort bestätigt werden.',
             $page->normalized,
         ),
-        'title' => sprintf('%s : Terme Inconnu', $page->normalized),
+        'title' => sprintf('%s: Unbekannter Begriff', $page->normalized),
     ],
 };
 
@@ -112,7 +121,10 @@ if ($relations !== null) {
     };
 
     $extensionUrl = static function (string $keyword, string $word): ?string {
-        return WordListFilters::fromPath($keyword . '/' . strtolower($word))?->canonicalUrl();
+        // mb_strtolower (pas strtolower ASCII) : correctif signale (audit independant,
+        // docs/DECISIONS.md D-DE-011) -- un mot contenant Ä/Ö/Ü restait sinon en MAJUSCULE
+        // dans l'URL generee ici, provoquant une redirection 301 supplementaire.
+        return WordListFilters::fromPath($keyword . '/' . mb_strtolower($word, 'UTF-8'))?->canonicalUrl();
     };
 
     // Surlignage <mark> : position/newLetter deja fournis par le backend pour
@@ -126,31 +138,59 @@ if ($relations !== null) {
 
         switch ($key) {
             case 'changeOneLetter':
+                // mb_substr (pas substr/$word[$pos] octets) : correctif signale (audit
+                // independant, docs/DECISIONS.md D-DE-011). $item['position'] vient de
+                // App\Search\RelationsFinder::changeOneLetterCandidates() comme un index de
+                // CARACTERE (boucle sur mb_str_split(), voir son docblock) -- le consommer ici
+                // via substr()/[] octets desynchronisait la coupure des que le mot contenait
+                // Ä/Ö/Ü (2 octets UTF-8) avant la position changee : la sequence UTF-8 coupee
+                // au milieu devenait une CHAINE VIDE une fois passee a e() (htmlspecialchars()
+                // sans ENT_SUBSTITUTE avant correctif, voir helpers.php), effacant tout le mot
+                // affiche plutot que de mal le surligner (ex. mesure : /wort/backer affichait
+                // "B<mark></mark>" au lieu de "BÄCKER").
                 $pos = $item['position'] - 1;
 
-                return e(substr($word, 0, $pos)) . '<mark>' . e($word[$pos]) . '</mark>' . e(substr($word, $pos + 1));
+                return e(mb_substr($word, 0, $pos)) . '<mark>' . e(mb_substr($word, $pos, 1)) . '</mark>' . e(mb_substr($word, $pos + 1));
 
             case 'insertOneLetter':
-                $pivotLength = strlen($pivot);
+                // mb_strlen/mb_substr (pas strlen/[] octets) : meme correctif que
+                // changeOneLetter ci-dessus -- la boucle de comparaison octet-par-octet
+                // trouvait deja la bonne frontiere de caractere (prefixe commun identique
+                // entre pivot et candidat), mais l'extraction de la lettre inseree via
+                // $word[$i] isolait un seul octet d'un caractere Ä/Ö/Ü qui en occupe deux.
+                $pivotLength = mb_strlen($pivot);
                 $i = 0;
 
-                while ($i < $pivotLength && $pivot[$i] === $word[$i]) {
+                while ($i < $pivotLength && mb_substr($pivot, $i, 1) === mb_substr($word, $i, 1)) {
                     $i++;
                 }
 
-                return e(substr($word, 0, $i)) . '<mark>' . e($word[$i]) . '</mark>' . e(substr($word, $i + 1));
+                return e(mb_substr($word, 0, $i)) . '<mark>' . e(mb_substr($word, $i, 1)) . '</mark>' . e(mb_substr($word, $i + 1));
 
             case 'rightExtensions':
+                // strlen/substr (pas mb_) restent SURS ici, contrairement aux deux cas
+                // ci-dessus : $word commence TOUJOURS par la chaine COMPLETE $pivot (extension
+                // a droite), donc la frontiere en octet strlen($pivot) tombe toujours en fin
+                // d'un caractere complet, jamais au milieu d'un Ä/Ö/Ü (meme raisonnement que
+                // leftExtensions/containingWords ci-dessous -- verifie, pas suppose).
                 $pivotLength = strlen($pivot);
 
                 return '<mark>' . e(substr($word, 0, $pivotLength)) . '</mark>' . e(substr($word, $pivotLength));
 
             case 'leftExtensions':
+                // strlen/substr surs ici : $word se termine TOUJOURS par la chaine COMPLETE
+                // $pivot (extension a gauche) -- strlen($word) - strlen($pivot) est donc
+                // toujours la frontiere en octet de DEBUT du pivot complet, jamais un milieu de
+                // caractere.
                 $prefixLength = strlen($word) - strlen($pivot);
 
                 return e(substr($word, 0, $prefixLength)) . '<mark>' . e(substr($word, $prefixLength)) . '</mark>';
 
             case 'containingWords':
+                // strpos/substr surs ici : $pivot apparait comme sous-chaine COMPLETE et
+                // valide dans $word (contenant) -- une recherche octet ne peut matcher qu'a une
+                // frontiere de caractere valide pour une sous-chaine UTF-8 valide (un octet de
+                // continuation 0x80-0xBF ne peut jamais entamer la sequence recherchee).
                 $at = strpos($word, $pivot);
 
                 if ($at === false) {
@@ -197,20 +237,20 @@ if ($relations !== null) {
         [
             'key' => 'rightExtensions', 'title' => 'Rallonges À Droite', 'items' => $relations->rightExtensions, 'full' => true,
             'count' => $countLabel($relations->rightExtensionsTotal, $relations->rightExtensionsTruncated),
-            'moreUrl' => count($relations->rightExtensions) < $relations->rightExtensionsTotal ? $extensionUrl('commencant', $pivot) : null,
+            'moreUrl' => count($relations->rightExtensions) < $relations->rightExtensionsTotal ? $extensionUrl('beginnend-mit', $pivot) : null,
             'moreLabel' => $moreLinkLabel($relations->rightExtensionsTotal, $relations->rightExtensionsTruncated),
         ],
         [
             'key' => 'leftExtensions', 'title' => 'Rallonges À Gauche', 'items' => $relations->leftExtensions, 'full' => true,
             'count' => $countLabel($relations->leftExtensionsTotal, $relations->leftExtensionsTruncated),
-            'moreUrl' => count($relations->leftExtensions) < $relations->leftExtensionsTotal ? $extensionUrl('terminant', $pivot) : null,
+            'moreUrl' => count($relations->leftExtensions) < $relations->leftExtensionsTotal ? $extensionUrl('endend-mit', $pivot) : null,
             'moreLabel' => $moreLinkLabel($relations->leftExtensionsTotal, $relations->leftExtensionsTruncated),
         ],
         [
             'key' => 'containingWords', 'title' => $pivot . ' Dans Un Mot Plus Long', 'items' => $relations->containingWords, 'full' => true,
             'count' => $countLabel($relations->containingWordsTotal, $relations->containingWordsTruncated),
             // Pas de lien "Voir les N mots" ici (retire, audit final 3e passe, bloquant) :
-            // pointerait vers /mots/contenant/{mot} SANS ancrage, exactement le parcours complet
+            // pointerait vers /woerter/contenant/{mot} SANS ancrage, exactement le parcours complet
             // de la table que la correction C1 rend correct mais couteux -- voir le commentaire
             // de RelationsFinder::relatedSearches() pour le detail complet. Le compte total
             // ($countLabel ci-dessus) reste affiche, seul le lien cliquable disparait.
@@ -233,14 +273,14 @@ if ($relations !== null) {
     // pour son propre titre) -- jamais de concatenation manuelle de chaine metier.
     $relatedLabel = static function (array $link, string $pivot): string {
         if ($link['type'] === 'play') {
-            return 'Jouer Avec ' . $pivot;
+            return 'Wortsuche Mit ' . $pivot;
         }
 
         if ($link['type'] === 'exploreAll') {
-            return 'Explorer Tous Les Mots';
+            return 'Alle Wörter Durchsuchen';
         }
 
-        $rawPath = preg_replace('#^/mots/#', '', $link['url']) ?? $link['url'];
+        $rawPath = preg_replace('#^/woerter/#', '', $link['url']) ?? $link['url'];
         $filters = WordListFilters::fromPath($rawPath);
 
         if ($filters === null) {
@@ -258,11 +298,11 @@ if ($relations !== null) {
         }
 
         if ($filters->prefix !== null) {
-            return 'Commençant Par ' . $filters->prefix;
+            return 'Beginnend Mit ' . $filters->prefix;
         }
 
         if ($filters->suffix !== null) {
-            return 'Terminant Par ' . $filters->suffix;
+            return 'Endend Mit ' . $filters->suffix;
         }
 
         if ($filters->contains !== null) {
@@ -270,7 +310,9 @@ if ($relations !== null) {
         }
 
         if ($filters->length !== null) {
-            return sprintf('Mots De %d Lettre%s', $filters->length, $filters->length > 1 ? 's' : '');
+            // "Wörter mit N Buchstaben" (D-DE-009) : consensus tres fort de la recherche
+            // concurrentielle (reports/de-serp-terminology-research.md section 2.2).
+            return sprintf('Wörter Mit %d Buchstaben', $filters->length);
         }
 
         return $pivot;
@@ -390,7 +432,7 @@ foreach ($conjugation->asForm as $formEntry) {
 
 // asLemma : regroupe par temps (comme anagramsPlusOne regroupe par lettre ajoutee, meme
 // composant .word-stream) puis par forme -- deux personnes homographes (ex. "pose" pour
-// 1s ET 3s) partagent la meme cible /mot/pose et ne doivent donc apparaitre qu'une fois
+// 1s ET 3s) partagent la meme cible /wort/pose et ne doivent donc apparaitre qu'une fois
 // dans le flux ; les personnes concernees restent visibles au survol (title).
 $conjugationLemmaGroups = [];
 foreach ($conjugation->asLemma as $formEntry) {
@@ -416,7 +458,7 @@ unset($groupsBySlug);
 $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaison';
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -451,10 +493,10 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
       <span class="status-badge status-badge--<?= e($statusMeta['modifier']) ?>"><?= e($statusMeta['badge']) ?></span>
       <h1 class="word-title"><?= e($page->normalized) ?></h1>
       <p><?= e($statusMeta['subtitle']) ?></p>
-      <div class="edition-badges">
-        <span class="edition-badge <?= $page->isOds8 ? 'active ods8' : 'inactive' ?>">ODS8</span>
-        <span class="edition-badge <?= $page->isOds9 ? 'active ods9' : 'inactive' ?>">ODS9</span>
-      </div>
+      <!-- D-DE-011 (docs/DECISIONS.md) : pastilles ODS8/ODS9 retirees ici -- le schema
+           allemand n'a pas d'equivalent public a un split par edition de dictionnaire
+           francais (is_enz/is_hippler sont des sources internes, jamais affichees, D-015).
+           .status-badge ci-dessus reflete deja is_admitted a lui seul : rien a ajouter. -->
     </section>
 
     <section class="facts">
@@ -500,13 +542,13 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
     <section class="conjugation">
       <h2><?= e($conjugationHeading) ?></h2>
 <?php foreach ($conjugationFormPhrases as $phrase): ?>
-      <p class="conjugation-form">Forme conjuguée de <a href="/mot/<?= e($phrase['slug']) ?>"><?= e($phrase['lemma']) ?></a> (<?= e($phrase['detail']) ?>).</p>
+      <p class="conjugation-form">Forme conjuguée de <a href="/wort/<?= e($phrase['slug']) ?>"><?= e($phrase['lemma']) ?></a> (<?= e($phrase['detail']) ?>).</p>
 <?php endforeach; ?>
 <?php if ($conjugation->asLemma !== []): ?>
       <p class="word-stream">
 <?php foreach ($tenseOrder as $tenseKey): ?>
 <?php if (!isset($conjugationLemmaGroups[$tenseKey])): continue; endif; ?>
-<span class="word-text"><span class="plus"><?= e($tenseLabels[$tenseKey]) ?></span></span> <?php foreach ($conjugationLemmaGroups[$tenseKey] as $group): ?><a href="/mot/<?= e($group['slug']) ?>"<?php if ($group['persons'] !== []): ?> title="<?= e(implode(' / ', array_map(static fn (string $p): string => $personLabels[$p] ?? $p, $group['persons']))) ?>"<?php endif; ?>><?= e($group['form']) ?></a> <?php endforeach; ?>
+<span class="word-text"><span class="plus"><?= e($tenseLabels[$tenseKey]) ?></span></span> <?php foreach ($conjugationLemmaGroups[$tenseKey] as $group): ?><a href="/wort/<?= e($group['slug']) ?>"<?php if ($group['persons'] !== []): ?> title="<?= e(implode(' / ', array_map(static fn (string $p): string => $personLabels[$p] ?? $p, $group['persons']))) ?>"<?php endif; ?>><?= e($group['form']) ?></a> <?php endforeach; ?>
 <?php endforeach; ?>
       </p>
 <?php endif; ?>
@@ -525,10 +567,10 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
           <p class="word-stream">
 <?php if (isset($category['groups'])): ?>
 <?php foreach ($category['groups'] as $letter => $groupItems): ?>
-<span class="word-text"><span class="plus">+<?= e($letter) ?></span></span> <?php foreach ($groupItems as $item): ?><a href="/mot/<?= e($item['slug']) ?>"><?= e($item['normalized']) ?></a> <?php endforeach; ?>
+<span class="word-text"><span class="plus">+<?= e($letter) ?></span></span> <?php foreach ($groupItems as $item): ?><a href="/wort/<?= e($item['slug']) ?>"><?= e($item['normalized']) ?></a> <?php endforeach; ?>
 <?php endforeach; ?>
 <?php else: ?>
-<?php foreach ($category['items'] as $item): ?><a href="/mot/<?= e($item['slug']) ?>"><?= $highlighted($item, $category['key'], $page->normalized) ?></a> <?php endforeach; ?>
+<?php foreach ($category['items'] as $item): ?><a href="/wort/<?= e($item['slug']) ?>"><?= $highlighted($item, $category['key'], $page->normalized) ?></a> <?php endforeach; ?>
 <?php endif; ?>
 <?php if (!empty($category['moreUrl'])): ?><a class="more-link" href="<?= e($category['moreUrl']) ?>"><?= e($category['moreLabel']) ?></a><?php endif; ?>
           </p>
@@ -549,20 +591,23 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
 <?php endif; ?>
 <?php endif; ?>
 
+    <!-- mb_strtolower (pas strtolower ASCII) sur les deux liens ci-dessous : correctif
+         signale (audit independant, docs/DECISIONS.md D-DE-011) -- meme raison que
+         $extensionUrl plus haut. -->
     <nav class="word-nav" aria-label="Navigation alphabétique">
 <?php if ($page->previousWord !== null): ?>
-      <a href="/mot/<?= e(strtolower($page->previousWord)) ?>">← <?= e($page->previousWord) ?></a>
+      <a href="/wort/<?= e(mb_strtolower($page->previousWord, 'UTF-8')) ?>">← <?= e($page->previousWord) ?></a>
 <?php else: ?>
       <span></span>
 <?php endif; ?>
 <?php if ($page->nextWord !== null): ?>
-      <a href="/mot/<?= e(strtolower($page->nextWord)) ?>"><?= e($page->nextWord) ?> →</a>
+      <a href="/wort/<?= e(mb_strtolower($page->nextWord, 'UTF-8')) ?>"><?= e($page->nextWord) ?> →</a>
 <?php else: ?>
       <span></span>
 <?php endif; ?>
     </nav>
 
-    <form class="inline-check" action="/verifier" method="get">
+    <form class="inline-check" action="/pruefen" method="get">
       <label class="sr-only" for="mot-check">Vérifier un autre mot</label>
       <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Vérifier un autre mot">
       <button class="btn btn-primary" type="submit">Vérifier</button>
