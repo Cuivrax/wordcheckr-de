@@ -1,19 +1,17 @@
-# Scrabble Light -- site francais.
-# Perimetre de l'agent seo-registry (CLAUDE.md).
+# WordCheckr -- site allemand (wordcheckr.de).
+# Perimetre normal : agent seo-registry (CLAUDE.md).
 #
-# L'indexation reelle est gouvernee par storage/seo_fr.sqlite (App\Seo\Registry), pas par ce
-# fichier : chaque page emet sa propre balise <meta name="robots"> (index,follow ou
-# noindex,follow) et son <link rel="canonical">, resolus par le registre. Ce fichier ne fait
-# qu'autoriser le crawl -- il ne decide jamais, a lui seul, ce qui doit etre indexe (D-005 :
-# une route absente du registre reste noindex,follow, meme si robots.txt l'autorise a etre
-# explorée).
+# Version minimale temporaire -- remplace un fichier herite de la copie initiale FR->DE
+# (scaffold ed847d6) qui pointait activement vers https://www.wordcheckr.fr/sitemap-index.xml
+# (mauvais domaine ET ancien schema d'URL francais, /mots, jamais nettoye) -- corrige a la
+# demande explicite du porteur de projet suite a un audit independant (housekeeping avant
+# tout deploiement, docs/DECISIONS.md D-DE-011), PAS une construction du registre SEO
+# allemand complet -- ce registre (storage/seo_de.sqlite, App\Seo\Registry, sitemaps reels)
+# reste hors perimetre de ce lot et a construire par l'agent seo-registry.
 #
-# Aucune section ne bloque une famille de routes ici : le filtrage par famille (longueur,
-# commencant, contenant, terminant, avec, sans, motif, /jouer/...) est deja assure en amont
-# par le registre (noindex par defaut) -- dupliquer ce filtrage ici creerait deux sources de
-# verite, exactement ce que docs/05_URL_SEO_INDEXATION.md interdit.
+# Aucune ligne "Sitemap:" ci-dessous tant qu'aucun sitemap allemand reel n'existe -- publier
+# une URL de sitemap qui renvoie 404 serait aussi trompeur que l'ancienne, pointee vers le
+# mauvais domaine.
 
 User-agent: *
 Allow: /
-
-Sitemap: https://www.wordcheckr.fr/sitemap-index.xml
