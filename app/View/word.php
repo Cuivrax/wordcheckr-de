@@ -71,7 +71,16 @@ $statusMeta = match ($page->status) {
             $page->normalized,
             $page->score,
         ),
-        'title' => sprintf('Ja, %s Ist Ein Gültiges Scrabble-Wort (%d Punkte)', $page->normalized, $page->score),
+        // Titre raccourci (D-DE-013, point 4 ; correctif cette passe) : le gabarit precedent
+        // ("Ja, X Ist Ein Gültiges Scrabble-Wort (N Punkte) | WORD CHECKR") depassait 60
+        // caracteres pour 590 856/590 856 mots admis (100%, mesure exhaustive), jusqu'a 76
+        // pour HYPOMIXOLYDISCH (15 lettres, 53 points) -- bloquait toute ouverture de la
+        // famille word_admitted a l'indexation. "Ist Ein ... Scrabble-Wort" -> "Ist Gültig"
+        // (sens identique, "gultig" deja le terme retenu par D-DE-009) ramene le pire cas
+        // mesure en base (15 lettres, score max reel 53, jamais 3 chiffres) a 56 caracteres
+        // AVEC le suffixe " | WORD CHECKR" -- suffixe conserve (pas de regime special pour
+        // cette famille, coherence avec les autres vues qui le gardent toutes).
+        'title' => sprintf('Ja, %s Ist Gültig (%d Punkte)', $page->normalized, $page->score),
     ],
     TermPage::STATUS_FRENCH_NOT_ADMITTED => [
         'modifier' => 'not-admitted',
@@ -81,7 +90,12 @@ $statusMeta = match ($page->status) {
             'Das Wort %s ist kein gültiges Scrabble-Wort in dieser Datenbank.',
             $page->normalized,
         ),
-        'title' => sprintf('Nein, %s Ist Kein Gültiges Scrabble-Wort', $page->normalized),
+        // Meme raccourci que le statut admis ci-dessus, meme raison (D-DE-013 point 4) --
+        // "Ist Kein Gültiges Scrabble-Wort" -> "Ist Nicht Gültig". Statut structurellement
+        // ferme (CLAUDE.md) mais jamais produit par les donnees allemandes actuelles
+        // (TermLookup::find(), aucune source "reel mais non admis") -- corrige quand meme
+        // pour coherence, pas une branche morte a laisser incoherente.
+        'title' => sprintf('Nein, %s Ist Nicht Gültig', $page->normalized),
     ],
     default => [
         'modifier' => 'unknown',
@@ -91,6 +105,9 @@ $statusMeta = match ($page->status) {
             'Das Wort %s wurde nicht in der Datenbank gefunden. Es kann nicht als gültiges Scrabble-Wort bestätigt werden.',
             $page->normalized,
         ),
+        // Verifie (D-DE-013 point 4, correctif cette passe) : deja sous le budget de ~60
+        // caracteres avec le suffixe " | WORD CHECKR" au pire cas mesure (mot a 15 lettres,
+        // 50 caracteres) -- non touche, aucun changement necessaire.
         'title' => sprintf('%s: Unbekannter Begriff', $page->normalized),
     ],
 };
