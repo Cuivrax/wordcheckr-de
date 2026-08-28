@@ -270,10 +270,15 @@ $paginationRelFor = static function (int $targetPage) use ($isAnchored, $paginat
 // titre lisible reconstruit en allemand plutot que traduit fragment par fragment -- le
 // francais chaine ses complements avec des prepositions variees (de/commençant par/
 // contenant/terminant par/avec/sans/au motif) qui n'ont pas d'equivalent 1:1 en allemand.
-// Structure retenue : prefixe "Wörter" + fragments "mit ..."/"beginnend mit ..."/
-// "endend mit ..." -- reprend le patron combine confirme par le rapport concurrentiel
-// (reports/de-serp-terminology-research.md, section 2.3, buchstaben.com : "Wörter mit
-// 5 Buchstaben beginnend mit A"). Les fragments contenant/avec/sans/position/motif ne sont
+// Structure retenue : prefixe "Wörter" + fragments "mit ...", chacun concatene a la suite.
+// Le rapport concurrentiel (reports/de-serp-terminology-research.md, section 2.3,
+// buchstaben.com) documentait le patron "Wörter mit 5 Buchstaben beginnend mit A" -- CORRIGE
+// (cette passe, D-DE-029+) : "beginnend mit"/"endend mit" recopiaient mecaniquement le
+// vocabulaire du slug d'URL ("beginnend-mit"/"endend-mit", D-DE-009) dans le texte visible.
+// Fragments prefixe/suffixe reformules en "mit X am Anfang"/"mit X am Ende" (registre naturel,
+// meme construction "mit ..." que les autres fragments ci-dessous, donc combinable sans casser
+// la concatenation ; coherent avec $contextLinkSpecs de home.php, memes libelles). Les
+// fragments contenant/avec/sans/position/motif ne sont
 // couverts par AUCUNE source du rapport (routage volontairement laisse en francais par
 // D-DE-009 pour ces mots-cles) -- traduction descriptive directe, signalee explicitement.
 // Ordre canonique impose (docs/05) : longueur -> commencant -> contenant -> terminant ->
@@ -285,7 +290,7 @@ if ($filters !== null && $filters->length !== null) {
 }
 
 if ($filters !== null && $filters->prefix !== null) {
-    $titleParts[] = 'beginnend mit ' . $filters->prefix;
+    $titleParts[] = 'mit ' . $filters->prefix . ' am Anfang';
 }
 
 if ($filters !== null && $filters->contains !== null) {
@@ -293,7 +298,7 @@ if ($filters !== null && $filters->contains !== null) {
 }
 
 if ($filters !== null && $filters->suffix !== null) {
-    $titleParts[] = 'endend mit ' . $filters->suffix;
+    $titleParts[] = 'mit ' . $filters->suffix . ' am Ende';
 }
 
 if ($filters !== null && $filters->position !== null) {
@@ -326,9 +331,8 @@ $descriptor = implode(' ', $titleParts);
 // l'utilisateur) : reutilise tel quel dans les phrases de $statusMeta['direct'] ci-dessous.
 // $pageTitle (title, breadcrumb, H1) suit la convention Title Case du reste du site
 // (M5, audit final) -- mb_convert_case capitalise chaque mot y compris les prepositions
-// allemandes ("Mit", "Beginnend", "An"), meme convention que "Beginnend Mit"/"Endend Mit"
-// deja utilises ailleurs sur le site, et laisse les lettres deja en majuscule (A, SCH,
-// C--E-) inchangees.
+// allemandes ("Mit", "Am", "An"), par exemple "mit A am Anfang" -> "Mit A Am Anfang", et
+// laisse les lettres deja en majuscule (A, SCH, C--E-) inchangees.
 $pageTitle = mb_convert_case(trim('Wörter ' . $descriptor), MB_CASE_TITLE, 'UTF-8');
 // Pas de correctif ordinal apres coup ici (contrairement a l'original francais "3e" -> "3E") :
 // l'ordinal allemand "3." est suivi d'un espace avant "Stelle", jamais adjacent a une lettre
@@ -580,7 +584,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <?php $lengthLabel = $filters->length . ($filters->length > 1 ? ' Buchstaben' : ' Buchstabe'); ?>
 <?php if ($lengthLinks->byStart !== []): ?>
     <section class="explore-group">
-      <h2>Wörter Mit <?= e($lengthLabel) ?> Beginnend Mit</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Nach Anfangsbuchstabe</h2>
       <div class="related-links">
 <?php foreach ($lengthLinks->byStart as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -591,7 +595,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($lengthLinks->byEnd !== []): ?>
     <section class="explore-group">
-      <h2>Wörter Mit <?= e($lengthLabel) ?> Endend Mit</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Nach Endbuchstabe</h2>
       <div class="related-links">
 <?php foreach ($lengthLinks->byEnd as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -629,7 +633,15 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($lengthLinks->byStartEnd !== []): ?>
     <section class="explore-group">
-      <h2>Wörter Mit <?= e($lengthLabel) ?> Beginnend Und Endend Mit</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Nach Anfangs- Und Endbuchstabe</h2>
+<?php
+        // "Beginnend Mit X"/"Endend Mit X" ci-dessous volontairement CONSERVES (registre passe
+        // en revue, cette passe, D-DE-029+) : pastille courte de categorie a cote d'un compte,
+        // pas une phrase -- meme compromis que le cousin espagnol (ES/app/View/word-list.php,
+        // "Empiezan Por X"/"Terminan En X" dans un contexte identique, verifie explicitement
+        // avant cette decision). Seuls les H1/H2 de phrase complete et les labels de champ de
+        // formulaire ont ete reformules, pas les pastilles.
+?>
 <?php foreach ($lengthLinks->byStartEnd as $group): ?>
       <div class="explore-subgroup">
         <p class="explore-subgroup-label">Beginnend Mit <?= e($group['start']) ?> (<?= e(count($group['letters'])) ?>)</p>
@@ -653,8 +665,8 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($letterCombinedLinks !== null && $letterCombinedLinks->links !== []): ?>
 <?php $combinedHeading = $filters->prefix !== null
-    ? 'Beginnend Mit ' . $filters->prefix . ' Und Endend Mit'
-    : 'Endend Mit ' . $filters->suffix . ' Und Beginnend Mit'; ?>
+    ? 'Wörter, Die Mit ' . $filters->prefix . ' Beginnen Und Enden Auf'
+    : 'Wörter, Die Auf ' . $filters->suffix . ' Enden Und Beginnen Mit'; ?>
     <section class="explore-group">
       <h2><?= e($combinedHeading) ?></h2>
       <div class="related-links">
@@ -667,7 +679,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($prefixAvecLinks !== null && $prefixAvecLinks->links !== []): ?>
     <section class="explore-group">
-      <h2>Beginnend Mit <?= e($filters->prefix) ?>, Mit</h2>
+      <h2>Wörter, Die Mit <?= e($filters->prefix) ?> Beginnen, Mit</h2>
       <div class="related-links">
 <?php foreach ($prefixAvecLinks->links as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -700,8 +712,8 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($lengthCombinedLinks !== null && $lengthCombinedLinks->links !== []): ?>
 <?php $lengthCombinedHeading = $filters->prefix !== null
-    ? 'Beginnend Mit ' . $filters->prefix . ' Und Endend Mit'
-    : 'Endend Mit ' . $filters->suffix . ' Und Beginnend Mit'; ?>
+    ? 'Wörter, Die Mit ' . $filters->prefix . ' Beginnen Und Enden Auf'
+    : 'Wörter, Die Auf ' . $filters->suffix . ' Enden Und Beginnen Mit'; ?>
     <section class="explore-group">
       <h2><?= e($lengthCombinedHeading) ?></h2>
       <div class="related-links">
@@ -714,7 +726,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($startEndWithLinks !== null && $startEndWithLinks->links !== []): ?>
     <section class="explore-group">
-      <h2>Beginnend Mit <?= e($filters->prefix) ?> Und Endend Mit <?= e($filters->suffix) ?>, Mit</h2>
+      <h2>Wörter, Die Mit <?= e($filters->prefix) ?> Beginnen Und Auf <?= e($filters->suffix) ?> Enden, Mit</h2>
       <div class="related-links">
 <?php foreach ($startEndWithLinks->links as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>

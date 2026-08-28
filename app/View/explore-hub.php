@@ -77,7 +77,7 @@ use App\Search\ExploreHub;
     </section>
 
     <section class="explore-group">
-      <h2>Beginnend Mit</h2>
+      <h2>Nach Anfangsbuchstabe</h2>
       <div class="related-links">
 <?php foreach ($hub->byStart as $entry): ?>
         <a href="<?= e($entry['url']) ?>"><span class="explore-label"><?= e($entry['letter']) ?></span> <span class="explore-count">(<?= e(number_format($entry['count'], 0, ',', ' ')) ?>)</span></a>
@@ -86,7 +86,7 @@ use App\Search\ExploreHub;
     </section>
 
     <section class="explore-group">
-      <h2>Endend Mit</h2>
+      <h2>Nach Endbuchstabe</h2>
       <div class="related-links">
 <?php foreach ($hub->byEnd as $entry): ?>
         <a href="<?= e($entry['url']) ?>"><span class="explore-label"><?= e($entry['letter']) ?></span> <span class="explore-count">(<?= e(number_format($entry['count'], 0, ',', ' ')) ?>)</span></a>

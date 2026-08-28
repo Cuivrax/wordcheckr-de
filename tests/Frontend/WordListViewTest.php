@@ -142,10 +142,13 @@ return function (): void {
     // ADAPTATION ALLEMANDE (cette passe) : "Mots De N Lettres X" -> "Wörter Mit N
     // Buchstaben X", voir rapport de tache section 2.3 (reports/de-serp-terminology-
     // research.md, patron confirme "Wörter mit 5 Buchstaben beginnend mit A").
-    Assert::true(str_contains($htmlWithLinks, 'Wörter Mit 13 Buchstaben Beginnend Mit'), 'titre beginnend-mit attendu');
+    // CORRIGE (D-DE-029+) : "Beginnend Mit"/"Endend Mit" recopiaient mecaniquement le
+    // vocabulaire du slug d'URL dans le H2 visible -- "Nach Anfangsbuchstabe"/"Nach
+    // Endbuchstabe" retenus (registre naturel, voir app/View/word-list.php).
+    Assert::true(str_contains($htmlWithLinks, 'Wörter Mit 13 Buchstaben Nach Anfangsbuchstabe'), 'titre beginnend-mit attendu');
     Assert::true(str_contains($htmlWithLinks, '<span class="explore-label">A</span> <span class="explore-count">(4 777)</span>'), 'lien A avec compte formate attendu');
     Assert::true(str_contains($htmlWithLinks, 'href="/woerter/13-buchstaben/beginnend-mit/a"'), 'URL du lien A attendue');
-    Assert::true(str_contains($htmlWithLinks, 'Wörter Mit 13 Buchstaben Endend Mit'), 'titre endend-mit attendu');
+    Assert::true(str_contains($htmlWithLinks, 'Wörter Mit 13 Buchstaben Nach Endbuchstabe'), 'titre endend-mit attendu');
     Assert::true(str_contains($htmlWithLinks, '(9 663)'), 'compte endend-mit formate attendu');
     Assert::true(!str_contains($htmlWithLinks, 'Wörter Mit 13 Buchstaben Mit'), 'byWith vide -- aucune section rendue (jamais de groupe vide)');
     Assert::true(str_contains($htmlWithLinks, 'Wörter Mit 13 Buchstaben Nach Buchstabenposition'), 'titre position attendu (C1, audit D-028)');

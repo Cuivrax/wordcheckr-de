@@ -312,6 +312,13 @@ if ($relations !== null) {
             return sprintf('%d %s Mit %s', $filters->length, $filters->length > 1 ? 'Buchstaben' : 'Buchstabe', $joined);
         }
 
+        // "Beginnend Mit X"/"Endend Mit X" volontairement CONSERVES ici (registre passe en revue,
+        // D-DE-029+) : $relatedLabel n'alimente que des pastilles courtes de ".related-links"
+        // ("Verwandte Suchen" ci-dessous), jamais une phrase/H1 -- meme compromis que le cousin
+        // espagnol (ES/app/View/word.php, "Empiezan Por X"/"Terminan En X" dans la MEME fonction
+        // relatedLabel(), verifie explicitement avant cette decision). app/View/home.php et
+        // app/View/word-list.php (H1/H2 de phrase complete, labels de champ de formulaire) ont
+        // ete reformules dans ce meme lot, pas ces pastilles.
         if ($filters->prefix !== null) {
             return 'Beginnend Mit ' . $filters->prefix;
         }

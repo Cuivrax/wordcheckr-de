@@ -81,12 +81,16 @@ use App\Search\WordListFilters;
 // celle-ci couvre desormais les 66 pages longueur/beginnend-mit/endend-mit de facon exhaustive,
 // avec leurs comptes reels -- la home n'a plus besoin de dupliquer une selection partielle,
 // juste d'illustrer puis de renvoyer vers le hub complet.
-// ADAPTATION ALLEMANDE (cette passe) : $contextLinkSpecs etait deja localise (URL et libelles),
-// aucun changement necessaire ici -- conserve tel quel.
+// ADAPTATION ALLEMANDE (cette passe) : $contextLinkSpecs avait ses URL deja localisees, mais
+// les DEUX libelles beginnend-mit/endend-mit recopiaient mecaniquement le vocabulaire du slug
+// ("Beginnend Mit A"/"Endend Mit S") -- corrige en "Wörter Mit A Am Anfang"/"Wörter Mit S Am
+// Ende" (parallele avec "Wörter Mit 7 Buchstaben" ci-dessus, registre coherent avec la phrase
+// d'aide plus bas qui utilise deja "einen Anfang"/"ein Ende", voir $phraseLink). Le slug d'URL
+// n'est pas concerne (D-DE-009, ferme) -- seul le texte visible du lien change.
 $contextLinkSpecs = [
     ['path' => '7-buchstaben', 'label' => 'Wörter Mit 7 Buchstaben'],
-    ['path' => 'beginnend-mit/a', 'label' => 'Beginnend Mit A'],
-    ['path' => 'endend-mit/s', 'label' => 'Endend Mit S'],
+    ['path' => 'beginnend-mit/a', 'label' => 'Wörter Mit A Am Anfang'],
+    ['path' => 'endend-mit/s', 'label' => 'Wörter Mit S Am Ende'],
 ];
 
 $contextLinks = [];
@@ -221,11 +225,11 @@ $phraseLink = static function (string $path, string $label): string {
               </select>
             </div>
             <div class="constraint-field">
-              <label class="label" for="beginnend-mit">Beginnend Mit</label>
+              <label class="label" for="beginnend-mit">Beginnt Mit</label>
               <input class="field" type="text" id="beginnend-mit" name="beginnend-mit" maxlength="5" placeholder="CH" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
-              <label class="label" for="endend-mit">Endend Mit</label>
+              <label class="label" for="endend-mit">Endet Auf</label>
               <input class="field" type="text" id="endend-mit" name="endend-mit" maxlength="5" placeholder="UNG" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
