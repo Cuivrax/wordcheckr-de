@@ -17,6 +17,16 @@ declare(strict_types=1);
  * public/index.php, redirection pure vers la forme canonique /woerter/contenant/{lettres}).
  *
  * Aucun credit de source (D-015). noindex/canonical deja resolus par public/index.php.
+ *
+ * Garde d'etat vide (D-DE-013 point 5, correctif cette passe) : les trois grilles ci-dessous
+ * sont chacune derriere `if ($hub->byX !== [])` -- list_counts (schema.sql) est vide sur ce
+ * depot (aucun lot dedie encore ecrit, voir CLAUDE.md "Ce Qui N'est Pas Encore Construit"),
+ * donc $hub->byLength/byStart/byEnd sont TOUS vides aujourd'hui : sans ce garde, chaque
+ * section rendait un <h2> suivi d'un <div class="related-links"></div> strictement vide,
+ * incoherent avec la convention "pas de section vide" deja appliquee partout ailleurs (voir
+ * app/View/word-list.php, $refine/$lengthLinks/... et app/View/word.php, $posLine/
+ * $senseCards/relations). Cette page reste noindex,follow (decision separee, non touchee
+ * ici) -- le defaut de rendu etait reel independamment de l'indexation.
  */
 
 require __DIR__ . '/helpers.php';
@@ -67,6 +77,7 @@ use App\Search\ExploreHub;
 <?php endif; ?>
     </section>
 
+<?php if ($hub->byLength !== []): ?>
     <section class="explore-group">
       <h2>Nach Länge</h2>
       <div class="related-links">
@@ -75,7 +86,9 @@ use App\Search\ExploreHub;
 <?php endforeach; ?>
       </div>
     </section>
+<?php endif; ?>
 
+<?php if ($hub->byStart !== []): ?>
     <section class="explore-group">
       <h2>Nach Anfangsbuchstabe</h2>
       <div class="related-links">
@@ -84,7 +97,9 @@ use App\Search\ExploreHub;
 <?php endforeach; ?>
       </div>
     </section>
+<?php endif; ?>
 
+<?php if ($hub->byEnd !== []): ?>
     <section class="explore-group">
       <h2>Nach Endbuchstabe</h2>
       <div class="related-links">
@@ -93,6 +108,7 @@ use App\Search\ExploreHub;
 <?php endforeach; ?>
       </div>
     </section>
+<?php endif; ?>
 
     <section class="explore-group">
       <h2>Enthält</h2>
