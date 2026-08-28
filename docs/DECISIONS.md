@@ -3430,6 +3430,70 @@ pre-existant et sans rapport que D-DE-004, Frontend\WordListViewTest.php).
 Statut du troisieme statut ("reel mais non admis") : CONFIRME par le porteur de projet comme un
 objectif FUTUR explicite (meme modele que is_french cote francais), pas resolu par cette
 decision -- toujours bloque sur l'absence de source de dictionnaire general allemand en licence
-exploitable au moment de la redaction de cette entree (voir D-DE-007 si une recherche
-complementaire est menee).
+exploitable au moment de la redaction de cette entree (voir D-DE-007 ci-dessous).
+
+## D-DE-007 — Piste `open-dsl-dict/wikidict-dsl-wordlist` Ecartee (Recherche, Aucune Donnee Integree)
+
+Date : 2026-08-28
+Statut : ecarte, verifie directement (pas suppose)
+
+Piste evaluee, a la demande du porteur de projet : `github.com/open-dsl-dict/
+wikidict-dsl-wordlist`, presentee comme un dictionnaire allemand derive de Wikidata sous
+licence CC0 (aucune attribution requise, ce qui aurait satisfait D-015 contrairement a toutes
+les sources deja ecartees par la recherche de faisabilite initiale -- DWDS/kaikki.org/Hunspell).
+
+Verification directe menee (pas une acceptation de l'etiquette CC0 a sa valeur nominale) :
+
+```text
+1. LICENCE : fichier LICENSE du depot lu directement -- texte integral CC0 1.0 Universal,
+   licence reellement declaree par le mainteneur pour ce jeu de donnees derive precis (pas
+   seulement une reference generale a la politique Wikidata). Confirmee genuine malgre le
+   detecteur automatique GitHub qui la classe "Other/NOASSERTION" (format non standard,
+   pas un signal contre l'intention du mainteneur).
+2. COUVERTURE ET NATURE DES DONNEES : echantillon reel telecharge et lu directement
+   (data/de-wordlist_wiki-wordlist.dsl, 85,9 Mo, 1 787 961 entrees annoncees). DISQUALIFIANT :
+   CHAQUE entree a la forme "MOTVEDETTE -> [m1]MOTVEDETTE[/m]" -- la "definition" est
+   litteralement le mot-vedette repete tel quel, AUCUN contenu lexicographique reel (pas de
+   definition, pas de nature grammaticale, pas de genre, pas de forme flechie). Le README du
+   depot confirme explicitement l'origine : "derived from interwiki links (links between
+   article titles in different languages) in Wikipedia" -- ce sont des TITRES D'ARTICLES
+   WIKIPEDIA (feature Wikidata "sitelinks"), PAS la table Lexeme de Wikidata (qui, elle,
+   contient de vraies donnees lexicographiques -- formes flechies, traits grammaticaux --
+   mais n'est pas ce que ce depot expose).
+3. Echantillon direct (premieres ~250 entrees du fichier allemand) : tres majoritairement des
+   noms propres (pays : Afrika, Japan, Norwegen... ; villes : Berlin, Paris, London... ;
+   personnes : George Washington, Barack Obama, Tim Berners-Lee... ; marques/organisations :
+   PHP, Google Inc., Volkswagen, Intel...), des locutions a espaces (Vereinigte Staaten, New
+   York City, Internet Relay Chat...), et meme des entrees clairement etrangeres a l'allemand
+   ou absurdes/plaisanterie (Lopadotemachoselachogaleokranioleipsanod... -- le nom fictif grec
+   du plat d'Aristophane, cite comme "mot le plus long" sur Wikipedia ;
+   Pneumonoultramicroscopicsilicovolcanoconiosis -- mot ANGLAIS, presente a tort dans le
+   fichier ALLEMAND ; Supercalifragilisticexpialigetisch -- germanisation plaisante de Mary
+   Poppins). Estimation grossiere sur l'echantillon direct : mois de 20% des entrees
+   ressemblent a un nom commun allemand simple utilisable, le reste est du bruit structurel.
+4. AUCUN filtre disponible pour isoler les noms communs : l'allemand met une majuscule a
+   TOUS les noms (communs et propres), meme limite deja documentee pour enz/hippler
+   (data/raw/PROVENANCE.md) -- mais la, contrairement a enz/hippler (listes deja CURATEES
+   selon une politique editoriale Scrabble explicite excluant noms propres/toponymes/sigles),
+   cette source Wikipedia n'a RECU aucune curation de ce type : impossible de separer
+   automatiquement "Berlin" (ville) de "Computer" (nom commun) dans ce jeu de donnees.
+5. Depot abandonne depuis 2016-07-19 (creation ET dernier push le meme jour -- generation
+   ponctuelle unique, jamais mise a jour depuis, 10 ans au moment de cette evaluation).
+```
+
+Decision : **ECARTE, aucune donnee integree.** Licence reellement CC0 (point 1 satisfait), mais
+disqualifie sur la couverture/nature des donnees (points 2-4, bien plus severe que prevu par la
+piste initiale) et la fraicheur (point 5). Ce n'est pas un dictionnaire general au sens ou ce
+projet en a besoin (equivalent Kartmaan pour le francais) -- c'est une liste de titres
+d'articles Wikipedia sans aucun contenu definitionnel, majoritairement composee de noms propres
+et de locutions, reformatee en un pseudo-format dictionnaire trompeur (chaque "definition" est
+juste le mot-vedette recopie). L'integrer degraderait la qualite de la base (bruit massif) sans
+apporter la moindre information lexicographique reelle -- pas seulement "trop petit/pauvre",
+structurellement le mauvais TYPE de source pour cet usage.
+
+Consequence : le troisieme statut ("reel mais non admis", D-DE-006) reste NON RESOLU -- cette
+piste ne le debloque pas. Aucune donnee de ce depot n'a ete telechargee vers `data/raw/`, aucun
+schema/import modifie. La recherche de faisabilite initiale (DWDS/kaikki.org/Hunspell, toutes
+ecartees pour licence) reste la reference complete des pistes deja explorees et fermees ;
+celle-ci s'y ajoute, fermee pour une raison differente (donnees, pas licence).
 

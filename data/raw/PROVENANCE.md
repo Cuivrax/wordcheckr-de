@@ -135,7 +135,9 @@ confirmée à 99,9 %, pas seulement plausible.
 aucun dictionnaire général allemand indépendant (pas d'équivalent Kartmaan/hbenbel/is_french) —
   modèle à deux statuts pour l'instant (admis / inconnu), troisième statut fermé faute de
   source combinant licence commerciale claire et indépendance réelle (voir section 3 du rapport
-  de faisabilité)
+  de faisabilité, et docs/DECISIONS.md D-DE-007 pour une piste supplémentaire évaluée et
+  écartée : open-dsl-dict/wikidict-dsl-wordlist, licence CC0 confirmée mais données
+  inutilisables — titres d'articles Wikipedia sans contenu définitionnel, pas un dictionnaire)
 aucune donnée de nature grammaticale/genre (pas d'équivalent D-018)
 aucune définition lexicale (pas d'équivalent D-043)
 aucun registre SEO (storage/seo_de.sqlite non construit) — Registry gère nativement son absence
