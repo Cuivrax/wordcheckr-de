@@ -6,16 +6,19 @@
 -- Hérité de schema.sql (site français) puis SIMPLIFIÉ pour l'allemand -- voir
 -- docs/DECISIONS.md pour la décision complète. Différences volontaires par rapport à la
 -- version française :
---   - is_ods8/is_ods9/is_french fusionnées en une seule colonne is_admitted : pas de
---     double lexique ODS8/ODS9 pour l'allemand (aucune liste officielle librement
---     téléchargeable en masse, voir reports/de-site-feasibility-audit.md côté dépôt
---     français, §1), et pas de dictionnaire général indépendant (§3 du même rapport) --
---     toute ligne présente en base vient de l'unique source retenue (enz/german-wordlist,
---     CC0-1.0), donc is_admitted = 1 pour CHAQUE ligne dans cette première passe. Colonne
---     conservée (pas supprimée) pour permettre une extension future (ex. un second
---     lexique ou une source non admise) sans migration de schéma -- même raisonnement que
---     is_admitted côté français (D-022), qui y est dérivée plutôt que source de vérité ;
---     ici elle EST la source de vérité, faute d'un second lexique à combiner.
+--   - is_ods8/is_ods9/is_french (double lexique + dictionnaire général français) remplacées
+--     par is_enz/is_hippler (D-DE-006) : deux SOURCES de la même famille de listes Scrabble
+--     allemandes (enz/german-wordlist, fork continué, CC0-1.0 ; hippler/german-wordlist,
+--     instantané figé ~janvier 2023 de l'ancêtre direct, même licence), pas deux ÉDITIONS
+--     officielles distinctes comme ODS8/ODS9 -- la provenance par mot reste néanmoins
+--     interrogeable exactement de la même façon (voir data/raw/PROVENANCE.md). is_admitted
+--     reste DÉRIVÉE (is_enz OR is_hippler), précalculée au build, jamais une source de vérité
+--     indépendante -- même rôle et même raisonnement que côté français (D-022) : permet un
+--     filtre "admis" indexable sans recalculer un OR à chaque requête. Toujours 1 sur CHAQUE
+--     ligne dans cette passe (toute ligne vient forcément d'au moins une des deux sources par
+--     construction), mais désormais un OR RÉEL, pas une constante codée en dur -- prêt pour
+--     une future troisième source qui, elle, pourrait légitimement valoir 0 (ex. un
+--     dictionnaire général allemand non-Scrabble, toujours recherché, voir docs/DECISIONS.md).
 --   - pos/pos_secondary/gender (nature grammaticale, D-018 français) absentes : aucune
 --     source de nature grammaticale allemande retenue dans cette passe (hors périmètre
 --     explicite de la tâche). app/Search/TermLookup.php ne les sélectionne donc jamais et
@@ -45,11 +48,27 @@ CREATE TABLE terms (
     display_term TEXT    NOT NULL,
     normalized   TEXT    NOT NULL UNIQUE,
 
-    -- Admis (liste Scrabble allemande retenue, enz/german-wordlist). Toujours 1 dans
-    -- cette premiere passe (source unique) -- voir note en tete de fichier. Le badge
-    -- affiche "Wortliste" (config/sites/de.php), jamais "officiel" (aucune liste
-    -- officielle allemande n'est librement accessible en masse, voir data/raw/
-    -- PROVENANCE.md).
+    -- Provenance par mot (D-DE-006) : quelle(s) source(s) retiennent ce terme, après
+    -- normalisation -- une forme brute différente par source qui se rejoint après
+    -- normalisation (ex. "Abschiedsgruss" côté hippler, "Abschiedsgruß" côté enz, toutes
+    -- deux normalisées en ABSCHIEDSGRUSS via ß -> SS) compte comme présente dans LES DEUX
+    -- sources, pas une collision à choisir. Mesuré sur l'import réel : 590 850 termes enz,
+    -- 293 166 termes hippler, 293 160 dans les deux, 6 UNIQUEMENT dans hippler (ALF, ALFE,
+    -- BÄT, ELAK, ETH, KÄM) -- confirme empiriquement l'hypothèse de la recherche de
+    -- faisabilité ("la quasi-totalité des ~6 400 formes brutes hippler-seules sont des
+    -- doublons de graphie ß/ss, pas une perte de couverture réelle") : seules 6 formes sur
+    -- 6 398 sont de VRAIES formes absentes d'enz une fois normalisées.
+    is_enz       INTEGER NOT NULL DEFAULT 0 CHECK (is_enz     IN (0, 1)),
+    is_hippler   INTEGER NOT NULL DEFAULT 0 CHECK (is_hippler IN (0, 1)),
+
+    -- Admis (liste Scrabble allemande, l'une ou l'autre source). Colonne DÉRIVÉE
+    -- (is_enz OR is_hippler), précalculée au build -- jamais une source de vérité
+    -- indépendante, même rôle que côté français (D-022). Toujours 1 sur chaque ligne dans
+    -- cette passe (toute ligne vient forcément d'au moins une source par construction), mais
+    -- calculée comme un vrai OR, pas une constante -- prête pour une future troisième source
+    -- qui pourrait légitimement valoir 0. Le badge affiche "Wortliste" (config/sites/de.php),
+    -- jamais "officiel" (aucune liste officielle allemande n'est librement accessible en
+    -- masse, voir data/raw/PROVENANCE.md).
     is_admitted  INTEGER NOT NULL DEFAULT 1 CHECK (is_admitted IN (0, 1)),
 
     score        INTEGER NOT NULL,

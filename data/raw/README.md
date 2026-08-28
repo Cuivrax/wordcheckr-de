@@ -1,15 +1,17 @@
-# Data Raw
+# Data Raw — Site Allemand
 
-Fichiers attendus :
+Fichiers attendus (voir `PROVENANCE.md` pour les empreintes et la provenance complète) :
 
 ```text
-ods8.json
-french_dict.db
+enz_german_wordlist/words                                source principale, CC0-1.0
+hippler_de/scrabble-german-DE-HIPPLER.json                source secondaire fusionnée (D-DE-006), CC0-1.0
 ```
 
-`ods8.json` doit être fourni par l’utilisateur.
+`enz_german_wordlist/words` : téléchargé directement depuis GitHub (voir `PROVENANCE.md`
+pour la commande exacte et l'empreinte).
 
-`french_dict.db` peut être téléchargé avec les scripts du dossier `/scripts`.
+`hippler_de/scrabble-german-DE-HIPPLER.json` : copié depuis un fichier fourni par
+l'utilisateur (voir `PROVENANCE.md` pour le chemin d'origine et l'empreinte).
 
-Les fichiers de données brutes sont volontairement exclus du ZIP lorsqu’ils
-sont volumineux ou non fournis.
+Les fichiers de données brutes sont volontairement exclus du dépôt Git (volumineux,
+reconstituables via les empreintes documentées dans `PROVENANCE.md`).

@@ -7,7 +7,7 @@ l'identique. Rien de son contenu n'est publié sur le site — aucun crédit de 
 Ce dossier est exclu de Git (voir `.gitignore`). Les fichiers y sont reconstitués grâce aux
 empreintes ci-dessous.
 
-## enz_german_wordlist/ — liste de mots allemande (source unique, Phase 0 DE)
+## enz_german_wordlist/ — liste de mots allemande (source principale)
 
 ```text
 source          https://github.com/enz/german-wordlist
@@ -69,23 +69,65 @@ faute de source de recoupement indépendante et gratuite (voir
 dictionnaire général allemand ne réunit licence commerciale claire et indépendance réelle vis-
 à-vis de la liste Scrabble elle-même).
 
-## Fichier local HIPPLER (référence, non utilisé comme source)
+## hippler_de/ — liste de mots allemande (source secondaire, fusionnée — D-DE-006)
 
 ```text
-chemin   C:\Users\reka0\Website Windsurf\01. Data Scrabble\JSON\scrabble-german-DE-HIPPLER.json
-statut   NON utilisé comme source de cet import — instantané figé (~janvier 2023) de
-         hippler/german-wordlist, l'ancêtre direct d'enz/german-wordlist. 336 208 mots,
-         98,1 % de recouvrement déjà confirmé avec le fichier enz actuel (voir
-         reports/de-site-feasibility-audit.md §1.b côté dépôt français).
+source          hippler/german-wordlist (github.com/hippler/german-wordlist), instantané
+                local figé (~janvier 2023), ancêtre direct dont enz/german-wordlist est un
+                fork continué
+fichier reçu    C:\Users\reka0\Website Windsurf\01. Data Scrabble\JSON\
+                scrabble-german-DE-HIPPLER.json
+copié vers      data/raw/hippler_de/scrabble-german-DE-HIPPLER.json
+copié le        2026-08-28
+licence         CC0-1.0 — même lignée qu'enz, licence déjà confirmée identique (COPYING au
+                même sha256, voir la section enz ci-dessus, vérifié lors de la recherche de
+                faisabilité initiale)
 ```
 
-**Décision explicite sur les ~6 400 formes suisses en "ss" propres à ce fichier local**
-(variantes orthographiques suisses type `Abschiedsgruss` au lieu de `Abschiedsgruß`) : **non
-fusionnées dans cette première passe.** Raison : ce sont des doublons fonctionnels de la forme
-standard avec ß une fois normalisées (ß → SS dans `normalize()`, voir plus bas) — les
-fusionner ferait entrer en collision de normalisation deux graphies déjà couvertes par la même
-forme normalisée finale (`ABSCHIEDSGRUSS`), sans ajouter de couverture lexicale réelle. Décision
-révisable si un besoin explicite de couverture suisse est exprimé plus tard — pas un oubli.
+```text
+scrabble-german-DE-HIPPLER.json   5 539 150 octets
+sha256                            06d39a983dd2d9523928c173954457569bea2dc5695cf2d3333436796bbe5b3b
+```
+
+Structure vérifiée directement (`python`, `json.load`) :
+
+```text
+{"words": [...]} -- même forme que data/raw/ods8.json côté dépôt français
+336 208 entrées, 336 207 distinctes (1 doublon brut exact)
+0 espace, 0 trait d'union, 0 apostrophe, 0 chiffre dans tout le fichier
+longueurs de 2 à 25 caractères (comptées en caractères Python, pas en octets)
+```
+
+**Décision révisée (D-DE-006, remplace la décision "non fusionné" de la première passe) :
+FUSIONNÉ.** Le porteur de projet a explicitement demandé la fusion des deux sources avec
+provenance par mot plutôt que la simple mise à l'écart du fichier local — voir
+`schema.sql` (colonnes `is_enz`/`is_hippler`) et `scripts/import_de.py`.
+
+**Mesure réelle après normalisation** (pas une estimation) :
+
+```text
+590 850 formes normalisées distinctes retenues côté enz (inchangé)
+293 166 formes normalisées distinctes retenues côté hippler
+293 160 formes présentes dans LES DEUX sources après normalisation
+    6   formes présentes UNIQUEMENT dans hippler après normalisation : ALF, ALFE, BÄT,
+        ELAK, ETH, KÄM
+590 856 termes au total dans la base fusionnée (590 850 + 6)
+```
+
+**Confirmation empirique de l'hypothèse de la recherche de faisabilité initiale** ("Les
+6 398 mots présents localement mais absents de la version actuelle d'enz sont très
+majoritairement des variantes orthographiques suisses en 'ss' à la place de 'ß'... probablement
+retirées volontairement par enz en tant que doublons de la forme standard avec ß, pas une perte
+de couverture réelle") : cette hypothèse était fondée sur une comparaison de CHAÎNES BRUTES
+(6 398 formes brutes hippler absentes telles quelles du fichier enz). Une fois les deux sources
+passées par le même pipeline de normalisation (ß → SS dans `normalize()`, comme pour toute autre
+forme), une forme brute hippler en "ss" (ex. `Abschiedsgruss`) et la forme brute enz
+correspondante en "ß" (ex. `Abschiedsgruß`) se rejoignent TOUTES DEUX en la même forme normalisée
+(`ABSCHIEDSGRUSS`) — donc comptent comme UNE seule ligne, présente dans les DEUX sources, pas
+deux lignes distinctes ni une perte. Sur les 6 398 formes brutes citées par la recherche
+initiale, seules **6** sont de VRAIES formes absentes d'enz une fois normalisées — l'hypothèse
+initiale ("quasi-totalité = doublons de graphie, pas une perte de couverture réelle") est donc
+confirmée à 99,9 %, pas seulement plausible.
 
 ## Ce Qui N'est PAS Construit Dans Cette Passe (rappel explicite)
 
