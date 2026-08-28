@@ -57,37 +57,40 @@ for ($i = 0; $i < $page->jokerCount; $i++) {
 
 $tilesAriaLabel = implode(' + ', $tileLabelParts);
 
+// ADAPTATION ALLEMANDE (cette passe) : "gültig" reprend le meme registre que
+// app/View/word.php (statusMeta, D-DE-009) -- jamais "zulässig" (vocabulaire officiel SDeV,
+// volontairement pas retenu, voir reports/de-serp-terminology-research.md section 3.5).
 $statusMeta = match (true) {
     $page->capped => [
         'modifier' => 'not-admitted',
-        'badge' => 'Trop De Possibilités',
-        'subtitle' => 'Précisez votre tirage.',
+        'badge' => 'Zu Viele Möglichkeiten',
+        'subtitle' => 'Grenzen Sie Ihre Buchstaben ein.',
         'direct' => sprintf(
-            'Le tirage %s propose trop de combinaisons pour être calculé ici. Réduisez le nombre de lettres ou de jokers pour obtenir une réponse.',
+            'Für %s gibt es zu viele Kombinationen, um sie hier zu berechnen. Verringern Sie die Anzahl der Buchstaben oder Joker, um eine Antwort zu erhalten.',
             $rackDisplay,
         ),
     ],
     $page->matches === [] => [
         'modifier' => 'unknown',
-        'badge' => 'Aucun Mot',
-        'subtitle' => 'Aucun mot jouable trouvé.',
+        'badge' => 'Kein Wort',
+        'subtitle' => 'Kein spielbares Wort gefunden.',
         'direct' => sprintf(
-            'Aucun mot admis au Scrabble ne peut être formé avec %s.',
+            'Mit %s kann kein gültiges Scrabble-Wort gebildet werden.',
             $rackDisplay,
         ),
     ],
     $page->totalMatches === 1 => [
         'modifier' => 'admitted',
-        'badge' => 'Mot Trouvé',
-        'subtitle' => 'Vous pouvez le jouer.',
-        'direct' => sprintf('Avec %s, 1 mot admis au Scrabble est possible.', $rackDisplay),
+        'badge' => 'Wort Gefunden',
+        'subtitle' => 'Sie können es spielen.',
+        'direct' => sprintf('Mit %s ist 1 gültiges Scrabble-Wort möglich.', $rackDisplay),
     ],
     default => [
         'modifier' => 'admitted',
-        'badge' => 'Mots Trouvés',
-        'subtitle' => 'Vous pouvez les jouer.',
+        'badge' => 'Wörter Gefunden',
+        'subtitle' => 'Sie können sie spielen.',
         'direct' => sprintf(
-            'Avec %s, %d mots admis au Scrabble sont possibles.',
+            'Mit %s sind %d gültige Scrabble-Wörter möglich.',
             $rackDisplay,
             $page->totalMatches,
         ),
@@ -100,7 +103,7 @@ $statusMeta = match (true) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="<?= e($seo->robots) ?>">
-<title>Jouer <?= e($rackDisplay) ?> | WORD CHECKR</title>
+<title>Spielen <?= e($rackDisplay) ?> | WORD CHECKR</title>
 <meta name="description" content="<?= e($statusMeta['direct']) ?>">
 <?php if ($seo->canonicalUrl !== null): ?>
 <link rel="canonical" href="<?= e($seo->canonicalUrl) ?>">
@@ -114,16 +117,16 @@ $statusMeta = match (true) {
 <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
-<a class="skip-link" href="#main">Aller au contenu</a>
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
 <header class="header">
   <div class="site header-row">
     <a class="logo" href="/"><img class="logo-mark" src="/assets/img/logo.png" alt="" width="32" height="32">WORD CHECKR</a>
-    <nav class="nav" aria-label="Navigation principale"><a href="/">Nouvelle recherche</a></nav>
+    <nav class="nav" aria-label="Hauptnavigation"><a href="/">Neue Suche</a></nav>
   </div>
 </header>
 
 <main class="word-shell main" id="main">
-  <nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="/">Accueil</a> › Jouer <?= e($rackDisplay) ?></nav>
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Startseite</a> › Spielen <?= e($rackDisplay) ?></nav>
 
   <article class="word-card">
     <section class="word-answer">
@@ -135,11 +138,11 @@ $statusMeta = match (true) {
     <section class="facts">
       <div class="fact">
         <strong><?= $page->totalMatches !== null ? e($page->totalMatches) : '—' ?></strong>
-        <span>Mots Trouvés</span>
+        <span>Wörter Gefunden</span>
       </div>
       <div class="fact">
         <strong><?= e($rackTileCount) ?></strong>
-        <span>Lettres Au Chevalet</span>
+        <span>Verfügbare Buchstaben</span>
       </div>
       <div class="fact fact-letters">
         <div class="letter-tiles" role="img" aria-label="<?= e($tilesAriaLabel) ?>">
@@ -152,22 +155,22 @@ $statusMeta = match (true) {
           <span class="letter-tile" aria-hidden="true">?<small>0</small></span>
 <?php endfor; ?>
         </div>
-        <span>Chevalet Utilisé</span>
+        <span>Verwendete Buchstaben</span>
       </div>
     </section>
 
     <section class="direct">
-      <h2>Réponse Directe</h2>
+      <h2>Direkte Antwort</h2>
       <p><?= e($statusMeta['direct']) ?></p>
     </section>
 
 <?php if ($page->matches !== []): ?>
     <section class="rack-results">
 <?php if ($page->truncated): ?>
-      <p class="help rack-results-note">Meilleurs <?= e($page->displayLimit) ?> mots affichés, sur <?= e($page->totalMatches) ?> au total.</p>
+      <p class="help rack-results-note">Beste <?= e($page->displayLimit) ?> Wörter angezeigt, von <?= e($page->totalMatches) ?> insgesamt.</p>
 <?php endif; ?>
       <div class="rack-result-head" aria-hidden="true">
-        <span>Wort</span><span class="rack-result-head-center">Status</span><span class="rack-result-head-right">Points</span><span class="rack-result-head-length">Lettres</span>
+        <span>Wort</span><span class="rack-result-head-center">Status</span><span class="rack-result-head-right">Punkte</span><span class="rack-result-head-length">Buchstaben</span>
       </div>
       <?php
       // D-DE-011 (docs/DECISIONS.md) : une seule pastille .status-badge (deja definie,
@@ -184,8 +187,8 @@ $statusMeta = match (true) {
         <li class="rack-result-row">
           <a class="rack-result-word" href="/wort/<?= e($match['slug']) ?>"><?= e($match['normalized']) ?></a>
           <span class="status-badge status-badge--admitted">Gültig</span>
-          <span class="rack-result-points" aria-label="<?= e($match['score']) ?> points"><?= e($match['score']) ?></span>
-          <span class="rack-result-length" aria-label="<?= e($match['length']) ?> lettres"><?= e($match['length']) ?></span>
+          <span class="rack-result-points" aria-label="<?= e($match['score']) ?> Punkte"><?= e($match['score']) ?></span>
+          <span class="rack-result-length" aria-label="<?= e($match['length']) ?> Buchstaben"><?= e($match['length']) ?></span>
         </li>
 <?php endforeach; ?>
       </ul>
@@ -193,17 +196,19 @@ $statusMeta = match (true) {
 <?php endif; ?>
 
     <form class="inline-check" action="/wortsuche" method="get">
-      <label class="sr-only" for="lettres-check">Essayer un autre tirage</label>
-      <input class="field" type="text" id="lettres-check" name="lettres" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Essayer un autre tirage">
-      <button class="btn btn-primary" type="submit">Jouer</button>
+      <label class="sr-only" for="lettres-check">Andere Buchstaben ausprobieren</label>
+      <input class="field" type="text" id="lettres-check" name="lettres" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Andere Buchstaben ausprobieren">
+      <button class="btn btn-primary" type="submit">Spielen</button>
     </form>
   </article>
 </main>
 
 <footer class="footer">
   <div class="word-shell footer-row">
-    <span>Outil indépendant d’aide aux jeux de lettres.</span>
-    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Contact</a></span>
+    <span>Unabhängiges Tool für Buchstabenspiele.</span>
+    <?php // Voir app/View/word.php pour la justification complete de ce choix (footer
+    // repete a l'identique sur toutes les vues). ?>
+    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Kontakt</a></span>
   </div>
 </footer>
 </body>

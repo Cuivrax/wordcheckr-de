@@ -216,17 +216,20 @@ $refineUrl = static function (?string $status, ?string $sort) use ($baseSegments
 $currentStatus = $filters?->status;
 $currentSort = $filters?->sort;
 
+// ADAPTATION ALLEMANDE (cette passe) : "Gültig"/"Nicht Gültig" reprend le meme registre que
+// app/View/word.php (statusMeta, D-DE-009) -- jamais "zulässig", voir la justification
+// terminologique complete deja consignee la-bas.
 $statusToggles = [
-    ['label' => 'Tous', 'url' => $refineUrl(null, $currentSort), 'active' => $currentStatus === null],
-    ['label' => 'Admis', 'url' => $refineUrl('admis', $currentSort), 'active' => $currentStatus === 'admis'],
-    ['label' => 'Non Admis', 'url' => $refineUrl('non-admis', $currentSort), 'active' => $currentStatus === 'non-admis'],
+    ['label' => 'Alle', 'url' => $refineUrl(null, $currentSort), 'active' => $currentStatus === null],
+    ['label' => 'Gültig', 'url' => $refineUrl('admis', $currentSort), 'active' => $currentStatus === 'admis'],
+    ['label' => 'Nicht Gültig', 'url' => $refineUrl('non-admis', $currentSort), 'active' => $currentStatus === 'non-admis'],
 ];
 
 $sortToggles = $filters !== null && $filters->length !== null
     ? [
-        ['label' => 'Alphabétique', 'url' => $refineUrl($currentStatus, null), 'active' => $currentSort === null],
-        ['label' => 'Points Croissants', 'url' => $refineUrl($currentStatus, 'points'), 'active' => $currentSort === 'points'],
-        ['label' => 'Points Décroissants', 'url' => $refineUrl($currentStatus, 'points-desc'), 'active' => $currentSort === 'points-desc'],
+        ['label' => 'Alphabetisch', 'url' => $refineUrl($currentStatus, null), 'active' => $currentSort === null],
+        ['label' => 'Punkte Aufsteigend', 'url' => $refineUrl($currentStatus, 'points'), 'active' => $currentSort === 'points'],
+        ['label' => 'Punkte Absteigend', 'url' => $refineUrl($currentStatus, 'points-desc'), 'active' => $currentSort === 'points-desc'],
     ]
     : [];
 
@@ -263,39 +266,41 @@ $paginationRelFor = static function (int $targetPage) use ($isAnchored, $paginat
     return ($isAnchored && $targetPage <= $paginationFollowDepth) ? '' : ' rel="nofollow"';
 };
 
-// ADAPTATION ALLEMANDE (D-DE-009) : le contenu TEXTUEL (titre lisible, phrases de reponse
-// directe ci-dessous) reste VOLONTAIREMENT en francais dans ce fichier -- contrairement aux
-// URL/routage (WordListFilters, corrigees dans tout ce fichier), leur traduction complete
-// en allemand idiomatique (accord grammatical selon le compte, ordre des mots different)
-// depasse le perimetre de cette tache de localisation d'URL et n'est appuyee par aucune
-// recherche terminologique dediee (contrairement au patron H1 de app/View/word.php,
-// explicitement fourni par le porteur de projet) -- a traiter dans un futur lot microcopy.
-// Titre lisible, ordre canonique impose (docs/05) : longueur -> commencant ->
-// contenant -> terminant -> avec -> sans -> motif ("position" hors perimetre).
+// ADAPTATION ALLEMANDE (cette passe, voir rapport de tache pour la traçabilité complete) :
+// titre lisible reconstruit en allemand plutot que traduit fragment par fragment -- le
+// francais chaine ses complements avec des prepositions variees (de/commençant par/
+// contenant/terminant par/avec/sans/au motif) qui n'ont pas d'equivalent 1:1 en allemand.
+// Structure retenue : prefixe "Wörter" + fragments "mit ..."/"beginnend mit ..."/
+// "endend mit ..." -- reprend le patron combine confirme par le rapport concurrentiel
+// (reports/de-serp-terminology-research.md, section 2.3, buchstaben.com : "Wörter mit
+// 5 Buchstaben beginnend mit A"). Les fragments contenant/avec/sans/position/motif ne sont
+// couverts par AUCUNE source du rapport (routage volontairement laisse en francais par
+// D-DE-009 pour ces mots-cles) -- traduction descriptive directe, signalee explicitement.
+// Ordre canonique impose (docs/05) : longueur -> commencant -> contenant -> terminant ->
+// avec -> sans -> motif ("position" hors perimetre du filtre commencant/terminant).
 $titleParts = [];
 
 if ($filters !== null && $filters->length !== null) {
-    $titleParts[] = sprintf('de %d lettre%s', $filters->length, $filters->length > 1 ? 's' : '');
+    $titleParts[] = sprintf('mit %d %s', $filters->length, $filters->length > 1 ? 'Buchstaben' : 'Buchstabe');
 }
 
 if ($filters !== null && $filters->prefix !== null) {
-    $titleParts[] = 'commençant par ' . $filters->prefix;
+    $titleParts[] = 'beginnend mit ' . $filters->prefix;
 }
 
 if ($filters !== null && $filters->contains !== null) {
-    $titleParts[] = 'contenant ' . $filters->contains;
+    $titleParts[] = 'mit der Buchstabenfolge ' . $filters->contains;
 }
 
 if ($filters !== null && $filters->suffix !== null) {
-    $titleParts[] = 'terminant par ' . $filters->suffix;
+    $titleParts[] = 'endend mit ' . $filters->suffix;
 }
 
 if ($filters !== null && $filters->position !== null) {
     // Position 1 (1re) n'apparait jamais ici : WordListFilters::fromPath() la collapse
-    // toujours vers "commencant" (D-023, evite le contenu duplique) -- seule la forme "Ne"
-    // (2e, 3e...) est necessaire, meme convention que les personnes de conjugaison (D-018,
-    // helpers.php).
-    $titleParts[] = 'avec ' . $filters->positionLetter . ' en ' . $filters->position . 'e position';
+    // toujours vers "commencant" (D-023, evite le contenu duplique) -- seule la forme
+    // ordinale allemande ("2.", "3."...) est necessaire.
+    $titleParts[] = 'mit ' . $filters->positionLetter . ' an ' . $filters->position . '. Stelle';
 }
 
 if ($filters !== null && $filters->withLetters !== []) {
@@ -305,35 +310,33 @@ if ($filters !== null && $filters->withLetters !== []) {
             $withLetters[] = $letter;
         }
     }
-    $titleParts[] = 'avec ' . implode(', ', $withLetters);
+    $titleParts[] = 'mit den Buchstaben ' . implode(', ', $withLetters);
 }
 
 if ($filters !== null && $filters->withoutLetters !== []) {
-    $titleParts[] = 'sans ' . implode(', ', $filters->withoutLetters);
+    $titleParts[] = 'ohne die Buchstaben ' . implode(', ', $filters->withoutLetters);
 }
 
 if ($filters !== null && $filters->pattern !== null) {
-    $titleParts[] = 'au motif ' . $filters->pattern;
+    $titleParts[] = 'nach dem Muster ' . $filters->pattern;
 }
 
 $descriptor = implode(' ', $titleParts);
-// $descriptor reste en minuscules (hors "Mots") : reutilise tel quel dans les phrases de
-// $statusMeta['direct'] ci-dessous ("Il y a 5 mots de 7 lettres..."), ou un Title Case serait
-// grammaticalement faux en milieu de phrase. $pageTitle (title, breadcrumb, H1) suit la
-// convention Title Case du reste du site (M5, audit final) -- mb_convert_case gere
-// correctement les mots accentues francais (commençant -> Commençant) et laisse les lettres
-// deja en majuscule (A, TION, C--E-) inchangees.
-$pageTitle = mb_convert_case(trim('Mots ' . $descriptor), MB_CASE_TITLE, 'UTF-8');
-// Correctif position (D-023) : mb_convert_case() traite toute frontiere chiffre/lettre comme
-// un debut de "mot" et capitalise la lettre qui suit -- "3e" devient "3E", jamais souhaite
-// pour l'ordinal francais ("3e position", pas "3E Position"). Corrige apres coup plutot que
-// d'echapper le fragment avant mb_convert_case() (aucun moyen simple de le faire ignorer une
-// seule frontiere sans risquer d'affecter les autres mots du titre).
-$pageTitle = (string) preg_replace('/(\d+)E\b/', '$1e', $pageTitle);
+// $descriptor reste en minuscules (hors lettres/segments deja en majuscule fournis par
+// l'utilisateur) : reutilise tel quel dans les phrases de $statusMeta['direct'] ci-dessous.
+// $pageTitle (title, breadcrumb, H1) suit la convention Title Case du reste du site
+// (M5, audit final) -- mb_convert_case capitalise chaque mot y compris les prepositions
+// allemandes ("Mit", "Beginnend", "An"), meme convention que "Beginnend Mit"/"Endend Mit"
+// deja utilises ailleurs sur le site, et laisse les lettres deja en majuscule (A, SCH,
+// C--E-) inchangees.
+$pageTitle = mb_convert_case(trim('Wörter ' . $descriptor), MB_CASE_TITLE, 'UTF-8');
+// Pas de correctif ordinal apres coup ici (contrairement a l'original francais "3e" -> "3E") :
+// l'ordinal allemand "3." est suivi d'un espace avant "Stelle", jamais adjacent a une lettre
+// -- mb_convert_case() ne le deforme donc jamais, aucune retouche necessaire.
 
 /**
- * Enumeration naturelle "A", "A et B", "A, B et C" (jamais de virgule d'Oxford avant "et",
- * convention francaise) -- utilisee par $statusMeta ci-dessous pour la liste 2 a 5 mots.
+ * Enumeration naturelle "A", "A und B", "A, B und C" (jamais de virgule d'Oxford avant "und",
+ * meme convention allemande) -- utilisee par $statusMeta ci-dessous pour la liste 2 a 5 mots.
  *
  * @param list<string> $items
  */
@@ -344,7 +347,7 @@ $naturalList = static function (array $items): string {
 
     $last = array_pop($items);
 
-    return implode(', ', $items) . ' et ' . $last;
+    return implode(', ', $items) . ' und ' . $last;
 };
 
 // Reponse directe : trois cas distincts, jamais confondus (voir doc de tete).
@@ -353,82 +356,81 @@ $naturalList = static function (array $items): string {
 // qu'un "aucun mot" exact -- confondre les deux affirmerait a tort une absence
 // definitive alors que d'autres correspondances pourraient exister au-dela de
 // WordListSolver::ROW_EXAMINATION_CEILING.
+// ADAPTATION ALLEMANDE (cette passe) : phrases reconstruites en allemand plutot que
+// traduites mot a mot (accord du verbe/pluriel different du francais). "gültig"/"gültiges
+// Scrabble-Wort" reprend le meme registre que app/View/word.php (D-DE-009) -- jamais
+// "offiziell" (aucune liste officielle/ODS-equivalente ne sous-tend le lexique allemand,
+// voir CLAUDE.md/D-DE-003 : un seul lexique enz/hippler, pas de statut "officiel" a
+// revendiquer, contrairement au francais ODS8/ODS9).
 $statusMeta = match (true) {
     $page->truncated => [
         'modifier' => 'admitted',
-        'badge' => 'Liste Partielle',
-        'subtitle' => 'Liste partielle, non exhaustive.',
+        'badge' => 'Unvollständige Liste',
+        'subtitle' => 'Unvollständige, nicht erschöpfende Liste.',
         'direct' => $page->total > 0
             ? sprintf(
-                'Au moins %d mot%s %s %s trouvé%s dans la partie examinée. La liste n’est pas garantie complète au-delà de cette limite.',
+                'Mindestens %d %s %s %s im untersuchten Bereich gefunden. Die Liste ist über diese Grenze hinaus nicht garantiert vollständig.',
                 $page->total,
-                $page->total > 1 ? 's' : '',
+                $page->total > 1 ? 'Wörter' : 'Wort',
                 $descriptor,
-                $page->total > 1 ? 'ont été' : 'a été',
-                $page->total > 1 ? 's' : '',
+                $page->total > 1 ? 'wurden' : 'wurde',
             )
             : sprintf(
-                'Aucun mot %s trouvé dans la partie examinée. La liste n’est pas garantie complète au-delà de cette limite.',
+                'Es wurde kein Wort %s im untersuchten Bereich gefunden. Die Liste ist über diese Grenze hinaus nicht garantiert vollständig.',
                 $descriptor,
             ),
     ],
     $page->total === 0 => [
         'modifier' => 'unknown',
-        'badge' => 'Aucun Mot',
-        'subtitle' => 'Aucun mot trouvé.',
-        'direct' => sprintf('Aucun mot %s n’a été trouvé dans la base.', $descriptor),
+        'badge' => 'Kein Wort',
+        'subtitle' => 'Kein Wort gefunden.',
+        'direct' => sprintf('Es wurde kein Wort %s in der Datenbank gefunden.', $descriptor),
     ],
     $page->total === 1 => [
         'modifier' => 'admitted',
-        'badge' => 'Mot Trouvé',
-        'subtitle' => 'Liste classée par ordre alphabétique.',
+        'badge' => 'Wort Gefunden',
+        'subtitle' => 'Alphabetisch sortierte Liste.',
         // Meta description enrichie (audit D-031, constat I-3) : cite le mot reel plutot
         // qu'une phrase generique -- donnee deja chargee pour le tableau de resultats,
         // aucune requete supplementaire. Repli sur la phrase generique si $page->items est
         // vide : total = 1 ne garantit PAS $page->items[0] (page demandee au-dela de la
         // derniere page existante, ex. ".../page/2" sur une liste a 1 resultat -- meme cas
-        // que "Aucun mot sur cette page." plus bas, jamais suppose absent).
-        // Phrase sans ":" (demande produit, 2026-08-24) -- "X est l'unique mot ... admis au
-        // Scrabble" plutot que "il y a 1 mot ... : X, admis".
+        // que "Kein Wort auf dieser Seite." plus bas, jamais suppose absent).
         'direct' => $page->items !== []
             ? sprintf(
-                '%s est l’unique mot %s, %s.',
+                '%s ist das einzige Wort %s und %s.',
                 $page->items[0]['normalized'],
                 $descriptor,
-                $page->items[0]['status'] === TermPage::STATUS_ADMITTED ? 'admis au Scrabble' : 'non admis au Scrabble',
+                $page->items[0]['status'] === TermPage::STATUS_ADMITTED ? 'ein gültiges Scrabble-Wort' : 'kein gültiges Scrabble-Wort',
             )
-            : sprintf('Il y a 1 mot %s.', $descriptor),
+            : sprintf('Es gibt 1 Wort %s.', $descriptor),
     ],
     $page->total >= 2 && $page->total <= 5 => [
         'modifier' => 'admitted',
-        'badge' => 'Mots Trouvés',
-        'subtitle' => 'Liste classée par ordre alphabétique.',
+        'badge' => 'Wörter Gefunden',
+        'subtitle' => 'Alphabetisch sortierte Liste.',
         // Meme correctif I-3 : liste courte entierement contenue dans $page->items (PAGE_SIZE
         // = 50, toujours superieur a 5) SI la page demandee est la premiere -- meme repli que
-        // ci-dessus pour une page hors bornes. Enumeration naturelle ("A et B" / "A, B et C"),
-        // sans ":" (demande produit, 2026-08-24). Ne dit PAS "admis au Scrabble" pour
-        // l'ensemble : une liste courte peut melanger admis et non admis (ex. commencant/X/
-        // terminant/Y), le statut individuel reste dans .status-badge par ligne -- "recenses"
-        // reste vrai quel que soit le statut de chaque mot.
+        // ci-dessus pour une page hors bornes. Enumeration naturelle ("A und B" / "A, B und C").
+        // Ne dit PAS "gültiges Scrabble-Wort" pour l'ensemble : le modele reste ferme a trois
+        // statuts (CLAUDE.md) meme si l'allemand n'en peuple que deux aujourd'hui -- le statut
+        // individuel reste dans .status-badge par ligne, "im Scrabble-Wörterbuch" reste vrai
+        // quel que soit le statut de chaque mot.
         'direct' => $page->items !== []
             ? sprintf(
-                '%s sont les %d mots %s recensés au Scrabble.',
+                '%s sind die %d Wörter %s im Scrabble-Wörterbuch.',
                 $naturalList(array_map(static fn (array $item): string => (string) $item['normalized'], $page->items)),
                 $page->total,
                 $descriptor,
             )
-            : sprintf('Il y a %d mots %s.', $page->total, $descriptor),
+            : sprintf('Es gibt %d Wörter %s.', $page->total, $descriptor),
     ],
     default => [
         'modifier' => 'admitted',
-        'badge' => 'Mots Trouvés',
-        'subtitle' => 'Liste classée par ordre alphabétique.',
-        // Gabarit enrichi (demande produit, 2026-08-24) : mentionne explicitement le Scrabble
-        // et les dictionnaires officiels plutot qu'un simple compte brut ("Il y a N mots de
-        // X.") -- "dictionnaires officiels" plutot que les sigles ODS8/ODS9 (jargon technique,
-        // peu recherche tel quel), coherent avec home.php.
+        'badge' => 'Wörter Gefunden',
+        'subtitle' => 'Alphabetisch sortierte Liste.',
         'direct' => sprintf(
-            'Découvrez les %d mots %s, admis dans les dictionnaires officiels du Scrabble. Triez par points ou parcourez par ordre alphabétique.',
+            'Entdecken Sie %d gültige Scrabble-Wörter %s. Sortieren Sie nach Punkten oder durchsuchen Sie die Liste alphabetisch.',
             $page->total,
             $descriptor,
         ),
@@ -445,11 +447,11 @@ $metaTitle = ($page->total === 1 && $page->items !== [])
     : $pageTitle;
 
 // Statut par ligne : memes trois valeurs fermees que la fiche mot (jamais
-// STATUS_UNKNOWN ici, voir WordListSolver::toItems()). Texte minimal, a
-// confirmer par l'agent microcopy -- meme convention que app/View/word.php.
+// STATUS_UNKNOWN ici, voir WordListSolver::toItems()). "Gültig"/"Nicht Gültig" : meme
+// registre que app/View/word.php (D-DE-009).
 $rowStatusMeta = static fn (string $status): array => $status === TermPage::STATUS_ADMITTED
-    ? ['modifier' => 'admitted', 'label' => 'Admis']
-    : ['modifier' => 'not-admitted', 'label' => 'Non Admis'];
+    ? ['modifier' => 'admitted', 'label' => 'Gültig']
+    : ['modifier' => 'not-admitted', 'label' => 'Nicht Gültig'];
 
 $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 ?>
@@ -473,16 +475,16 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
-<a class="skip-link" href="#main">Aller au contenu</a>
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
 <header class="header">
   <div class="site header-row">
     <a class="logo" href="/"><img class="logo-mark" src="/assets/img/logo.png" alt="" width="32" height="32">WORD CHECKR</a>
-    <nav class="nav" aria-label="Navigation principale"><a href="/">Nouvelle recherche</a></nav>
+    <nav class="nav" aria-label="Hauptnavigation"><a href="/">Neue Suche</a></nav>
   </div>
 </header>
 
 <main class="word-shell main" id="main">
-  <nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="/">Accueil</a> › <?= e($pageTitle) ?></nav>
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Startseite</a> › <?= e($pageTitle) ?></nav>
 
   <article class="word-card">
     <section class="word-answer">
@@ -492,13 +494,13 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
     </section>
 
     <section class="direct">
-      <h2>Réponse Directe</h2>
+      <h2>Direkte Antwort</h2>
       <p><?= e($statusMeta['direct']) ?></p>
     </section>
 
     <section class="explore-group refine-toggles">
-      <h2>Affiner La Liste</h2>
-      <div class="related-links" role="group" aria-label="Filtrer par statut">
+      <h2>Liste Verfeinern</h2>
+      <div class="related-links" role="group" aria-label="Nach Status filtern">
 <?php foreach ($statusToggles as $toggle): ?>
 <?php if ($toggle['url'] !== null): ?>
         <a href="<?= e($toggle['url']) ?>"<?= $toggle['active'] ? ' aria-current="page"' : '' ?>><?= e($toggle['label']) ?></a>
@@ -506,7 +508,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <?php endforeach; ?>
       </div>
 <?php if ($sortToggles !== []): ?>
-      <div class="related-links" role="group" aria-label="Trier la liste">
+      <div class="related-links" role="group" aria-label="Liste sortieren">
 <?php foreach ($sortToggles as $toggle): ?>
 <?php if ($toggle['url'] !== null): ?>
         <a href="<?= e($toggle['url']) ?>"<?= $toggle['active'] ? ' aria-current="page"' : '' ?>><?= e($toggle['label']) ?></a>
@@ -519,10 +521,10 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <?php if ($page->items !== []): ?>
     <section class="rack-results">
 <?php if ($page->truncated): ?>
-      <p class="help rack-results-note">Résultats trouvés dans une fenêtre bornée, non exhaustifs au-delà de cette limite.</p>
+      <p class="help rack-results-note">Ergebnisse aus einem begrenzten Bereich, über diese Grenze hinaus nicht vollständig.</p>
 <?php endif; ?>
       <div class="rack-result-head" aria-hidden="true">
-        <span>Mot</span><span class="rack-result-head-center">Statut</span><span class="rack-result-head-right">Points</span><span class="rack-result-head-length">Lettres</span>
+        <span>Wort</span><span class="rack-result-head-center">Status</span><span class="rack-result-head-right">Punkte</span><span class="rack-result-head-length">Buchstaben</span>
       </div>
       <ul class="rack-result-list">
 <?php foreach ($page->items as $item): ?>
@@ -530,30 +532,33 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
         <li class="rack-result-row">
           <a class="rack-result-word" href="/wort/<?= e($item['slug']) ?>"><?= e($item['normalized']) ?></a>
           <span class="status-badge status-badge--<?= e($rowStatus['modifier']) ?>"><?= e($rowStatus['label']) ?></span>
-          <span class="rack-result-points" aria-label="<?= e($item['score']) ?> points"><?= e($item['score']) ?></span>
-          <span class="rack-result-length" aria-label="<?= e($item['length']) ?> lettres"><?= e($item['length']) ?></span>
+          <span class="rack-result-points" aria-label="<?= e($item['score']) ?> Punkte"><?= e($item['score']) ?></span>
+          <span class="rack-result-length" aria-label="<?= e($item['length']) ?> Buchstaben"><?= e($item['length']) ?></span>
         </li>
 <?php endforeach; ?>
       </ul>
     </section>
 <?php elseif ($page->total > 0): ?>
-    <!-- Page demandee au-dela de la derniere page existante (total > 0 mais
-         cette page precise n'a aucune ligne) : message distinct du cas "aucun
-         mot" (qui ne s'affiche que lorsque total = 0, voir $statusMeta
-         ci-dessus) -- evite une section resultats silencieusement vide. -->
-    <p class="help rack-results-note">Aucun mot sur cette page.</p>
+    <?php
+    // Page demandee au-dela de la derniere page existante (total > 0 mais
+    // cette page precise n'a aucune ligne) : message distinct du cas "aucun
+    // mot" (qui ne s'affiche que lorsque total = 0, voir $statusMeta
+    // ci-dessus) -- evite une section resultats silencieusement vide.
+    // Commentaire PHP (pas HTML <!-- -->) : jamais envoye au client (D-DE-012).
+    ?>
+    <p class="help rack-results-note">Kein Wort auf dieser Seite.</p>
 <?php endif; ?>
 
 <?php if ($showPagination): ?>
-    <nav class="word-nav" aria-label="Pagination">
+    <nav class="word-nav" aria-label="Seitennavigation">
 <?php if ($page->hasPreviousPage): ?>
-      <a href="<?= e($pageUrl($page->page - 1)) ?>"<?= $paginationRelFor($page->page - 1) ?>>← Précédent</a>
+      <a href="<?= e($pageUrl($page->page - 1)) ?>"<?= $paginationRelFor($page->page - 1) ?>>← Zurück</a>
 <?php else: ?>
       <span></span>
 <?php endif; ?>
-      <span class="help">Page <?= e($page->page) ?></span>
+      <span class="help">Seite <?= e($page->page) ?></span>
 <?php if ($page->hasNextPage): ?>
-      <a href="<?= e($pageUrl($page->page + 1)) ?>"<?= $paginationRelFor($page->page + 1) ?>>Suivant →</a>
+      <a href="<?= e($pageUrl($page->page + 1)) ?>"<?= $paginationRelFor($page->page + 1) ?>>Weiter →</a>
 <?php else: ?>
       <span></span>
 <?php endif; ?>
@@ -562,7 +567,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($refine !== null && $refine['byLength'] !== []): ?>
     <section class="explore-group">
-      <h2>Filtrer Par Longueur</h2>
+      <h2>Nach Länge Filtern</h2>
       <div class="related-links">
 <?php foreach ($refine['byLength'] as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['label']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -572,10 +577,10 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <?php endif; ?>
 
 <?php if ($lengthLinks !== null): ?>
-<?php $lengthLabel = $filters->length . ' Lettre' . ($filters->length > 1 ? 's' : ''); ?>
+<?php $lengthLabel = $filters->length . ($filters->length > 1 ? ' Buchstaben' : ' Buchstabe'); ?>
 <?php if ($lengthLinks->byStart !== []): ?>
     <section class="explore-group">
-      <h2>Mots De <?= e($lengthLabel) ?> Commençant Par</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Beginnend Mit</h2>
       <div class="related-links">
 <?php foreach ($lengthLinks->byStart as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -586,7 +591,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($lengthLinks->byEnd !== []): ?>
     <section class="explore-group">
-      <h2>Mots De <?= e($lengthLabel) ?> Terminant Par</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Endend Mit</h2>
       <div class="related-links">
 <?php foreach ($lengthLinks->byEnd as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -597,7 +602,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($lengthLinks->byWith !== []): ?>
     <section class="explore-group">
-      <h2>Mots De <?= e($lengthLabel) ?> Avec</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Mit</h2>
       <div class="related-links">
 <?php foreach ($lengthLinks->byWith as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -608,10 +613,10 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($lengthLinks->byPosition !== []): ?>
     <section class="explore-group">
-      <h2>Mots De <?= e($lengthLabel) ?> Par Position De Lettre</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Nach Buchstabenposition</h2>
 <?php foreach ($lengthLinks->byPosition as $group): ?>
       <div class="explore-subgroup">
-        <p class="explore-subgroup-label"><?= e($group['position']) ?>e Lettre (<?= e(count($group['letters'])) ?>)</p>
+        <p class="explore-subgroup-label"><?= e($group['position']) ?>. Buchstabe (<?= e(count($group['letters'])) ?>)</p>
         <div class="related-links">
 <?php foreach ($group['letters'] as $link): ?>
           <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -624,13 +629,13 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($lengthLinks->byStartEnd !== []): ?>
     <section class="explore-group">
-      <h2>Mots De <?= e($lengthLabel) ?> Commençant Et Terminant Par</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Beginnend Und Endend Mit</h2>
 <?php foreach ($lengthLinks->byStartEnd as $group): ?>
       <div class="explore-subgroup">
-        <p class="explore-subgroup-label">Commençant Par <?= e($group['start']) ?> (<?= e(count($group['letters'])) ?>)</p>
+        <p class="explore-subgroup-label">Beginnend Mit <?= e($group['start']) ?> (<?= e(count($group['letters'])) ?>)</p>
         <div class="related-links">
 <?php foreach ($group['letters'] as $link): ?>
-          <a href="<?= e($link['url']) ?>"><span class="explore-label">Terminant Par <?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
+          <a href="<?= e($link['url']) ?>"><span class="explore-label">Endend Mit <?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
 <?php endforeach; ?>
         </div>
       </div>
@@ -639,7 +644,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <?php endif; ?>
 
     <section class="explore-group">
-      <h2>Explorer</h2>
+      <h2>Erkunden</h2>
       <div class="related-links">
         <a href="/woerter">Alle Längen Und Buchstaben</a>
       </div>
@@ -648,8 +653,8 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($letterCombinedLinks !== null && $letterCombinedLinks->links !== []): ?>
 <?php $combinedHeading = $filters->prefix !== null
-    ? 'Commençant Par ' . $filters->prefix . ' Et Terminant Par'
-    : 'Terminant Par ' . $filters->suffix . ' Et Commençant Par'; ?>
+    ? 'Beginnend Mit ' . $filters->prefix . ' Und Endend Mit'
+    : 'Endend Mit ' . $filters->suffix . ' Und Beginnend Mit'; ?>
     <section class="explore-group">
       <h2><?= e($combinedHeading) ?></h2>
       <div class="related-links">
@@ -662,7 +667,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($prefixAvecLinks !== null && $prefixAvecLinks->links !== []): ?>
     <section class="explore-group">
-      <h2>Commençant Par <?= e($filters->prefix) ?>, Avec</h2>
+      <h2>Beginnend Mit <?= e($filters->prefix) ?>, Mit</h2>
       <div class="related-links">
 <?php foreach ($prefixAvecLinks->links as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -673,7 +678,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($prefixExtensionLinks !== null && $prefixExtensionLinks->links !== []): ?>
     <section class="explore-group">
-      <h2>Continuer Le Préfixe <?= e($filters->prefix) ?></h2>
+      <h2>Präfix <?= e($filters->prefix) ?> Fortsetzen</h2>
       <div class="related-links">
 <?php foreach ($prefixExtensionLinks->links as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['prefix']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -684,7 +689,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($suffixExtensionLinks !== null && $suffixExtensionLinks->links !== []): ?>
     <section class="explore-group">
-      <h2>Continuer Le Suffixe <?= e($filters->suffix) ?></h2>
+      <h2>Suffix <?= e($filters->suffix) ?> Fortsetzen</h2>
       <div class="related-links">
 <?php foreach ($suffixExtensionLinks->links as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['suffix']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -695,8 +700,8 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($lengthCombinedLinks !== null && $lengthCombinedLinks->links !== []): ?>
 <?php $lengthCombinedHeading = $filters->prefix !== null
-    ? 'Commençant Par ' . $filters->prefix . ' Et Terminant Par'
-    : 'Terminant Par ' . $filters->suffix . ' Et Commençant Par'; ?>
+    ? 'Beginnend Mit ' . $filters->prefix . ' Und Endend Mit'
+    : 'Endend Mit ' . $filters->suffix . ' Und Beginnend Mit'; ?>
     <section class="explore-group">
       <h2><?= e($lengthCombinedHeading) ?></h2>
       <div class="related-links">
@@ -709,7 +714,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 
 <?php if ($startEndWithLinks !== null && $startEndWithLinks->links !== []): ?>
     <section class="explore-group">
-      <h2>Commençant Par <?= e($filters->prefix) ?> Et Terminant Par <?= e($filters->suffix) ?>, Avec</h2>
+      <h2>Beginnend Mit <?= e($filters->prefix) ?> Und Endend Mit <?= e($filters->suffix) ?>, Mit</h2>
       <div class="related-links">
 <?php foreach ($startEndWithLinks->links as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -723,17 +728,17 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
     $positionWithLetter = array_key_first($filters->withLetters);
     $positionLabel = static function (int $position, int $length): string {
         if ($position === 1) {
-            return '1re';
+            return '1.';
         }
         if ($position === $length) {
-            return 'Dernière';
+            return 'Letzte';
         }
 
-        return $position . 'e';
+        return $position . '.';
     };
 ?>
     <section class="explore-group">
-      <h2>Position De <?= e($positionWithLetter) ?> Dans Le Mot</h2>
+      <h2>Position Von <?= e($positionWithLetter) ?> Im Wort</h2>
       <div class="related-links">
 <?php foreach ($positionLinks->links as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($positionLabel($link['position'], $filters->length)) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -745,7 +750,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <?php if ($avecTwoLettersLinks !== null && $avecTwoLettersLinks->links !== []): ?>
 <?php $avecFirstLetter = array_key_first($filters->withLetters); ?>
     <section class="explore-group">
-      <h2>Mots De <?= e($lengthLabel) ?> Avec <?= e($avecFirstLetter) ?> Et</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Mit <?= e($avecFirstLetter) ?> Und</h2>
       <div class="related-links">
 <?php foreach ($avecTwoLettersLinks->links as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -757,7 +762,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <?php if ($avecThreeLettersLinks !== null && $avecThreeLettersLinks->links !== []): ?>
 <?php $avecFirstTwoLetters = array_keys($filters->withLetters); ?>
     <section class="explore-group">
-      <h2>Mots De <?= e($lengthLabel) ?> Avec <?= e($avecFirstTwoLetters[0]) ?> <?= e($avecFirstTwoLetters[1]) ?> Et</h2>
+      <h2>Wörter Mit <?= e($lengthLabel) ?> Mit <?= e($avecFirstTwoLetters[0]) ?> <?= e($avecFirstTwoLetters[1]) ?> Und</h2>
       <div class="related-links">
 <?php foreach ($avecThreeLettersLinks->links as $link): ?>
         <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['letter']) ?></span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
@@ -772,27 +777,29 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
     $sansOnlyLetter = $filters->withoutLetters[0];
 ?>
     <section class="explore-group">
-      <h2>Avec <?= e($avecSansLetter) ?> Sans <?= e($sansOnlyLetter) ?>, Par Longueur</h2>
+      <h2>Mit <?= e($avecSansLetter) ?> Ohne <?= e($sansOnlyLetter) ?>, Nach Länge</h2>
       <div class="related-links">
 <?php foreach ($avecSansLengthLinks->links as $link): ?>
-        <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['length']) ?> Lettres</span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
+        <a href="<?= e($link['url']) ?>"><span class="explore-label"><?= e($link['length']) ?> Buchstaben</span> <span class="explore-count">(<?= e(number_format($link['count'], 0, ',', ' ')) ?>)</span></a>
 <?php endforeach; ?>
       </div>
     </section>
 <?php endif; ?>
 
     <form class="inline-check" action="/pruefen" method="get">
-      <label class="sr-only" for="mot-check">Vérifier un mot</label>
-      <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Vérifier un mot">
-      <button class="btn btn-primary" type="submit">Vérifier</button>
+      <label class="sr-only" for="mot-check">Ein Wort prüfen</label>
+      <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Ein Wort prüfen">
+      <button class="btn btn-primary" type="submit">Prüfen</button>
     </form>
   </article>
 </main>
 
 <footer class="footer">
   <div class="word-shell footer-row">
-    <span>Outil indépendant d’aide aux jeux de lettres.</span>
-    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Contact</a></span>
+    <span>Unabhängiges Tool für Buchstabenspiele.</span>
+    <?php // Voir app/View/word.php pour la justification complete de ce choix (footer
+    // repete a l'identique sur toutes les vues). ?>
+    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Kontakt</a></span>
   </div>
 </footer>
 </body>

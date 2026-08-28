@@ -81,6 +81,8 @@ use App\Search\WordListFilters;
 // celle-ci couvre desormais les 66 pages longueur/beginnend-mit/endend-mit de facon exhaustive,
 // avec leurs comptes reels -- la home n'a plus besoin de dupliquer une selection partielle,
 // juste d'illustrer puis de renvoyer vers le hub complet.
+// ADAPTATION ALLEMANDE (cette passe) : $contextLinkSpecs etait deja localise (URL et libelles),
+// aucun changement necessaire ici -- conserve tel quel.
 $contextLinkSpecs = [
     ['path' => '7-buchstaben', 'label' => 'Wörter Mit 7 Buchstaben'],
     ['path' => 'beginnend-mit/a', 'label' => 'Beginnend Mit A'],
@@ -123,8 +125,8 @@ $phraseLink = static function (string $path, string $label): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="<?= e($seo->robots) ?>">
-<title>Quel Mot Pouvez-Vous Jouer&nbsp;? | WORD CHECKR</title>
-<meta name="description" content="Vérifiez si un mot est admis dans les dictionnaires officiels du Scrabble ou trouvez les mots jouables avec vos lettres, avec le score de chacun.">
+<title>Welches Wort Können Sie Spielen? | WORD CHECKR</title>
+<meta name="description" content="Prüfen Sie, ob ein Wort ein gültiges Scrabble-Wort ist, oder finden Sie spielbare Wörter mit Ihren Buchstaben, mit der Punktzahl für jedes Wort.">
 <?php if ($seo->canonicalUrl !== null): ?>
 <link rel="canonical" href="<?= e($seo->canonicalUrl) ?>">
 <?php endif; ?>
@@ -137,7 +139,7 @@ $phraseLink = static function (string $path, string $label): string {
 <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
-<a class="skip-link" href="#main">Aller au contenu</a>
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
 <header class="header">
   <div class="site header-row">
     <a class="logo" href="/"><img class="logo-mark" src="/assets/img/logo.png" alt="" width="32" height="32">WORD CHECKR</a>
@@ -146,21 +148,25 @@ $phraseLink = static function (string $path, string $label): string {
 
 <main class="site main" id="main">
   <section class="hero">
-    <span class="eyebrow">Réponse immédiate</span>
-    <h1>Quel Mot Pouvez-Vous Jouer&nbsp;?</h1>
+    <span class="eyebrow">Sofortige Antwort</span>
+    <h1>Welches Wort Können Sie Spielen?</h1>
 
     <div class="search-card">
 <?php if ($error): ?>
-      <div class="alert" role="alert">Saisie non reconnue. Vérifiez le mot ou le tirage ci-dessous.</div>
+      <div class="alert" role="alert">Eingabe nicht erkannt. Überprüfen Sie das Wort oder die Buchstaben unten.</div>
 <?php endif; ?>
-      <!-- Deux formulaires distincts (audit final, code-reviewer/design-consistency-reviewer,
-           bloquant F1) : un seul formulaire partage entre "Trouver"/"Vérifier" et le
-           constructeur de contraintes faisait qu'une simple touche Entree dans un champ de
-           contrainte declenchait le PREMIER bouton submit du document ("Trouver" -> /jouer),
-           perdant toute la saisie. Chaque mecanisme a maintenant son propre formulaire, la
-           soumission implicite (Entree) reste scopee au bon bouton dans chaque cas. -->
+      <?php
+      // Deux formulaires distincts (audit final, code-reviewer/design-consistency-reviewer,
+      // bloquant F1) : un seul formulaire partage entre "Trouver"/"Vérifier" et le
+      // constructeur de contraintes faisait qu'une simple touche Entree dans un champ de
+      // contrainte declenchait le PREMIER bouton submit du document ("Trouver" -> /jouer),
+      // perdant toute la saisie. Chaque mecanisme a maintenant son propre formulaire, la
+      // soumission implicite (Entree) reste scopee au bon bouton dans chaque cas.
+      // Commentaire PHP (pas HTML <!-- -->) : jamais envoye au client (D-DE-012, meme
+      // correctif applique ici a un residu trouve pendant la localisation du texte).
+      ?>
       <form action="/pruefen" method="get">
-        <label class="label" for="q">Vos lettres ou le mot à vérifier</label>
+        <label class="label" for="q">Ihre Buchstaben oder das zu prüfende Wort</label>
         <div class="rack-wrap" data-tile-preview>
           <input
             class="rack"
@@ -170,37 +176,45 @@ $phraseLink = static function (string $path, string $label): string {
             maxlength="<?= e($maxTermLength) ?>"
             autocomplete="off"
             spellcheck="false"
-            placeholder="Exemple POSER ou AEINRST"
+            placeholder="Beispiel HAUS oder AEINRST"
             aria-describedby="q-help"
           >
           <div class="tiles" aria-hidden="true"></div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" type="submit" formaction="/wortsuche">Trouver</button>
-          <button class="btn btn-soft" type="submit" formaction="/pruefen">Vérifier</button>
+          <button class="btn btn-primary" type="submit" formaction="/wortsuche">Finden</button>
+          <button class="btn btn-soft" type="submit" formaction="/pruefen">Prüfen</button>
         </div>
-        <p class="help" id="q-help">De <?= e($minTermLength) ?> à <?= e($maxTermLength) ?> lettres. Ajoutez ? ou * pour un joker, deux au maximum. Les accents sont retirés automatiquement.</p>
+        <?php // "ß wird automatisch in SS umgewandelt" (pas "les accents sont retires") : Ä/Ö/Ü
+        // restent des lettres allemandes distinctes, JAMAIS repliees sur A/O/U
+        // (app/Search/Normalizer.php, D-DE-002) -- reprendre la phrase francaise telle quelle
+        // aurait affirme un comportement faux pour l'allemand (piege explicitement signale
+        // dans le rapport de tache, voir aussi le correctif equivalent sur tiles.js). ?>
+        <p class="help" id="q-help">Von <?= e($minTermLength) ?> bis <?= e($maxTermLength) ?> Buchstaben. Fügen Sie ? oder * für einen Joker hinzu, maximal zwei. ß wird automatisch in SS umgewandelt.</p>
       </form>
 
-      <!-- Constructeur de contraintes, repris de prototype/index.html (champs exacts,
-           labels, maxlength, placeholders) -- <details>/<summary> natif, aucun JavaScript
-           requis pour l'ouverture/fermeture ni pour la recherche : soumission GET native
-           vers /woerter (public/index.php assemble les segments et redirige vers la forme
-           canonique, App\Search\WordListFilters). "avec"/"sans" eclatent chaque lettre en
-           segment individuel cote serveur -- un seul champ texte suffit ici. "Cases connues"
-           utilise '-' pour une case inconnue (docs/05), pas '.' comme dans le prototype :
-           adapte a la grammaire d'URL reelle du site plutot que copiee telle quelle.
-           D-DE-009 : noms de champ "beginnend-mit"/"endend-mit" (localises depuis
-           "commencant"/"terminant"), voir public/index.php pour le cote serveur. -->
+      <?php
+      // Constructeur de contraintes, repris de prototype/index.html (champs exacts,
+      // labels, maxlength, placeholders) -- <details>/<summary> natif, aucun JavaScript
+      // requis pour l'ouverture/fermeture ni pour la recherche : soumission GET native
+      // vers /woerter (public/index.php assemble les segments et redirige vers la forme
+      // canonique, App\Search\WordListFilters). "avec"/"sans" eclatent chaque lettre en
+      // segment individuel cote serveur -- un seul champ texte suffit ici. "Cases connues"
+      // utilise '-' pour une case inconnue (docs/05), pas '.' comme dans le prototype :
+      // adapte a la grammaire d'URL reelle du site plutot que copiee telle quelle.
+      // D-DE-009 : noms de champ "beginnend-mit"/"endend-mit" (localises depuis
+      // "commencant"/"terminant"), voir public/index.php pour le cote serveur.
+      // Commentaire PHP (pas HTML <!-- -->) : jamais envoye au client (D-DE-012).
+      ?>
       <form action="/woerter" method="get">
         <details class="constraint-builder">
-          <summary class="constraint-toggle">+ Ajouter Une Contrainte</summary>
-          <p class="constraint-panel-intro">Recherche indépendante du champ ci-dessus : parcourt tous les mots correspondant aux contraintes choisies.</p>
+          <summary class="constraint-toggle">+ Filter Hinzufügen</summary>
+          <p class="constraint-panel-intro">Unabhängig vom obigen Feld: durchsucht alle Wörter, die den gewählten Filtern entsprechen.</p>
           <div class="constraint-panel">
             <div class="constraint-field">
-              <label class="label" for="longueur">Longueur</label>
+              <label class="label" for="longueur">Länge</label>
               <select class="select" id="longueur" name="longueur">
-                <option value="">Toutes</option>
+                <option value="">Alle</option>
 <?php for ($len = $minTermLength; $len <= $maxTermLength; $len++): ?>
                 <option value="<?= e($len) ?>"><?= e($len) ?></option>
 <?php endfor; ?>
@@ -212,26 +226,26 @@ $phraseLink = static function (string $path, string $label): string {
             </div>
             <div class="constraint-field">
               <label class="label" for="endend-mit">Endend Mit</label>
-              <input class="field" type="text" id="endend-mit" name="endend-mit" maxlength="5" placeholder="TION" autocomplete="off" spellcheck="false">
+              <input class="field" type="text" id="endend-mit" name="endend-mit" maxlength="5" placeholder="UNG" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
-              <label class="label" for="contenant">Contient La Suite</label>
-              <input class="field" type="text" id="contenant" name="contenant" maxlength="5" placeholder="CHE" autocomplete="off" spellcheck="false">
+              <label class="label" for="contenant">Enthält Die Folge</label>
+              <input class="field" type="text" id="contenant" name="contenant" maxlength="5" placeholder="SCH" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
-              <label class="label" for="avec">Lettres Obligatoires</label>
+              <label class="label" for="avec">Erforderliche Buchstaben</label>
               <input class="field" type="text" id="avec" name="avec" maxlength="8" placeholder="AAR" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
-              <label class="label" for="sans">Sans Les Lettres</label>
+              <label class="label" for="sans">Ohne Diese Buchstaben</label>
               <input class="field" type="text" id="sans" name="sans" maxlength="8" placeholder="XZ" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field constraint-field-wide">
-              <label class="label" for="motif">Cases Connues</label>
+              <label class="label" for="motif">Bekanntes Muster</label>
               <input class="field" type="text" id="motif" name="motif" maxlength="15" placeholder="C--E-" autocomplete="off" spellcheck="false">
-              <p class="help">Un tiret représente une case inconnue.</p>
+              <p class="help">Ein Strich steht für eine unbekannte Stelle.</p>
             </div>
-            <button class="btn btn-primary" type="submit">Rechercher</button>
+            <button class="btn btn-primary" type="submit">Suchen</button>
           </div>
         </details>
       </form>
@@ -247,26 +261,30 @@ $phraseLink = static function (string $path, string $label): string {
   </section>
 
   <section class="context-copy">
-    <h2>Une Aide Rapide Pour Les Jeux De Lettres</h2>
-    <p>Utilisez cet outil pour le Scrabble, les mots croisés, les mots fléchés et les autres jeux de lettres. Vérifiez si un mot est admis, recherchez ses anagrammes ou trouvez les meilleurs mots jouables avec votre tirage.</p>
+    <h2>Schnelle Hilfe Für Buchstabenspiele</h2>
+    <p>Nutzen Sie dieses Tool für Scrabble, Kreuzworträtsel und andere Buchstabenspiele. Prüfen Sie, ob ein Wort gültig ist, suchen Sie seine Anagramme oder finden Sie die besten spielbaren Wörter für Ihre Buchstaben.</p>
     <p>
-      Vous pouvez aussi préciser <?= $phraseLink('9-buchstaben', 'une longueur') ?>,
-      <?= $phraseLink('beginnend-mit/a', 'un début') ?>,
-      <?= $phraseLink('endend-mit/s', 'une fin') ?>,
-      <?= $phraseLink('beginnend-mit/a/endend-mit/e', 'un début et une fin combinés') ?>,
-      <?= $phraseLink('contenant/ch', 'une suite de lettres') ?>,
-      <?= $phraseLink('avec/e', 'des lettres obligatoires') ?>,
-      <?= $phraseLink('sans/e', 'des lettres à exclure') ?>
-      ou même <?= $phraseLink('9-buchstaben/position/3/a', 'une lettre à une position précise') ?>
-      dans le mot, afin d’obtenir une réponse plus précise.
+      Sie können außerdem <?= $phraseLink('9-buchstaben', 'eine Länge') ?>,
+      <?= $phraseLink('beginnend-mit/a', 'einen Anfang') ?>,
+      <?= $phraseLink('endend-mit/s', 'ein Ende') ?>,
+      <?= $phraseLink('beginnend-mit/a/endend-mit/e', 'einen Anfang und ein Ende kombiniert') ?>,
+      <?= $phraseLink('contenant/ch', 'eine Buchstabenfolge') ?>,
+      <?= $phraseLink('avec/e', 'erforderliche Buchstaben') ?>,
+      <?= $phraseLink('sans/e', 'auszuschließende Buchstaben') ?>
+      oder sogar <?= $phraseLink('9-buchstaben/position/3/a', 'einen Buchstaben an einer bestimmten Position') ?>
+      im Wort angeben, um eine genauere Antwort zu erhalten.
     </p>
   </section>
 </main>
 
 <footer class="footer">
   <div class="site footer-row">
-    <span>Outil indépendant d’aide aux jeux de lettres.</span>
-    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Contact</a></span>
+    <span>Unabhängiges Tool für Buchstabenspiele.</span>
+    <?php // Voir app/View/word.php pour la justification complete de ce choix (footer
+    // repete a l'identique sur toutes les vues) : "Mentions Légales"/"Confidentialité"
+    // restent en francais (pages hors perimetre, contenu encore francais/droit francais),
+    // "Contact" -> "Kontakt" (page pleinement traduite dans cette passe). ?>
+    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Kontakt</a></span>
   </div>
 </footer>
 <script src="/assets/js/tiles.js" defer></script>

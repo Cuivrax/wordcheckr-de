@@ -96,7 +96,7 @@ $statusMeta = match ($page->status) {
 };
 
 $letterList = implode(' + ', array_column($page->letters, 'letter'));
-$tilesAriaLabel = sprintf('%s, total %d points', $letterList, $page->score);
+$tilesAriaLabel = sprintf('%s, insgesamt %d Punkte', $letterList, $page->score);
 
 // Relations (Phase 4) : construites uniquement si $relations !== null (mot effectivement
 // admis, voir doc de tete). Tout le calcul est de la simple comparaison de chaines et de la
@@ -108,16 +108,23 @@ $relatedLabel = null;
 if ($relations !== null) {
     $pivot = $page->normalized;
 
+    // ADAPTATION ALLEMANDE (cette passe, voir rapport de tache pour la traçabilité complète) :
+    // pluriel allemand "Wort"/"Wörter" (pas un simple suffixe -s comme en francais), calcule
+    // une fois par appel plutot que duplique -- meme logique que $moreLinkLabel ci-dessous.
     $countLabel = static function (int $count, bool $truncated = false): string {
+        $word = $count === 1 ? 'Wort' : 'Wörter';
+
         if ($truncated) {
-            return sprintf('Au moins %d mots', $count);
+            return sprintf('Mindestens %d %s', $count, $word);
         }
 
-        return $count > 1 ? sprintf('%d mots', $count) : sprintf('%d mot', $count);
+        return sprintf('%d %s', $count, $word);
     };
 
     $moreLinkLabel = static function (int $total, bool $truncated): string {
-        return $truncated ? sprintf('Voir au moins %d mots →', $total) : sprintf('Voir les %d mots →', $total);
+        $word = $total === 1 ? 'Wort' : 'Wörter';
+
+        return $truncated ? sprintf('Mindestens %d %s ansehen →', $total, $word) : sprintf('Alle %d %s ansehen →', $total, $word);
     };
 
     $extensionUrl = static function (string $keyword, string $word): ?string {
@@ -213,41 +220,48 @@ if ($relations !== null) {
     }
     ksort($plusOneGroups, SORT_STRING);
 
+    // Titres de categorie (ADAPTATION ALLEMANDE, cette passe) : "Anagramme" reprend le
+    // consensus fort du rapport concurrentiel (reports/de-serp-terminology-research.md,
+    // section 2.5, 4/4 sources). Les huit autres titres (changer/retirer/inserer une lettre,
+    // sous-mots, rallonges gauche/droite, "mot dans un mot plus long", anagrammes +-1 lettre)
+    // NE SONT COUVERTS PAR AUCUNE source du rapport (categories propres a ce site, pas un
+    // gabarit SERP observe chez un concurrent) -- traduction descriptive directe, signalee
+    // explicitement ici et dans le rapport de tache plutot que devinee en silence.
     $relationCategories = [
         [
-            'key' => 'anagrams', 'title' => 'Anagrammes', 'items' => $relations->anagrams, 'full' => false,
+            'key' => 'anagrams', 'title' => 'Anagramme', 'items' => $relations->anagrams, 'full' => false,
             'count' => $countLabel(count($relations->anagrams)),
         ],
         [
-            'key' => 'changeOneLetter', 'title' => 'Changer Une Lettre', 'items' => $relations->changeOneLetter, 'full' => false,
+            'key' => 'changeOneLetter', 'title' => 'Einen Buchstaben Ändern', 'items' => $relations->changeOneLetter, 'full' => false,
             'count' => $countLabel(count($relations->changeOneLetter)),
         ],
         [
-            'key' => 'removeOneLetter', 'title' => 'Retirer Une Lettre', 'items' => $relations->removeOneLetter, 'full' => false,
+            'key' => 'removeOneLetter', 'title' => 'Einen Buchstaben Entfernen', 'items' => $relations->removeOneLetter, 'full' => false,
             'count' => $countLabel(count($relations->removeOneLetter)),
         ],
         [
-            'key' => 'insertOneLetter', 'title' => 'Insérer Une Lettre', 'items' => $relations->insertOneLetter, 'full' => false,
+            'key' => 'insertOneLetter', 'title' => 'Einen Buchstaben Einfügen', 'items' => $relations->insertOneLetter, 'full' => false,
             'count' => $countLabel(count($relations->insertOneLetter)),
         ],
         [
-            'key' => 'substrings', 'title' => 'Sous-Mots', 'items' => $relations->substrings, 'full' => false,
+            'key' => 'substrings', 'title' => 'Teilwörter', 'items' => $relations->substrings, 'full' => false,
             'count' => $countLabel(count($relations->substrings)),
         ],
         [
-            'key' => 'rightExtensions', 'title' => 'Rallonges À Droite', 'items' => $relations->rightExtensions, 'full' => true,
+            'key' => 'rightExtensions', 'title' => 'Verlängerungen Nach Rechts', 'items' => $relations->rightExtensions, 'full' => true,
             'count' => $countLabel($relations->rightExtensionsTotal, $relations->rightExtensionsTruncated),
             'moreUrl' => count($relations->rightExtensions) < $relations->rightExtensionsTotal ? $extensionUrl('beginnend-mit', $pivot) : null,
             'moreLabel' => $moreLinkLabel($relations->rightExtensionsTotal, $relations->rightExtensionsTruncated),
         ],
         [
-            'key' => 'leftExtensions', 'title' => 'Rallonges À Gauche', 'items' => $relations->leftExtensions, 'full' => true,
+            'key' => 'leftExtensions', 'title' => 'Verlängerungen Nach Links', 'items' => $relations->leftExtensions, 'full' => true,
             'count' => $countLabel($relations->leftExtensionsTotal, $relations->leftExtensionsTruncated),
             'moreUrl' => count($relations->leftExtensions) < $relations->leftExtensionsTotal ? $extensionUrl('endend-mit', $pivot) : null,
             'moreLabel' => $moreLinkLabel($relations->leftExtensionsTotal, $relations->leftExtensionsTruncated),
         ],
         [
-            'key' => 'containingWords', 'title' => $pivot . ' Dans Un Mot Plus Long', 'items' => $relations->containingWords, 'full' => true,
+            'key' => 'containingWords', 'title' => $pivot . ' In Einem Längeren Wort', 'items' => $relations->containingWords, 'full' => true,
             'count' => $countLabel($relations->containingWordsTotal, $relations->containingWordsTruncated),
             // Pas de lien "Voir les N mots" ici (retire, audit final 3e passe, bloquant) :
             // pointerait vers /woerter/contenant/{mot} SANS ancrage, exactement le parcours complet
@@ -258,12 +272,12 @@ if ($relations !== null) {
             'moreLabel' => $moreLinkLabel($relations->containingWordsTotal, $relations->containingWordsTruncated),
         ],
         [
-            'key' => 'anagramsPlusOne', 'title' => 'Anagrammes Avec Une Lettre En Plus', 'items' => $relations->anagramsPlusOne, 'full' => true,
+            'key' => 'anagramsPlusOne', 'title' => 'Anagramme Mit Einem Buchstaben Mehr', 'items' => $relations->anagramsPlusOne, 'full' => true,
             'count' => $countLabel(count($relations->anagramsPlusOne)),
             'groups' => $plusOneGroups,
         ],
         [
-            'key' => 'anagramsMinusOne', 'title' => 'Anagrammes Avec Une Lettre En Moins', 'items' => $relations->anagramsMinusOne, 'full' => true,
+            'key' => 'anagramsMinusOne', 'title' => 'Anagramme Mit Einem Buchstaben Weniger', 'items' => $relations->anagramsMinusOne, 'full' => true,
             'count' => $countLabel(count($relations->anagramsMinusOne)),
         ],
     ];
@@ -291,10 +305,11 @@ if ($relations !== null) {
             $letters = array_keys($filters->withLetters);
             $count = count($letters);
             $joined = $count > 1
-                ? implode(', ', array_slice($letters, 0, -1)) . ' et ' . $letters[$count - 1]
+                ? implode(', ', array_slice($letters, 0, -1)) . ' und ' . $letters[$count - 1]
                 : $letters[0];
 
-            return sprintf('%d Lettre%s Avec %s', $filters->length, $filters->length > 1 ? 's' : '', $joined);
+            // "Buchstabe"/"Buchstaben" (pas un simple suffixe -s comme en francais).
+            return sprintf('%d %s Mit %s', $filters->length, $filters->length > 1 ? 'Buchstaben' : 'Buchstabe', $joined);
         }
 
         if ($filters->prefix !== null) {
@@ -306,7 +321,10 @@ if ($relations !== null) {
         }
 
         if ($filters->contains !== null) {
-            return 'Contenant ' . $filters->contains;
+            // "Enthält" (contient) : concept non couvert par reports/de-serp-terminology-
+            // research.md (aucun concurrent audite n'expose ce type de lien) -- traduction
+            // litterale directe, signalee explicitement plutot que devinee en silence.
+            return 'Enthält ' . $filters->contains;
         }
 
         if ($filters->length !== null) {
@@ -477,16 +495,16 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
 <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
-<a class="skip-link" href="#main">Aller au contenu</a>
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
 <header class="header">
   <div class="site header-row">
     <a class="logo" href="/"><img class="logo-mark" src="/assets/img/logo.png" alt="" width="32" height="32">WORD CHECKR</a>
-    <nav class="nav" aria-label="Navigation principale"><a href="/">Nouvelle recherche</a></nav>
+    <nav class="nav" aria-label="Hauptnavigation"><a href="/">Neue Suche</a></nav>
   </div>
 </header>
 
 <main class="word-shell main" id="main">
-  <nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="/">Accueil</a> › Mot <?= e($page->normalized) ?></nav>
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Startseite</a> › Wort <?= e($page->normalized) ?></nav>
 
   <article class="word-card">
     <section class="word-answer">
@@ -506,11 +524,11 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
     <section class="facts">
       <div class="fact">
         <strong><?= e($page->score) ?></strong>
-        <span>Points Hors Bonus</span>
+        <span>Punkte Ohne Bonus</span>
       </div>
       <div class="fact">
         <strong><?= e($page->length) ?></strong>
-        <span>Lettres</span>
+        <span>Buchstaben</span>
       </div>
       <div class="fact fact-letters">
         <div class="letter-tiles" role="img" aria-label="<?= e($tilesAriaLabel) ?>">
@@ -518,12 +536,12 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
           <span class="letter-tile" aria-hidden="true"><?= e($tile['letter']) ?><small><?= e($tile['value']) ?></small></span>
 <?php endforeach; ?>
         </div>
-        <span>Lettres Utilisées</span>
+        <span>Verwendete Buchstaben</span>
       </div>
     </section>
 
     <section class="direct">
-      <h2>Réponse Directe</h2>
+      <h2>Direkte Antwort</h2>
       <p><?= e($statusMeta['direct']) ?></p>
 <?php if ($posLine !== null): ?>
       <p class="pos-line"><?= e($posLine) ?></p>
@@ -561,8 +579,8 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
 
 <?php if ($relations !== null): ?>
     <section class="relations">
-      <h2 class="relations-title">Jouer Autour De <?= e($page->normalized) ?></h2>
-      <p class="relations-intro">Seules les catégories utiles sont affichées. La partie conservée ou modifiée est légèrement surlignée.</p>
+      <h2 class="relations-title">Rund Um <?= e($page->normalized) ?> Spielen</h2>
+      <p class="relations-intro">Nur die passenden Kategorien werden angezeigt. Der beibehaltene oder geänderte Teil ist leicht hervorgehoben.</p>
       <div class="relation-grid">
 <?php foreach ($relationCategories as $category): ?>
 <?php if ($category['items'] === []): continue; endif; ?>
@@ -585,7 +603,7 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
 
 <?php if ($relations->relatedSearches !== []): ?>
     <section class="related">
-      <h2>Recherches Liées</h2>
+      <h2>Verwandte Suchen</h2>
       <div class="related-links">
 <?php foreach ($relations->relatedSearches as $link): ?>
         <a href="<?= e($link['url']) ?>"><?= e($relatedLabel($link, $page->normalized)) ?></a>
@@ -600,7 +618,7 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
     // signale (audit independant, docs/DECISIONS.md D-DE-011) -- meme raison que
     // $extensionUrl plus haut. Commentaire PHP (pas HTML), jamais envoye au client.
     ?>
-    <nav class="word-nav" aria-label="Navigation alphabétique">
+    <nav class="word-nav" aria-label="Alphabetische Navigation">
 <?php if ($page->previousWord !== null): ?>
       <a href="/wort/<?= e(mb_strtolower($page->previousWord, 'UTF-8')) ?>">← <?= e($page->previousWord) ?></a>
 <?php else: ?>
@@ -614,17 +632,24 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
     </nav>
 
     <form class="inline-check" action="/pruefen" method="get">
-      <label class="sr-only" for="mot-check">Vérifier un autre mot</label>
-      <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Vérifier un autre mot">
-      <button class="btn btn-primary" type="submit">Vérifier</button>
+      <label class="sr-only" for="mot-check">Ein anderes Wort prüfen</label>
+      <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Ein anderes Wort prüfen">
+      <button class="btn btn-primary" type="submit">Prüfen</button>
     </form>
   </article>
 </main>
 
 <footer class="footer">
   <div class="word-shell footer-row">
-    <span>Outil indépendant d’aide aux jeux de lettres.</span>
-    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Contact</a></span>
+    <span>Unabhängiges Tool für Buchstabenspiele.</span>
+    <?php // Raisons de conserver "Mentions Légales"/"Confidentialité" en francais et de traduire
+    // "Contact" (-> "Kontakt") : voir le rapport de tache -- les deux pages legales restent
+    // hors perimetre (mentions-legales.php/confidentialite.php, non touchees, contenu encore
+    // entierement francais/droit francais), traduire seulement le LIBELLE du lien produirait
+    // une etiquette allemande pointant vers un Impressum/une politique de confidentialite non
+    // conformes TMG/RGPD allemand -- risque juridique signale, pas silencieusement corrige.
+    // /contact est lui pleinement traduit dans cette passe, d'ou "Kontakt" ci-dessous. ?>
+    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Kontakt</a></span>
   </div>
 </footer>
 </body>
