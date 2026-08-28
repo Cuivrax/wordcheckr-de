@@ -57,7 +57,7 @@ Interdits :
 React, Vue, SPA, framework frontend
 police externe, image décorative, animation lourde
 base distante, processus applicatif permanent
-scan complet de la table (590 850 lignes) au runtime
+scan complet de la table (590 856 lignes) au runtime
 cache produisant des millions de petits fichiers
 texte SEO artificiellement rallongé
 dépendance ajoutée sans entrée ## D-DE-XXX dans docs/DECISIONS.md
@@ -83,7 +83,8 @@ pour la raison (aucune source de dictionnaire général allemand ne réunit lice
 claire et indépendance réelle vis-à-vis de la liste Scrabble) :
 
 ```text
-is_admitted = 1        → admis (liste enz/german-wordlist, CC0-1.0 -- voir data/raw/PROVENANCE.md)
+is_admitted = 1        → admis (is_enz et/ou is_hippler = 1, deux listes CC0-1.0 de la meme
+                          lignee -- voir data/raw/PROVENANCE.md, D-DE-006)
 absent de la base       → terme inconnu
 ```
 
@@ -169,9 +170,19 @@ phase-de-005 / 006 / 007-adapt-core-tests
 ## État Des Données
 
 ```text
-data/raw/enz_german_wordlist/words  685 789 mots bruts (CC0-1.0), dont 590 850 retenus — présent
-storage/dictionary_de.sqlite        590 850 termes, 150,6 Mo — construite, integrity ok
+data/raw/enz_german_wordlist/words              685 789 mots bruts (CC0-1.0), dont 590 850
+                                                 retenus — présent
+data/raw/hippler_de/scrabble-...-HIPPLER.json   336 208 mots bruts (CC0-1.0), dont 293 166
+                                                 retenus — présent, fusionné (D-DE-006)
+storage/dictionary_de.sqlite                    590 856 termes (590 850 + 6 uniquement
+                                                 hippler), 151,8 Mo — construite, integrity ok
 ```
+
+Provenance par mot (D-DE-006) : `is_enz`/`is_hippler` interrogeables indépendamment,
+`is_admitted` dérivée (`is_enz OR is_hippler`). 293 160 termes présents dans les deux sources,
+297 690 uniquement enz, 6 uniquement hippler (ALF, ALFE, BÄT, ELAK, ETH, KÄM) — la quasi-
+totalité des formes brutes propres à hippler (Eszett vs graphie suisse "ss") se rejoignent avec
+enz après normalisation, voir `data/raw/PROVENANCE.md`.
 
 La base ne retient aucune forme de plus de 15 lettres : injouable sur un plateau (D-010,
 héritée). Impact plus lourd qu'en français (12,31 % rejetées contre 2,2 %) — composition

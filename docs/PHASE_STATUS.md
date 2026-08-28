@@ -518,15 +518,16 @@ Construction initiale du dictionnaire allemand (équivalent Phase 0-1 côté fra
 ## Livré
 
 ```text
-data/raw/PROVENANCE.md                empreintes et licence de la source allemande
-  (enz/german-wordlist, CC0-1.0)
+data/raw/PROVENANCE.md                empreintes et licence des deux sources allemandes
+  (enz/german-wordlist + hippler/german-wordlist, CC0-1.0 toutes deux, D-DE-006)
 data/raw/enz_german_wordlist/         685 789 mots bruts, hors Git
+data/raw/hippler_de/                  336 208 mots bruts, hors Git, fusionne (D-DE-006)
 scripts/lib/normalize.py              normalisation allemande (Ä/Ö/Ü, ß), source de verite
 app/Search/Normalizer.php             reimplementation PHP stricte, verifiee identique
-scripts/import_de.py                  import deterministe et rejouable
-schema.sql                            schema simplifie (is_admitted unique, pas de
-  pos/gender/word_senses/verb_forms -- voir docs/DECISIONS.md D-DE-003)
-storage/dictionary_de.sqlite          590 850 termes, 150,6 Mo, integrity ok, determinisme
+scripts/import_de.py                  import deterministe et rejouable, deux sources fusionnees
+schema.sql                            schema simplifie (is_enz/is_hippler + is_admitted
+  derivee, pas de pos/gender/word_senses/verb_forms -- voir docs/DECISIONS.md D-DE-003/D-DE-006)
+storage/dictionary_de.sqlite          590 856 termes, 151,8 Mo, integrity ok, determinisme
   verifie (2 builds consecutifs, sha256 identique)
 config/sites/de.php                   tuiles allemandes (102, verifiees deux fois), lexique
   unique
@@ -541,25 +542,35 @@ reports/query-plans/de-import-baseline.md   7 requetes temoins, EXPLAIN QUERY PL
 ## Comptes De La Base — Vérifiés Exhaustivement
 
 ```text
-termes                   590 850
-admis (source unique)    590 850   (is_admitted = 1 sur CHAQUE ligne, pas de second lexique)
-rejetes a l'import        85 122   (85 120 > 15 caracteres, dont ~687 uniquement a cause de
+termes                   590 856
+enz seul                 297 690
+hippler seul                   6   (ALF, ALFE, BÄT, ELAK, ETH, KÄM)
+enz et hippler           293 160
+admis (is_enz OR is_hippler) 590 856   (chaque ligne vient d'au moins une source par
+                                        construction)
+rejetes a l'import (enz)  85 122   (85 120 > 15 caracteres, dont ~687 uniquement a cause de
                                     l'expansion ß -> SS ; 2 caractere hors A-ZÄÖÜ, emprunt
                                     polonais "Złoty" non decomposable en NFD)
-collisions de normalisation 9 800  (examen manuel : casse nom/verbe allemande legitime,
-                                    ex. Aal/aal, pas un bug)
+rejetes a l'import (hippler) 38 620   (> 15 caracteres, meme regle)
+collisions de normalisation 14 889  (deux sources confondues, dont le cas ß/ss type
+                                    ABSCHIEDSGRUSS -- examen manuel : casse nom/verbe
+                                    allemande legitime + collisions inter-sources ß/ss,
+                                    pas un bug)
 ```
 
-Source unique (enz/german-wordlist, CC0-1.0) pour l'admissibilite. Aucun dictionnaire général
-allemand indépendant retenu cette passe (voir data/raw/PROVENANCE.md) -- modèle à deux statuts
-peuplés (admis / inconnu), troisième statut structurellement fermé mais inactif.
+Deux sources fusionnees (enz/german-wordlist + hippler/german-wordlist, CC0-1.0 toutes deux,
+D-DE-006) pour l'admissibilite, provenance par mot interrogeable (is_enz/is_hippler). Aucun
+dictionnaire général allemand indépendant retenu cette passe (voir data/raw/PROVENANCE.md) --
+modèle à deux statuts peuplés (admis / inconnu), troisième statut structurellement fermé mais
+inactif -- objectif futur confirmé par le porteur de projet, non résolu ici (bloqué sur la
+licence, voir D-DE-007 si une recherche complémentaire est menée).
 
 ## Porte De Cette Passe
 
 ```text
 integrity_check = ok                                                          OK
 déterminisme : fichier .sqlite reconstruit BYTE-IDENTIQUE (2 builds)          OK
-score/signature/reversed/length : 0 divergence sur les 590 850 lignes         OK
+score/signature/reversed/length : 0 divergence sur les 590 856 lignes         OK
 7 requêtes témoins, toutes via index, persistées dans
   reports/query-plans/de-import-baseline.md, 0,058 à 6,163 ms                 OK
 Ä/Ö/Ü distinctes de A/O/U, ß -> SS : vérifié en direct + exhaustivement       OK

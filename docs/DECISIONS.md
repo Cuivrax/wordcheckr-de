@@ -3359,3 +3359,77 @@ domaine de production wordcheckr.de : pas encore reserve/deploye a la connaissan
   session -- ce depot reste un travail entierement local
 ```
 
+## D-DE-006 — Fusion enz + hippler Avec Provenance Par Mot
+
+Date : 2026-08-28
+Statut : accepte, implemente
+
+Decision :
+
+```text
+storage/dictionary_de.sqlite fusionne desormais DEUX sources (au lieu d'une seule, D-DE-001) :
+  - enz/german-wordlist (source principale, deja en place)
+  - hippler/german-wordlist (instantane local, ancetre direct d'enz -- ecarte a tort comme
+    "non fusionne" en D-DE-001, decision explicitement revisee ici a la demande du porteur
+    de projet)
+schema.sql : is_enz/is_hippler (booleens de provenance independants, un mot peut valoir 1 sur
+  les deux a la fois) remplacent la constante is_admitted = 1 codee en dur -- is_admitted
+  reste la colonne DERIVEE (is_enz OR is_hippler), meme role que D-022 cote francais, desormais
+  un vrai OR calcule plutot qu'une constante
+```
+
+Raison : le porteur de projet a explicitement demande que le fichier hippler local (336 208
+mots, ecarte lors de la premiere passe) soit fusionne plutot que mis a l'ecart, avec une
+provenance par mot interrogeable -- meme mecanisme que is_ods8/is_ods9 cote francais, applique
+ici a deux SOURCES (pas deux editions officielles).
+
+Mesure reelle (pas une estimation) :
+
+```text
+590 850 termes enz (inchange), 293 166 termes hippler, 293 160 dans les deux, 6 UNIQUEMENT
+  hippler (ALF, ALFE, BÄT, ELAK, ETH, KÄM) -- total fusionne : 590 856 (+6 par rapport a
+  D-DE-001)
+```
+
+Consequence importante, confirmee empiriquement (pas seulement supposee) : l'hypothese de la
+recherche de faisabilite initiale ("les ~6 400 formes brutes hippler-seules sont tres
+majoritairement des variantes orthographiques suisses en 'ss', doublons de la forme standard en
+ß, pas une perte de couverture reelle") est desormais VERIFIEE a 99,9% -- une fois les deux
+sources passees par le meme pipeline de normalisation (ß -> SS), seules 6 des 6 398 formes
+brutes citees sont de VRAIES formes absentes d'enz apres normalisation. La decision D-DE-001
+("non fusionne, doublons fonctionnels, pas de perte de couverture reelle") s'est donc revelee
+factuellement quasi-exacte a posteriori -- la fusion demandee ici n'ajoute que 6 mots reels a la
+base, mais rend la provenance de CHAQUE mot (pas seulement le compte agrege) interrogeable, ce
+qui etait la vraie demande.
+
+Consequences techniques :
+
+```text
+scripts/import_de.py : load_source() generalise (une fonction, deux lecteurs -- read_enz_
+  raw_words()/read_hippler_raw_words()), build_terms() fusionne par forme normalisee (une
+  forme brute differente par source qui se rejoint apres normalisation compte comme presente
+  dans LES DEUX sources, pas une collision a departager -- ex. ABSCHIEDSGRUSS, verifie en
+  base reelle)
+rapports : source-status-counts.json (mirroir de ods8-ods9-status-counts.json cote francais),
+  hippler-only-terms.csv (nouveau, liste les 6 termes reellement uniques a hippler)
+data/raw/hippler_de/ : source copiee et empreintee (voir data/raw/PROVENANCE.md), meme
+  discipline de provenance que enz_german_wordlist/
+aucun changement d'interface app/Search/ necessaire : is_admitted garde le meme role et la
+  meme forme (colonne derivee, deja consommee ainsi par TermLookup/RackSolver/etc. depuis
+  D-DE-003) -- seul son CALCUL change (OR reel au lieu d'une constante), aucun code applicatif
+  ne lit is_enz/is_hippler directement cette passe (provenance interrogeable en base, pas
+  encore exposee dans l'UI -- hors perimetre de cette demande, qui portait sur la fusion de
+  donnees, pas une nouvelle fonctionnalite visible)
+```
+
+Verification : `tests/Search/TermLookupTest.php` etendu (comptes de provenance revérifies
+independamment sur les 590 856 lignes reelles, cas dedies ABSCHIEDSGRUSS et ETH). Determinisme
+reverifie (2 builds consecutifs, sha256 identique). `php tests/run.php` : 17/18 (meme echec
+pre-existant et sans rapport que D-DE-004, Frontend\WordListViewTest.php).
+
+Statut du troisieme statut ("reel mais non admis") : CONFIRME par le porteur de projet comme un
+objectif FUTUR explicite (meme modele que is_french cote francais), pas resolu par cette
+decision -- toujours bloque sur l'absence de source de dictionnaire general allemand en licence
+exploitable au moment de la redaction de cette entree (voir D-DE-007 si une recherche
+complementaire est menee).
+
