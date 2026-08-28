@@ -4029,3 +4029,48 @@ app/Search/ExploreHubBuilder / list_counts (vide) -- a router vers l'agent data-
 `php tests/run.php` : 20 réussis, 1 échoué (`Frontend\WordListViewTest.php`, pré-existant,
 documenté D-DE-004/D-DE-011, inchangé par ce lot).
 
+## D-DE-014 — Clôture Du Point 4 De D-DE-013 : Gabarit `<title>` Raccourci + Garde D'État Vide Du Hub
+
+Date : 2026-08-29
+Statut : accepté
+
+Décision :
+
+```text
+app/View/word.php : gabarit <title> raccourci sur les statuts admitted/not_admitted ("Ja, %s
+  Ist Gültig (%d Punkte)" / "Nein, %s Ist Nicht Gültig" -- unknown deja conforme, inchange).
+  Suffixe " | WORD CHECKR" CONSERVE, a la difference du choix fait cote espagnol (ES-012) :
+  seules 15 URL sont indexees a ce stade (home + 14 longueurs, D-DE-013), aucune fiche mot
+  n'est encore ouverte -- pas de cas de volume qui justifierait l'exception. A reconsiderer
+  quand/si word_admitted ouvre a grande echelle. Mesure avant/apres sur le pire cas reel
+  (HYPOMIXOLYDISCH, 15 lettres, score max reel confirme 53, aucun score a 3 chiffres dans la
+  base) : 76 -> 56 caracteres.
+app/View/explore-hub.php : garde d'etat vide ajoutee sur les 3 sections de grille (meme
+  convention que word-list.php) -- /woerter reste noindex (list_counts vide, inchange), mais
+  le rendu ne montre plus de <h2> orphelins ni de conteneurs vides.
+Mesure annexe, non corrigee (pas un probleme actuel) : word-list.php's $metaTitle (pages a
+  1 seul resultat, filtres combines) atteint 84 caracteres au pire cas reel -- mais ces routes
+  ne sont pas indexees (seules les 15 URL de D-DE-013 le sont, aucune n'atteint jamais ce
+  branchement, minimum 78 mots par liste de longueur) -- documente pour la prochaine ouverture
+  de palier combinatoire, pas corrige maintenant.
+```
+
+Raison :
+
+```text
+fermeture du point 4 de D-DE-013 (defaut de gabarit bloquant l'ouverture de word_admitted,
+  independamment de la decision de volume qui reste ouverte) -- decision differente d'ES-012
+  sur le suffixe de marque, justifiee par l'etat reel different des deux sites (volume indexe),
+  pas une incoherence
+```
+
+Conséquences :
+
+```text
+app/View/word.php, app/View/explore-hub.php
+php tests/run.php = 20/21 (inchange, seul echec WordListViewTest herite/sans rapport)
+Toujours ouvert : decision de volume pour word_admitted (options 70 967/211 777/590 856
+  mots, D-DE-013) -- ce correctif leve un des deux blocages qui gardaient word_admitted a 0
+  ligne, pas les deux ; la decision de volume reste entiere et attend le porteur de projet
+```
+
