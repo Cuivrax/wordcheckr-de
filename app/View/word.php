@@ -493,10 +493,14 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
       <span class="status-badge status-badge--<?= e($statusMeta['modifier']) ?>"><?= e($statusMeta['badge']) ?></span>
       <h1 class="word-title"><?= e($page->normalized) ?></h1>
       <p><?= e($statusMeta['subtitle']) ?></p>
-      <!-- D-DE-011 (docs/DECISIONS.md) : pastilles ODS8/ODS9 retirees ici -- le schema
-           allemand n'a pas d'equivalent public a un split par edition de dictionnaire
-           francais (is_enz/is_hippler sont des sources internes, jamais affichees, D-015).
-           .status-badge ci-dessus reflete deja is_admitted a lui seul : rien a ajouter. -->
+      <?php
+      // D-DE-011 (docs/DECISIONS.md) : pastilles ODS8/ODS9 retirees ici -- le schema
+      // allemand n'a pas d'equivalent public a un split par edition de dictionnaire
+      // francais (is_enz/is_hippler sont des sources internes, jamais affichees, D-015).
+      // .status-badge ci-dessus reflete deja is_admitted a lui seul : rien a ajouter.
+      // Commentaire PHP (pas HTML <!-- -->) : un commentaire HTML est envoye au client,
+      // jamais souhaitable pour une note d'implementation interne (audit independant).
+      ?>
     </section>
 
     <section class="facts">
@@ -591,9 +595,11 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
 <?php endif; ?>
 <?php endif; ?>
 
-    <!-- mb_strtolower (pas strtolower ASCII) sur les deux liens ci-dessous : correctif
-         signale (audit independant, docs/DECISIONS.md D-DE-011) -- meme raison que
-         $extensionUrl plus haut. -->
+    <?php
+    // mb_strtolower (pas strtolower ASCII) sur les deux liens ci-dessous : correctif
+    // signale (audit independant, docs/DECISIONS.md D-DE-011) -- meme raison que
+    // $extensionUrl plus haut. Commentaire PHP (pas HTML), jamais envoye au client.
+    ?>
     <nav class="word-nav" aria-label="Navigation alphabétique">
 <?php if ($page->previousWord !== null): ?>
       <a href="/wort/<?= e(mb_strtolower($page->previousWord, 'UTF-8')) ?>">← <?= e($page->previousWord) ?></a>

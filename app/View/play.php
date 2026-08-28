@@ -169,14 +169,20 @@ $statusMeta = match (true) {
       <div class="rack-result-head" aria-hidden="true">
         <span>Wort</span><span class="rack-result-head-center">Status</span><span class="rack-result-head-right">Points</span><span class="rack-result-head-length">Lettres</span>
       </div>
+      <?php
+      // D-DE-011 (docs/DECISIONS.md) : une seule pastille .status-badge (deja definie,
+      // reutilisee telle quelle, aucun CSS ajoute) reflete is_admitted -- remplace les
+      // deux pastilles ODS8/ODS9, sans equivalent public en allemand. Toujours "admitted"
+      // ici : RackSolver ne renvoie que des mots effectivement jouables. Commentaire PHP
+      // (pas HTML) et place UNE SEULE FOIS hors de la boucle ci-dessous -- un commentaire
+      // HTML <!-- --> a cet endroit serait envoye au client a CHAQUE ligne de resultat
+      // (jusqu'a plusieurs centaines de mots, bug reel mesure et corrige ici : audit
+      // independant, ~48,6% du poids d'une page /wortsuche typique).
+      ?>
       <ul class="rack-result-list">
 <?php foreach ($page->matches as $match): ?>
         <li class="rack-result-row">
           <a class="rack-result-word" href="/wort/<?= e($match['slug']) ?>"><?= e($match['normalized']) ?></a>
-          <!-- D-DE-011 (docs/DECISIONS.md) : une seule pastille .status-badge (deja definie,
-               reutilisee telle quelle, aucun CSS ajoute) reflete is_admitted -- remplace les
-               deux pastilles ODS8/ODS9, sans equivalent public en allemand. Toujours
-               "admitted" ici : RackSolver ne renvoie que des mots effectivement jouables. -->
           <span class="status-badge status-badge--admitted">Gültig</span>
           <span class="rack-result-points" aria-label="<?= e($match['score']) ?> points"><?= e($match['score']) ?></span>
           <span class="rack-result-length" aria-label="<?= e($match['length']) ?> lettres"><?= e($match['length']) ?></span>
