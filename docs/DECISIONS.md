@@ -3558,3 +3558,164 @@ demandee. Cette mesure reste une INFORMATION documentee pour une decision future
 (reconciliation plus large, ou contact direct SDeV comme deja identifie non resolu en
 `reports/de-site-feasibility-audit.md` §6), pas une action a mener ici.
 
+## D-DE-009 — Localisation Du Schema D'URL En Allemand
+
+Date : 2026-08-28
+Statut : accepte, implemente
+
+Decision : le schema d'URL, herite tel quel du scaffold francais (D-000, `ed847d6`), est
+localise selon la table suivante -- recherche concurrentielle prealable documentee dans
+`reports/de-serp-terminology-research.md` (curl direct sur les pages de resultats/outils de
+concurrents allemands, jamais suppose) :
+
+```text
+/mot/{mot}                    -> /wort/{wort}
+/mots/{n}-lettres             -> /woerter/{n}-buchstaben
+.../terminant/{lettre}        -> .../endend-mit/{lettre}
+.../commencant/{lettre}       -> .../beginnend-mit/{lettre}
+/verifier/{mot}               -> /pruefen/{wort}
+/jouer/{lettres}               -> /wortsuche/{buchstaben}
+```
+
+`/wortsuche` (et non `/anagramm-generator`, autre piste evoquee) confirme par verification
+directe du comportement de l'outil de scrabblehilfe.com (champs lettres/contenant/position
+fixe distincts, logique de solveur de chevalet, pas un simple anagrammeur) -- pas suppose sur
+la seule lecture du rapport.
+
+Mots-cles **volontairement laisses en francais** cette passe : `contenant`, `avec`, `sans`,
+`motif`, `statut`, `tri`, `position`, `page`. Raison : non couverts par la recherche
+concurrentielle citee (portee explicite de cette tache, routage uniquement) ; et surtout
+jamais indexes/SEO de toute facon (`App\Seo\Family::NEVER_SITEMAP` pour contenant/avec/sans/
+motif ; statut/tri/position sont des raffinements d'affichage, D-022) -- aucun cout SEO a les
+laisser en francais le temps d'un futur lot microcopy dedie. Ne pas les traiter maintenant
+n'est pas un oubli.
+
+Patron H1/reponse directe "Ist X ein gultiges Scrabble-Wort" (`app/View/word.php`) : "gultig"
+retenu (jamais "zulassig", vocabulaire officiel SDeV, section 3 du rapport) -- terme grand
+public dominant chez les concurrents pour "valide au Scrabble". **Signale explicitement ici,
+non code** : ce patron n'est atteste que par UNE SEULE source concurrente (scrabble123.de),
+confiance plus faible que les equivalents FR/ES (deux sources independantes chacun) -- retenu
+quand meme a la demande explicite du porteur de projet, avec cette reserve documentee. Le
+vocabulaire officiel "zulassig/Zulassigkeit" (SDeV) n'est PAS code dans ce lot -- mentionne ici
+et dans le rapport de tache uniquement, decision separee si jamais retenue plus tard.
+
+Fichiers modifies : `app/Search/WordListFilters.php` (KEYWORDS, `canonicalPath()`/
+`canonicalUrl()`), `app/Search/RelationsFinder.php` (`relatedSearches()`), `app/Search/
+Rack.php`/`RackPage.php`/`RackSolver.php`/`WordListPage.php`/`WordListSolver.php` (docblocks de
+route citee), `app/View/word.php`, `app/View/word-list.php`, `app/View/play.php`, `app/View/
+explore-hub.php`, `app/View/not-found.php`, `app/View/home.php`, `app/View/confidentialite.php`,
+`app/View/mentions-legales.php`, `app/View/contact.php`, tests associes (voir D-DE-010 pour la
+suite du perimetre, D-DE-011 pour les correctifs groupes dans le meme lot par l'audit).
+
+`public/index.php` (fichier partage, CLAUDE.md) **n'a pas ete modifie directement** -- diff
+complet propose au porteur de projet dans le rapport de tache (routes `/mot`/`/mots`/`/jouer`/
+`/verifier`, repli formulaire GET incluant le renommage des champs `commencant`/`terminant` en
+`beginnend-mit`/`endend-mit`, plus un correctif `mb_strtolower` signale par l'audit sur le
+meme fichier, regroupe dans le meme diff plutot que propose separement). Verifie end-to-end
+avant proposition : copie isolee du depot (jamais le fichier reel, jamais ecrit en place),
+serveur `php -S` reel, toutes les nouvelles routes repondent 200 (ou 301/302 vers une forme
+canonique qui repond elle-meme 200), toutes les anciennes routes repondent 404, aucun lien
+interne restant (`href`/`action`/`formaction`) ne pointe vers `/mot/`, `/mots`, `/jouer` ou
+`/verifier` sur aucune des pages testees (accueil, fiche mot, liste de mots, solveur, hub).
+
+## D-DE-010 — Localisation Des Classes `*LinksBuilder` (Maillage Interne Precalcule)
+
+Date : 2026-08-28
+Statut : accepte, implemente
+
+Decision : les litteraux de chemin utilises par les classes de maillage interne precalcule
+(`AvecSansLengthLinksBuilder`, `AvecThreeLettersLinksBuilder`, `AvecTwoLettersLinksBuilder`,
+`ExploreHubBuilder`, `LengthCombinedLinksBuilder`, `LengthLinksBuilder`,
+`LetterCombinedLinksBuilder`, `PositionLinksBuilder`, `PrefixAvecLinksBuilder`,
+`PrefixExtensionLinksBuilder`, `StartEndWithLinksBuilder`, `SuffixExtensionLinksBuilder`, et
+`DuplicatePageResolver::filtersFor()`) sont localises en meme temps que D-DE-009, plutot que
+laisses pour un lot separe.
+
+Raison : ces classes construisent des chemins en concatenant des chaines (`'commencant/' .
+$lettre`, `$length . '-lettres/avec/' . ...`) puis les font reparser par
+`WordListFilters::fromPath()`. Depuis D-DE-009, `fromPath()` ne reconnait plus `commencant`/
+`terminant` comme mots-cles valides -- tout appel non corrige y renverrait silencieusement
+`null` (`?->canonicalUrl()` court-circuite), pas une exception. Ces classes sont cablees dans
+`public/index.php` (`if ($path === '/woerter' ...)`, ~15 usages) et s'executeraient reellement
+des que `list_counts` sera peuplee -- actuellement une table VIDE (voir `schema.sql`, "list_counts
+CONSERVEE... mais NON peuplee") rend ce chemin inerte aujourd'hui (0 ligne a boucler, aucun lien
+casse actuellement genere), mais corriger maintenant evite exactement le defaut releve par
+l'audit du depot ES en parallele : "code qui reference une decision non ecrite, site a moitie
+localise avec des liens morts" des que `list_counts` sera un jour peuplee.
+
+Portee : uniquement les LITTERAUX DE CHEMIN fonctionnels (`'-lettres'` -> `'-buchstaben'`,
+`'commencant'` -> `'beginnend-mit'`, `'terminant'` -> `'endend-mit'`, prefixe `/mots` ->
+`/woerter` dans `DuplicatePageResolver`). La prose des docblocs de ces memes classes (analyse
+de mesures historiques faites sur `storage/dictionary_fr.sqlite`, jamais reproduites cote
+allemand, hors perimetre D-DE-004) reste volontairement en francais, y compris quand elle cite
+les anciens mots-cles a titre d'exemple textuel -- ce n'est pas un lien, ne casse rien, et sa
+retraduction integrale (mesures/comptes chiffres propres a la base francaise) n'aurait aucun
+sens cote allemand.
+
+## D-DE-011 — Correctifs Signales Par L'Audit Independant (Octets/Caracteres, Pastilles ODS8/ODS9)
+
+Date : 2026-08-28
+Statut : accepte, implemente
+
+Decision : trois defauts reels releves par l'audit independant du depot (NO GO, 3 points
+bloquants sur la revue de D-DE-009 en cours) sont corriges dans le meme lot :
+
+```text
+1. app/Search/RelationsFinder.php, plusOneSignatures() : strlen() (octets) -> mb_strlen()
+   (caracteres). insertOneLetterCandidates(), 130 lignes plus haut dans le meme fichier,
+   utilisait deja mb_strlen() avec un commentaire l'expliquant -- plusOneSignatures() ne
+   l'appliquait pas reellement malgre un commentaire pretendant le contraire. Impact mesure
+   par l'audit : la section "anagrammes +1 lettre" d'un mot de 13-14 caracteres dont l'UTF-8
+   fait 15+ octets (ex. ABFRUHSTUCKEN) restait vide a tort.
+
+2. app/View/word.php, closure $highlighted(), cas 'changeOneLetter' et 'insertOneLetter' :
+   substr()/[] octets -> mb_substr() partout. La position vient de RelationsFinder comme un
+   index de CARACTERE (mb_str_split()) ; la consommer en octets desynchronisait la coupure des
+   qu'un caractere Ä/Ö/Ü precedait la position surlignee. Combine a l'absence d'ENT_SUBSTITUTE
+   sur e() (app/View/helpers.php), une sequence UTF-8 invalide ainsi produite ne devenait pas
+   un caractere de remplacement mais une CHAINE VIDE -- le mot affiche disparaissait
+   (ex. mesure par l'audit : /wort/backer affichait "B<mark></mark>" au lieu de "BACKER",
+   ~4,8% des fiches touchees sur l'echantillon audite). ENT_SUBSTITUTE ajoute a e() en filet de
+   securite generique en plus de la correction cote appelant. rightExtensions/leftExtensions/
+   containingWords restent volontairement en octets (strlen/substr) -- verifie, pas suppose :
+   ces trois cas coupent toujours a une frontiere de chaine COMPLETE deja partagee entre pivot
+   et candidat (extension/inclusion), jamais au milieu d'un caractere.
+
+3. app/View/word.php et app/View/play.php : les pastilles ODS8/ODS9 (toujours actives
+   ensemble sur tout mot admis, TermLookup renseigne isOds8=isOds9=is_admitted depuis
+   D-DE-003) sont retirees -- une affirmation factuellement fausse sur un site allemand (deux
+   pastilles nommees d'apres des editions d'un dictionnaire francais). Remplacees par la
+   pastille .status-badge deja existante (deja utilisee pour le statut global de la page),
+   reflete uniquement is_admitted : dans app/View/word.php, la section "edition-badges" est
+   retiree sans remplacement (deja redondante avec .status-badge affiche juste au-dessus sur
+   la meme page) ; dans app/View/play.php (liste de mots jouables, toujours admis par
+   construction du solveur), une pastille .status-badge.status-badge--admitted par ligne
+   remplace les deux pastilles ODS8/ODS9 -- CSS deja existante reutilisee telle quelle
+   (.status-badge--admitted, deja definie pour app/View/word.php), aucune regle CSS ajoutee.
+   Pas de renommage en "ENZ"/"HIPPLER" (ce seraient des sources internes, jamais affichees,
+   D-015) -- decision produit explicitement demandee au porteur de tache, faite ici.
+```
+
+Correctifs supplementaires, mineurs, groupes dans le meme lot :
+
+```text
+<html lang="fr"> -> <html lang="de"> sur les 9 vues HTML du site (trouve en balayant les vues
+  pendant D-DE-009, pas signale par l'audit ; word.php, word-list.php, play.php, home.php,
+  explore-hub.php, not-found.php, contact.php, confidentialite.php, mentions-legales.php --
+  present depuis le scaffold initial ed847d6, jamais corrige, accessibilite/SEO basique sur un
+  site entierement allemand)
+app/View/word.php, $extensionUrl() et les deux liens de navigation alphabetique
+  (previousWord/nextWord) : strtolower() (ASCII) -> mb_strtolower() -- signale par l'audit
+  (public/index.php:607 avait le meme defaut, deja regroupe dans le diff propose en D-DE-009)
+  -- un mot contenant Ä/Ö/Ü restait sinon en MAJUSCULE dans l'URL generee, provoquant une
+  redirection 301 supplementaire (302/200 direct devenait 302 -> 301 -> 200), mesure par
+  l'audit sur 115 536 termes (19,6% de la base)
+```
+
+Tests associes mis a jour dans le meme lot : `tests/Frontend/PlayViewTest.php` (assertions
+ODS8/ODS9 -> assertions `.status-badge--admitted`, chemin `config/sites/fr.php` -> `de.php`),
+`tests/Frontend/WordViewTest.php` (libelles de `relatedSearches` traduits). `php tests/run.php` :
+17 reussis, 1 echoue (`Frontend\WordListViewTest.php`, deja documente pre-existant et sans
+rapport en D-DE-004 -- confirme toujours vrai ici, aucun commit touchant ce fichier ni le test
+depuis le scaffold initial).
+
