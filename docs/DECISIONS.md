@@ -3716,6 +3716,139 @@ Tests associes mis a jour dans le meme lot : `tests/Frontend/PlayViewTest.php` (
 ODS8/ODS9 -> assertions `.status-badge--admitted`, chemin `config/sites/fr.php` -> `de.php`),
 `tests/Frontend/WordViewTest.php` (libelles de `relatedSearches` traduits). `php tests/run.php` :
 17 reussis, 1 echoue (`Frontend\WordListViewTest.php`, deja documente pre-existant et sans
-rapport en D-DE-004 -- confirme toujours vrai ici, aucun commit touchant ce fichier ni le test
-depuis le scaffold initial).
+rapport en D-DE-004).
+
+**Correction (signalee par l'audit independant) :** la phrase precedente de cette entree
+affirmait a tort qu'« aucun commit ne touche ce fichier ni ce test depuis le scaffold initial »
+-- FAUX, `git log -- tests/Frontend/WordListViewTest.php` montre que le lot D-DE-009
+(`c3b73a2`) modifie bien ce fichier (renommage de litteraux de chemin `/mots/13-lettres` ->
+`/woerter/13-buchstaben` etc., sans rapport avec l'assertion qui echoue), et `d0ca4ab` modifie
+de meme `app/View/word-list.php` (attribut `lang`, hrefs). La CONCLUSION reste correcte :
+l'echec porte sur un `<summary>` attendu par le test contre un `<p class="explore-subgroup-
+label">` reellement rendu -- un ecart de balise present depuis le scaffold initial (`ed847d6`),
+jamais touche par aucun commit sur cette section precise du gabarit ni sur cette assertion
+precise du test, reverifie par l'audit en rejouant la suite sur l'etat pre-lot. Seule la
+PREUVE citee ("aucun commit ne touche le fichier") etait fausse, pas la conclusion elle-meme.
+
+## D-DE-012 — Second Audit : Diff Persiste, Commentaires HTML, mb_strtolower LinksBuilder, Housekeeping
+
+Date : 2026-08-28
+Statut : accepte, implemente
+
+Contexte : re-audit independant sur l'etat post-D-DE-009/D-DE-010/D-DE-011 -- NO GO, 4
+blocages. Le plus important est un defaut de PROCESS, pas de contenu.
+
+### 1. Defaut de process (le plus important) -- diff public/index.php jamais persiste
+
+Le lot precedent avait construit, verifie end-to-end (copie isolee, serveur `php -S` reel) et
+decrit en detail le diff propose pour `public/index.php` (fichier partage, CLAUDE.md -- jamais
+edite directement) -- mais UNIQUEMENT dans le texte du rapport de tache, jamais ecrit dans un
+fichier du depot. Le rapport de tache est ephemere : resultat mesure par l'audit, le site
+localise etait alors NON NAVIGABLE en pratique (routeur reel toujours sur l'ancien schema
+francais, alors que `App\Search\WordListFilters` et tout `app/View/` etaient deja localises en
+allemand) -- 94 des 98 liens internes d'une fiche mot casses, boutons de la home vers un 404,
+6 nouvelles routes a 404.
+
+**Correction :** le diff est desormais ECRIT dans un vrai fichier du depot, verifie applicable
+(`git apply --check`) et re-verifie end-to-end (meme methode : copie isolee du depot construite
+hors du working tree via `tar`, jamais `public/index.php` reel modifie -- confirme par
+`git status`/`git diff` vides tout du long) :
+
+```text
+reports/public-index-diff-proposal.patch
+```
+
+Force-ajoute au depot malgre `.gitignore:18 (/reports/*)` -- `git add -f`, meme convention que
+le depot cousin espagnol (`reports/public-index-diff-proposal.patch`, precedent explicitement
+valide par le porteur de projet). Applicable depuis la racine du depot par
+`git apply reports/public-index-diff-proposal.patch`.
+
+Regression reelle trouvee et corrigee dans ce diff (pas seulement les 6 routes) : le repli
+formulaire GET sans JavaScript (`/mots?commencant=...`, `/mots?longueur=...`) fonctionnait
+AVANT le lot D-DE-009, mais construisait encore des segments francais
+(`'commencant/' . $commencant`, `$length . '-lettres'`) que `WordListFilters::KEYWORDS`
+localise ne reconnait plus -- `fromPath()` y renvoie desormais silencieusement `null`,
+`$redirect(... '/mots?erreur=1')`. Corrige dans le meme diff : noms de champ et segments
+renommes en `beginnend-mit`/`endend-mit`/`-buchstaben`, `app/View/home.php` (deja localise en
+D-DE-009) mis a jour en coherence sur les memes noms de champ. Reverifie end-to-end :
+`/woerter?longueur=5`, `/woerter?beginnend-mit=ab`, `/woerter?endend-mit=us` redirigent tous
+vers la forme canonique attendue, elle-meme 200.
+
+### 2. Pastilles ODS8/ODS9 encore envoyees au client, en commentaires HTML
+
+Les pastilles elles-memes sont bien retirees du RENDU VISIBLE (D-DE-011), mais l'explication de
+ce retrait etait ecrite en commentaire HTML (`<!-- ... -->`), qui EST envoye au navigateur (un
+commentaire HTML n'est pas un commentaire PHP). `app/View/play.php:176-179` etait en outre a
+l'INTERIEUR de la boucle `foreach ($page->matches ...)` -- duplique une fois par mot liste,
+mesure par l'audit a 164 occurrences sur une page /wortsuche, 48,6% du poids total de la page.
+
+**Correction :** commentaires HTML -> commentaires PHP (`<?php // ... ?>`), jamais envoyes au
+client. `app/View/play.php` : le commentaire est en plus deplace UNE SEULE FOIS avant la
+boucle (il n'a rien de specifique a chaque iteration) plutot que duplique dans le bloc PHP a
+chaque tour. `app/View/word.php:496-499` (occurrence signalee) et un troisieme cas trouve par
+balayage systematique du meme defaut sur les deux fichiers touches par D-DE-011
+(`app/View/word.php`, commentaire mb_strtolower pres de la nav alphabetique, non signale par
+l'audit mais meme classe de defaut, corrige par coherence) sont corriges de la meme facon.
+Les 3 commentaires HTML pre-existants et sans rapport avec D-DE-009/010/011 (`app/View/
+home.php` x2, `app/View/word-list.php` x1 -- aucun a l'interieur d'une boucle, donc aucun
+effet de multiplication) restent EN L'ETAT : hors perimetre de ce lot, pas introduits par lui,
+signales ici pour un futur lot de nettoyage plutot que corriges silencieusement au passage.
+
+### 3. `strtolower()` ASCII residuel dans 12 classes `*LinksBuilder`
+
+D-DE-010 a localise les litteraux de mots-cles de ces classes (`commencant` -> `beginnend-mit`
+etc., voir plus haut) mais n'avait pas corrige un defaut PREEXISTANT (present depuis le
+scaffold initial, jamais lie a D-DE-009/010) : `strtolower()` (ASCII) au lieu de
+`mb_strtolower(..., 'UTF-8')` sur des lettres qui proviennent de `list_counts` et peuvent
+contenir Ä/Ö/Ü -- meme classe de bug deja corrigee ailleurs par D-DE-011
+(`RelationsFinder`/`word.php`). Dormant aujourd'hui (`list_counts` vide, voir `schema.sql`),
+mais un correctif immediat evite un cinquieme passage sur les memes fichiers le jour ou cette
+table sera peuplee.
+
+**Correction :** les 12 fichiers -- `AvecSansLengthLinksBuilder`, `AvecThreeLettersLinksBuilder`,
+`AvecTwoLettersLinksBuilder`, `LengthCombinedLinksBuilder`, `LengthLinksBuilder` (6 occurrences),
+`LetterCombinedLinksBuilder`, `PositionLinksBuilder`, `PrefixAvecLinksBuilder`,
+`PrefixExtensionLinksBuilder`, `StartEndWithLinksBuilder`, `SuffixExtensionLinksBuilder`,
+`ExploreHubBuilder` -- remplacent leurs 38 appels `strtolower($x)` par
+`mb_strtolower($x, 'UTF-8')`, verifie par relecture individuelle (pas seulement par
+remplacement automatise) qu'aucun appel n'a ete manque ni double-converti.
+
+### 4. Housekeeping : `public/robots.txt` et `public/sitemaps/` heritages du scaffold FR
+
+`public/robots.txt` pointait vers `https://www.wordcheckr.fr/sitemap-index.xml` (mauvais
+domaine) et `public/sitemaps/` (36 fichiers, 65 Mo, trackes par git -- pas ignores) contenait
+924 408 URLs `https://www.wordcheckr.fr/...` dans l'ANCIEN schema francais (`/mots`, verifie
+directement sur un fichier) -- reliquat de la copie initiale FR->DE (`ed847d6`) jamais nettoye.
+
+**Correction, demandee explicitement par le porteur de projet, perimetre volontairement
+minimal (PAS une construction du registre SEO allemand -- reste hors de ce lot, a faire par
+l'agent seo-registry)** :
+
+```text
+public/sitemaps/ (36 fichiers) supprimes entierement (git rm -r)
+public/robots.txt remplace par une version minimale (User-agent: * / Allow: /, sans ligne
+  Sitemap: -- publier une URL de sitemap allemand qui n'existe pas encore serait tout aussi
+  trompeur que l'ancienne pointee vers le mauvais domaine)
+```
+
+Note de perimetre (signalee, pas silencieuse) : `public/robots.txt` appartient normalement a
+l'agent `seo-registry` (CLAUDE.md, table de perimetre des agents), pas a `data-engine` --
+modifie ici uniquement a la demande explicite du porteur de projet pour retirer un contenu
+ACTIVEMENT trompeur (mauvais domaine en production), pas pour prendre une decision
+d'architecture SEO a la place de cet agent.
+
+### Correctifs mineurs additionnels
+
+```text
+reports/query-plans/de-import-baseline.md : le paragraphe de perimption ajoute en D-DE-011
+  citait un budget de 4 requetes/fiche -- corrige a 7 (TermLookup 2 + RelationsFinder 5),
+  chiffre confirme par l'audit independant, toujours tres largement sous le plafond de moins
+  de 10 (CLAUDE.md)
+docs/DECISIONS.md, entree D-DE-011 : phrase corrigee ci-dessus (voir juste au-dessus de cette
+  entree) -- la preuve citee pour le caractere pre-existant de l'echec WordListViewTest etait
+  fausse (des commits recents touchent bien le fichier), la conclusion elle-meme restait vraie
+```
+
+Resultat final : `php tests/run.php` = 17 reussis, 1 echoue (`Frontend\WordListViewTest.php`,
+pre-existant, inchange par ce lot -- voir correction ci-dessus).
 
