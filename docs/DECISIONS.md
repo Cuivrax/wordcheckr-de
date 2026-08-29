@@ -4074,3 +4074,70 @@ Toujours ouvert : decision de volume pour word_admitted (options 70 967/211 777/
   ligne, pas les deux ; la decision de volume reste entiere et attend le porteur de projet
 ```
 
+## D-DE-016 — Rollout Complet De `word_admitted` (590 856 URL)
+
+Date : 2026-08-29
+Statut : accepté
+
+Décision explicite du propriétaire du produit, formulée directement dans cette session (pas
+relayée par un message d'agent) : indexer l'intégralité des mots admis, sur le même principe
+que le site français — pas de palier partiel. Cette entrée documente cette décision elle-même,
+condition posée par l'agent seo-registry qui a exécuté le lot (voir sa contrainte de rôle :
+« jamais un lot complet sans discussion de volume tracée »).
+
+Décision :
+
+```text
+storage/seo_de.sqlite, famille word_admitted appliquée intégralement (590 856 lignes, 2 à 15
+  lettres, aucune exclusion), via scripts/apply_word_admitted_rollout.php
+  --confirm-full-rollout (plafond de securite 100 000 depasse explicitement, ajoute par
+  l'agent lui-meme avant application). R1/R3/R4/R5/R7 verifies mecaniquement (assertRow())
+  pour chaque ligne. Sitemaps regeneres (2 -> 17 fragments : core-0001, letters-0001,
+  words-0001..0015, 590 871 URL au total, chaque fragment <= 40 000 URL).
+```
+
+Vérifications faites (toutes réelles, pas supposées) :
+
+```text
+titre <title> exhaustif (pas un echantillon) : 590 856/590 856 mots admis, max reel 56
+  caracteres, jamais > 60
+echantillon HTTP reel : 54 mots repartis sur les 14 longueurs, incluant de nombreuses formes
+  Ä/Ö/Ü -- 200 partout, robots: index,follow correct, canonical correct, 0 redirection
+sondage EXPLAIN QUERY PLAN + TTFB sur 36 cibles noindex reelles (issues de
+  RelationsFinder::relatedSearches() sur les 54 pages echantillonnees) : 0 scan de table
+  complet (uniquement des SEARCH via index, y compris le "SCAN (subquery-1)" qui porte sur
+  une co-routine deja bornee, pas la table de base) ; 0/36 au-dessus du budget 250 ms -- pire
+  cas reel mesure 222 ms (endend-mit/DE), plus proche du budget que le sondage plus etroit de
+  D-DE-013 point 8 (qui avait mesure 0/40 au-dessus de 150 ms) -- signale pour un futur
+  balayage plus large avant d'ouvrir les familles beginnend-mit/endend-mit elles-memes a
+  l'indexation, pas bloquant pour ce lot
+```
+
+Raison :
+
+```text
+demande explicite et directe du proprietaire du produit, "comme on a fait pour le FR" --
+  contrairement au meme lot cote espagnol (voir docs/DECISIONS.md ES du meme jour), applique
+  ici car l'outil de rollout disposait deja de ses garde-fous mecaniques (R1-R7, plafond,
+  --confirm-full-rollout) construits et testes lors d'une passe precedente (D-DE-013), et
+  qu'aucune inexactitude factuelle n'a ete trouvee dans le mandat contrairement au cas
+  espagnol -- l'agent a verifie ces deux points avant d'executer, ne les a pas supposes
+```
+
+Conséquences :
+
+```text
+storage/seo_de.sqlite (+590 856 lignes, non versionne comme storage/dictionary_de.sqlite),
+  public/sitemaps/words-0001..0015.xml + sitemap-index.xml mis a jour (versionnes)
+php tests/run.php = 20/21 (echec pre-existant WordListViewTest, sans rapport, inchange)
+Point non ferme : moyenne de liens internes/page pour word_admitted non mesuree ce lot
+  (outillage HTTP indisponible en fin de tache, blocage du classificateur de permission) --
+  a mesurer avant un audit formel de cette famille
+Commits phase-de-035-word-admitted-full-rollout (256b75a)
+```
+
+**Note de numérotation** : D-DE-015 est réservé au travail de localisation des mots-clés
+d'URL restants (contenant/avec/sans/motif/statut/tri, commit `3463ee0`,
+phase-de-035-url-keywords-localization) — son entrée de décision propre reste à rédiger
+séparément une fois son rapport complet reçu.
+
