@@ -793,7 +793,8 @@ final class RelationsFinder
                 static fn (string $l): string => mb_strtolower($l, 'UTF-8'),
                 $lettersForAvec,
             ));
-            $add('with', $length . '-buchstaben/avec/' . $segments);
+            // D-DE-015 : "avec" -> WordListFilters::KEYWORD_WITH ("mit-buchstaben").
+            $add('with', $length . '-buchstaben/' . WordListFilters::KEYWORD_WITH . '/' . $segments);
         }
 
         $rack = Rack::fromInput($word);

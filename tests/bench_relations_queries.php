@@ -192,7 +192,7 @@ $lines = [
     'requete E (categorie 8 -- mot contenu, ni prefixe ni suffixe)',
     '  aucun index dedie a une sous-chaine a une position quelconque (D-012), MAIS "length > N"',
     '  reste un ancrage reel et toujours disponible ici (N connu par construction) --',
-    '  contrairement au "contenant" employe seul de WordListSolver (aucun ancrage disponible,',
+    '  contrairement au "enthalten" employe seul de WordListSolver (aucun ancrage disponible,',
     '  degenere en un parcours des lignes alphabetiquement les plus petites de toute la table,',
     '  documente dans reports/query-plans/phase3.md). La requete s\'appuie sur',
     '  idx_terms_length_normalized (SEARCH, jamais SCAN TABLE).',

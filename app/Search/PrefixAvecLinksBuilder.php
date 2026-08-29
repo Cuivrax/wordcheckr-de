@@ -136,14 +136,17 @@ final class PrefixAvecLinksBuilder
         // D-DE-010 : "commencant" -> "beginnend-mit" (localisation d'URL, voir docs/DECISIONS.md).
         // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- $prefix/$letter
         // peuvent contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
-        $parentUrl = WordListFilters::fromPath('beginnend-mit/' . mb_strtolower($prefix, 'UTF-8'))?->canonicalUrl();
+        // D-DE-015 : segments tires des constantes WordListFilters::KEYWORD_*, plus jamais
+        // ecrits a la main ("avec" -> "mit-buchstaben").
+        $parentUrl = WordListFilters::fromPath(WordListFilters::KEYWORD_PREFIX . '/' . mb_strtolower($prefix, 'UTF-8'))?->canonicalUrl();
 
         $links = [];
 
         foreach ($statement as $row) {
             [, $letter] = explode(':', (string) $row['list_key'], 2);
 
-            $path = 'beginnend-mit/' . mb_strtolower($prefix, 'UTF-8') . '/avec/' . mb_strtolower($letter, 'UTF-8');
+            $path = WordListFilters::KEYWORD_PREFIX . '/' . mb_strtolower($prefix, 'UTF-8')
+                . '/' . WordListFilters::KEYWORD_WITH . '/' . mb_strtolower($letter, 'UTF-8');
             $url = WordListFilters::fromPath($path)?->canonicalUrl();
 
             if ($url === null || $url === $parentUrl) {

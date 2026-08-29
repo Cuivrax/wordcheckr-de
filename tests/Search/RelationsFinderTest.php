@@ -272,9 +272,9 @@ return function (): void {
             'relatedSearches : URL bien formee -- ' . $link['url'],
         );
     }
-    Assert::same(['/woerter/5-buchstaben', '/woerter/beginnend-mit/s', '/woerter/beginnend-mit/ste', '/woerter/endend-mit/in', '/woerter/5-buchstaben/avec/e/i/n', '/wortsuche/einst', '/woerter'], array_column($relations->relatedSearches, 'url'), 'relatedSearches STEIN : selection exacte connue');
+    Assert::same(['/woerter/5-buchstaben', '/woerter/beginnend-mit/s', '/woerter/beginnend-mit/ste', '/woerter/endend-mit/in', '/woerter/5-buchstaben/mit-buchstaben/e/i/n', '/wortsuche/einst', '/woerter'], array_column($relations->relatedSearches, 'url'), 'relatedSearches STEIN : selection exacte connue');
     foreach ($relations->relatedSearches as $link) {
-        Assert::true(!str_starts_with($link['url'], '/woerter/contenant/'), 'relatedSearches ne doit jamais emettre de lien "contenant" sans ancrage : ' . $link['url']);
+        Assert::true(!str_starts_with($link['url'], '/woerter/enthalten/'), 'relatedSearches ne doit jamais emettre de lien "enthalten" sans ancrage : ' . $link['url']);
     }
 
     // --- Plafond global "environ 160 liens de mots" (docs/01) : verification que la fiche

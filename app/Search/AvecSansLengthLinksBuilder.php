@@ -38,7 +38,10 @@ final class AvecSansLengthLinksBuilder
             // D-DE-010 : "-lettres" -> "-buchstaben" (localisation d'URL, voir docs/DECISIONS.md).
             // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- $avecLetter/
             // $sansLetter peuvent contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
-            $path = $length . '-buchstaben/avec/' . mb_strtolower($avecLetter, 'UTF-8') . '/sans/' . mb_strtolower($sansLetter, 'UTF-8');
+            // D-DE-015 : "avec"/"sans" -> WordListFilters::KEYWORD_WITH/KEYWORD_WITHOUT
+            // ("mit-buchstaben"/"ohne"). Constantes, plus jamais de segment ecrit a la main.
+            $path = $length . '-buchstaben/' . WordListFilters::KEYWORD_WITH . '/' . mb_strtolower($avecLetter, 'UTF-8')
+                . '/' . WordListFilters::KEYWORD_WITHOUT . '/' . mb_strtolower($sansLetter, 'UTF-8');
             $url = WordListFilters::fromPath($path)?->canonicalUrl();
 
             if ($url !== null) {

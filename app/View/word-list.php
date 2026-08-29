@@ -181,19 +181,26 @@ $avecSansLengthLinks ??= null;
 
 $filters = WordListFilters::fromPath($page->canonicalPath);
 
-// Toggles statut/tri (D-022) : reconstruit l'URL de chaque variante en repartant du chemin
-// canonique DEBARRASSE de tout segment "statut"/"tri" existant (toujours en fin d'ordre
-// canonique, voir WordListFilters), puis en rajoutant la variante voulue -- jamais assemble a
-// la main, toujours re-valide par WordListFilters::fromPath()->canonicalUrl() comme partout
-// ailleurs sur cette page (memes garanties que $pageUrl ci-dessus).
+// Toggles status/sortierung (D-022) : reconstruit l'URL de chaque variante en repartant du
+// chemin canonique DEBARRASSE de tout segment "status"/"sortierung" existant (toujours en fin
+// d'ordre canonique, voir WordListFilters), puis en rajoutant la variante voulue -- jamais
+// assemble a la main, toujours re-valide par WordListFilters::fromPath()->canonicalUrl() comme
+// partout ailleurs sur cette page (memes garanties que $pageUrl ci-dessus).
+//
+// D-DE-015 : les quatre litteraux 'statut'/'tri' de ce bloc passent aux constantes
+// WordListFilters::KEYWORD_STATUS/KEYWORD_SORT. Ecrits en dur, ils auraient silencieusement
+// casse les deux groupes de toggles apres la localisation -- le retrait du segment existant
+// n'aurait plus matche (URL a rallonge cumulant deux status) et fromPath() aurait renvoye null
+// sur la reconstruction (toggles rendus sans lien). Les VALEURS ('admis'/'points-desc'...)
+// restent francaises, hors perimetre de cette passe.
 $basePath = $page->canonicalPath;
 $baseSegments = $basePath === '' ? [] : explode('/', $basePath);
 
-if (count($baseSegments) >= 2 && $baseSegments[count($baseSegments) - 2] === 'tri') {
+if (count($baseSegments) >= 2 && $baseSegments[count($baseSegments) - 2] === WordListFilters::KEYWORD_SORT) {
     $baseSegments = array_slice($baseSegments, 0, -2);
 }
 
-if (count($baseSegments) >= 2 && $baseSegments[count($baseSegments) - 2] === 'statut') {
+if (count($baseSegments) >= 2 && $baseSegments[count($baseSegments) - 2] === WordListFilters::KEYWORD_STATUS) {
     $baseSegments = array_slice($baseSegments, 0, -2);
 }
 
@@ -201,12 +208,12 @@ $refineUrl = static function (?string $status, ?string $sort) use ($baseSegments
     $segments = $baseSegments;
 
     if ($status !== null) {
-        $segments[] = 'statut';
+        $segments[] = WordListFilters::KEYWORD_STATUS;
         $segments[] = $status;
     }
 
     if ($sort !== null) {
-        $segments[] = 'tri';
+        $segments[] = WordListFilters::KEYWORD_SORT;
         $segments[] = $sort;
     }
 
@@ -278,11 +285,14 @@ $paginationRelFor = static function (int $targetPage) use ($isAnchored, $paginat
 // Fragments prefixe/suffixe reformules en "mit X am Anfang"/"mit X am Ende" (registre naturel,
 // meme construction "mit ..." que les autres fragments ci-dessous, donc combinable sans casser
 // la concatenation ; coherent avec $contextLinkSpecs de home.php, memes libelles). Les
-// fragments contenant/avec/sans/position/motif ne sont
-// couverts par AUCUNE source du rapport (routage volontairement laisse en francais par
-// D-DE-009 pour ces mots-cles) -- traduction descriptive directe, signalee explicitement.
-// Ordre canonique impose (docs/05) : longueur -> commencant -> contenant -> terminant ->
-// avec -> sans -> motif ("position" hors perimetre du filtre commencant/terminant).
+// fragments enthalten/mit-buchstaben/ohne/position/muster ne sont
+// couverts par AUCUNE source du rapport SERP -- traduction descriptive directe, signalee
+// explicitement (le SLUG d'URL de ces mots-cles est desormais allemand lui aussi, D-DE-015,
+// mais le texte visible ci-dessous ne le recopie pas mecaniquement -- meme correctif de
+// registre que "beginnend mit" -> "am Anfang", D-DE-030).
+// Ordre canonique impose (docs/05), inchange depuis D-DE-009 : longueur -> beginnend-mit ->
+// enthalten -> endend-mit -> mit-buchstaben -> ohne -> muster ("position" hors perimetre du
+// filtre beginnend-mit/endend-mit).
 $titleParts = [];
 
 if ($filters !== null && $filters->length !== null) {

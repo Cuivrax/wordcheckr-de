@@ -21,7 +21,7 @@ use Tests\Support\Assert;
 return function (): void {
     // ============================================================================================
     // componentCount() -- barème exact (docblock de classe) : longueur/commençant/endend-mit/
-    // contenant = 1 chacun, position = 2, chaque lettre "avec"/"sans" = 1.
+    // contenant = 1 chacun, position = 2, chaque lettre "mit-buchstaben"/"ohne" = 1.
     // ============================================================================================
     $length1 = WordListFilters::fromPath('7-buchstaben');
     Assert::same(1, DuplicatePageResolver::componentCount($length1), 'longueur seule = 1 composant');
@@ -38,22 +38,22 @@ return function (): void {
     $combinedWithLength = WordListFilters::fromPath('5-buchstaben/beginnend-mit/x/endend-mit/m');
     Assert::same(3, DuplicatePageResolver::componentCount($combinedWithLength), 'beginnend-mit+endend-mit avec longueur = 3 composants');
 
-    $avecSingle = WordListFilters::fromPath('2-buchstaben/avec/w');
+    $avecSingle = WordListFilters::fromPath('2-buchstaben/mit-buchstaben/w');
     Assert::same(2, DuplicatePageResolver::componentCount($avecSingle), 'longueur + 1 lettre avec = 2 composants');
 
-    $avecTwo = WordListFilters::fromPath('10-buchstaben/avec/j/w');
+    $avecTwo = WordListFilters::fromPath('10-buchstaben/mit-buchstaben/j/w');
     Assert::same(3, DuplicatePageResolver::componentCount($avecTwo), 'longueur + 2 lettres avec = 3 composants');
 
-    $avecThree = WordListFilters::fromPath('5-buchstaben/avec/b/q/r');
+    $avecThree = WordListFilters::fromPath('5-buchstaben/mit-buchstaben/b/q/r');
     Assert::same(4, DuplicatePageResolver::componentCount($avecThree), 'longueur + 3 lettres avec = 4 composants');
 
     $position = WordListFilters::fromPath('9-buchstaben/position/3/a');
     Assert::same(3, DuplicatePageResolver::componentCount($position), 'longueur + position (2 a elle seule) = 3 composants');
 
-    $combinedWithLetter = WordListFilters::fromPath('beginnend-mit/f/endend-mit/q/avec/a');
+    $combinedWithLetter = WordListFilters::fromPath('beginnend-mit/f/endend-mit/q/mit-buchstaben/a');
     Assert::same(3, DuplicatePageResolver::componentCount($combinedWithLetter), 'beginnend-mit+endend-mit+avec (1 lettre) = 3 composants');
 
-    $commencantWithLetter = WordListFilters::fromPath('beginnend-mit/w/avec/j');
+    $commencantWithLetter = WordListFilters::fromPath('beginnend-mit/w/mit-buchstaben/j');
     Assert::same(2, DuplicatePageResolver::componentCount($commencantWithLetter), 'beginnend-mit+avec (1 lettre) = 2 composants');
 
     // ============================================================================================
@@ -62,7 +62,7 @@ return function (): void {
     // ============================================================================================
     Assert::same(
         '/woerter/beginnend-mit/x/endend-mit/m',
-        DuplicatePageResolver::resolveDuplicateWinner(['/woerter/beginnend-mit/x/endend-mit/m', '/woerter/5-buchstaben/avec/n/q/s']),
+        DuplicatePageResolver::resolveDuplicateWinner(['/woerter/beginnend-mit/x/endend-mit/m', '/woerter/5-buchstaben/mit-buchstaben/n/q/s']),
         '2 composants doit battre 4 composants'
     );
 
@@ -93,9 +93,9 @@ return function (): void {
         'resultat independant de l\'ordre du tableau passe en entree'
     );
 
-    // Précédent déjà tranché côté produit, D-039 (longueur vs "avec", deux familles à 3 composants
+    // Précédent déjà tranché côté produit, D-039 (longueur vs "mit-buchstaben", deux familles à 3 composants
     // chacune) : "5-buchstaben/beginnend-mit/x/endend-mit/m" (signature [longueur, commençant, endend-mit])
-    // doit battre "beginnend-mit/x/endend-mit/m/avec/a" (signature [commençant, endend-mit, avec]) --
+    // doit battre "beginnend-mit/x/endend-mit/m/mit-buchstaben/a" (signature [commençant, endend-mit, avec]) --
     // "longueur" (0) précède "commençant" (1) dans l'ordre canonique. Cette règle n'est pas câblée
     // à la main : c'est une conséquence directe de la règle 2 générale, vérifiée ici comme un cas
     // concret plutôt que supposée.
@@ -103,29 +103,29 @@ return function (): void {
         '/woerter/5-buchstaben/beginnend-mit/x/endend-mit/m',
         DuplicatePageResolver::resolveDuplicateWinner([
             '/woerter/5-buchstaben/beginnend-mit/x/endend-mit/m',
-            '/woerter/beginnend-mit/x/endend-mit/m/avec/a',
+            '/woerter/beginnend-mit/x/endend-mit/m/mit-buchstaben/a',
         ]),
         'D-039 : la variante longueur gagne sur la variante avec, meme regle generale que D-025'
     );
 
-    // Position (signature [longueur, position, position]) bat "avec" a 2 lettres (signature
-    // [longueur, avec, avec]) -- "position" (4) precede "avec" (5) dans l'ordre canonique.
+    // Position (signature [longueur, position, position]) bat "mit-buchstaben" a 2 lettres (signature
+    // [longueur, avec, avec]) -- "position" (4) precede "mit-buchstaben" (5) dans l'ordre canonique.
     Assert::same(
         '/woerter/5-buchstaben/position/4/q',
-        DuplicatePageResolver::resolveDuplicateWinner(['/woerter/5-buchstaben/position/4/q', '/woerter/5-buchstaben/avec/b/q/r']),
+        DuplicatePageResolver::resolveDuplicateWinner(['/woerter/5-buchstaben/position/4/q', '/woerter/5-buchstaben/mit-buchstaben/b/q/r']),
         'position bat avec a nombre de composants different (3 vs 4) -- cas simple, pas de tie-break necessaire ici'
     );
 
-    // Cas ou position et "avec" ont le MEME nombre de composants (3) : position doit gagner
+    // Cas ou position et "mit-buchstaben" ont le MEME nombre de composants (3) : position doit gagner
     // (role 4 < role 5).
     Assert::same(
         '/woerter/9-buchstaben/position/3/a',
-        DuplicatePageResolver::resolveDuplicateWinner(['/woerter/9-buchstaben/position/3/a', '/woerter/9-buchstaben/avec/a/b']),
+        DuplicatePageResolver::resolveDuplicateWinner(['/woerter/9-buchstaben/position/3/a', '/woerter/9-buchstaben/mit-buchstaben/a/b']),
         'a 3 composants egaux, position (role 4) precede avec (role 5) dans l\'ordre canonique'
     );
 
     // ============================================================================================
-    // variableComponentDepth() -- longueur du composant à chaîne variable (commençant/contenant/
+    // variableComponentDepth() -- longueur du composant à chaîne variable (commençant/enthalten/
     // endend-mit), 0 si absent. Fonction pure, vérifiée directement avant d'exercer
     // resolveDuplicateWinner() dessus.
     // ============================================================================================
@@ -137,7 +137,7 @@ return function (): void {
     // ============================================================================================
     // resolveDuplicateWinner() -- règle 2 (constat I-1, 5e audit consolidé) : à égalité de
     // composants ET de signature de rôles au sein de la MÊME famille à chaîne variable
-    // (commençant/contenant/endend-mit), la forme dont le composant variable est le plus COURT
+    // (commençant/enthalten/endend-mit), la forme dont le composant variable est le plus COURT
     // gagne -- jamais une comparaison alphabétique naïve du chemin complet.
     //
     // Cas couvert par le bug corrigé : App\Search\SuffixExtensionLinksBuilder ajoute la lettre
@@ -184,25 +184,25 @@ return function (): void {
     // ============================================================================================
     // resolveDuplicateWinner() -- règle 3 : à égalité de composants ET de signature de rôles
     // (même famille, cas "sœurs"), la forme alphabétiquement la plus petite gagne (D-038).
-    // canonicalPath() sérialise toujours les lettres "avec" en ordre alphabétique croissant
+    // canonicalPath() sérialise toujours les lettres "mit-buchstaben" en ordre alphabétique croissant
     // (ksort(), D-022), donc comparer route_path complet revient au même résultat que "la lettre
     // la plus petite gagne".
     // ============================================================================================
     Assert::same(
-        '/woerter/beginnend-mit/x/endend-mit/m/avec/a',
+        '/woerter/beginnend-mit/x/endend-mit/m/mit-buchstaben/a',
         DuplicatePageResolver::resolveDuplicateWinner([
-            '/woerter/beginnend-mit/x/endend-mit/m/avec/l',
-            '/woerter/beginnend-mit/x/endend-mit/m/avec/a',
+            '/woerter/beginnend-mit/x/endend-mit/m/mit-buchstaben/l',
+            '/woerter/beginnend-mit/x/endend-mit/m/mit-buchstaben/a',
         ]),
         'D-038 : entre deux pages soeurs de la meme famille, la lettre alphabetiquement la plus petite (A < L) gagne'
     );
 
     Assert::same(
-        '/woerter/10-buchstaben/avec/a/w/x',
+        '/woerter/10-buchstaben/mit-buchstaben/a/w/x',
         DuplicatePageResolver::resolveDuplicateWinner([
-            '/woerter/10-buchstaben/avec/e/w/x',
-            '/woerter/10-buchstaben/avec/a/w/x',
-            '/woerter/10-buchstaben/avec/n/w/x',
+            '/woerter/10-buchstaben/mit-buchstaben/e/w/x',
+            '/woerter/10-buchstaben/mit-buchstaben/a/w/x',
+            '/woerter/10-buchstaben/mit-buchstaben/n/w/x',
         ]),
         'meme regle sur un groupe de 3 pages soeurs (palier 3) : la plus petite (A) gagne parmi A/E/N'
     );
@@ -214,8 +214,8 @@ return function (): void {
     Assert::same(
         '/woerter/beginnend-mit/webj',
         DuplicatePageResolver::resolveDuplicateWinner([
-            '/woerter/10-buchstaben/avec/j/w',
-            '/woerter/beginnend-mit/w/avec/j',
+            '/woerter/10-buchstaben/mit-buchstaben/j/w',
+            '/woerter/beginnend-mit/w/mit-buchstaben/j',
             '/woerter/beginnend-mit/w/endend-mit/l',
             '/woerter/beginnend-mit/webj',
         ]),
@@ -245,8 +245,8 @@ return function (): void {
     // Cohérence : componentCount()/roleSignature() sont des fonctions PURES de $filters -- deux
     // appels sur le même route_path doivent toujours produire le même résultat (déterminisme).
     // ============================================================================================
-    $filtersA = WordListFilters::fromPath('9-buchstaben/avec/a/b/c');
-    $filtersB = WordListFilters::fromPath('9-buchstaben/avec/a/b/c');
+    $filtersA = WordListFilters::fromPath('9-buchstaben/mit-buchstaben/a/b/c');
+    $filtersB = WordListFilters::fromPath('9-buchstaben/mit-buchstaben/a/b/c');
     Assert::same(DuplicatePageResolver::componentCount($filtersA), DuplicatePageResolver::componentCount($filtersB), 'componentCount() deterministe');
     Assert::same(DuplicatePageResolver::roleSignature($filtersA), DuplicatePageResolver::roleSignature($filtersB), 'roleSignature() deterministe');
 

@@ -18,8 +18,17 @@ declare(strict_types=1);
  * docblock et tout le formulaire de contraintes ci-dessous sont localisees depuis le
  * schema francais d'origine (/verifier -> /pruefen, /mot -> /wort, /jouer -> /wortsuche,
  * /mots -> /woerter, "commencant"/"terminant" -> "beginnend-mit"/"endend-mit", noms de
- * champ du formulaire de contraintes inclus). "contenant"/"avec"/"sans"/"motif" restent
- * volontairement en francais cette passe (App\Search\WordListFilters, docblock de classe).
+ * champ du formulaire de contraintes inclus).
+ *
+ * D-DE-015 (second palier) : "contenant"/"avec"/"sans"/"motif"/"statut"/"tri" -> "enthalten"/
+ * "mit-buchstaben"/"ohne"/"muster"/"status"/"sortierung" ("position" inchange, cognate
+ * allemand) -- voir App\Search\WordListFilters, docblock de classe, pour la source de chaque
+ * terme. Les NOMS DE CHAMP du formulaire ci-dessous (name="contenant", name="avec"...) restent
+ * francais cette passe : ce sont des noms de fil entre ce formulaire et le repli GET de
+ * public/index.php (fichier partage, jamais visible dans l'URL finale, qui est toujours une
+ * 302 vers la forme canonique). Les renommer exige de modifier public/index.php ET la regle
+ * CSS #motif (public/assets/, perimetre de l'agent frontend) dans le meme commit -- signale
+ * comme lot suivant, PAS un oubli.
  *
  * Refonte du bloc de recherche (Phase 2, rapprochement de prototype/index.html a la
  * demande du coordinateur) : un seul champ <input name="q">, deux boutons de
@@ -108,7 +117,7 @@ foreach ($contextLinkSpecs as $spec) {
 // jamais une URL construite a la main). Un aller-retour a ete fait vers un lien unique "/woerter"
 // pour les huit (retour utilisateur : "n'a aucun sens", huit ancres de texte vers la meme URL
 // n'apporte rien) -- revenu a des exemples concrets differencies : "longueur"/"debut"/"fin" ont
-// une vraie grille dans le hub /woerter, mais contenant/avec/sans/position n'en ont AUCUNE par
+// une vraie grille dans le hub /woerter, mais enthalten/mit-buchstaben/ohne/position n'en ont AUCUNE par
 // conception (D-012, combinaisons non bornees) -- un exemple reel reste le seul moyen concret
 // de les montrer. Question posee et tranchee au meme moment : un hub dedie "choisir la lettre
 // de debut PUIS la lettre de fin" (grille 26x26) n'apporterait rien au-dela d'eviter les pages
@@ -272,10 +281,13 @@ $phraseLink = static function (string $path, string $label): string {
       <?= $phraseLink('beginnend-mit/a', 'einen Anfang') ?>,
       <?= $phraseLink('endend-mit/s', 'ein Ende') ?>,
       <?= $phraseLink('beginnend-mit/a/endend-mit/e', 'einen Anfang und ein Ende kombiniert') ?>,
-      <?= $phraseLink('contenant/ch', 'eine Buchstabenfolge') ?>,
-      <?= $phraseLink('avec/e', 'erforderliche Buchstaben') ?>,
-      <?= $phraseLink('sans/e', 'auszuschließende Buchstaben') ?>
-      oder sogar <?= $phraseLink('9-buchstaben/position/3/a', 'einen Buchstaben an einer bestimmten Position') ?>
+      <?php // D-DE-015 : segments tires des constantes WordListFilters::KEYWORD_* -- ces trois
+      // chemins etaient ecrits en dur avec les anciens mots-cles francais et seraient devenus
+      // du texte plat (fromPath() null) apres la localisation. ?>
+      <?= $phraseLink(WordListFilters::KEYWORD_CONTAINS . '/ch', 'eine Buchstabenfolge') ?>,
+      <?= $phraseLink(WordListFilters::KEYWORD_WITH . '/e', 'erforderliche Buchstaben') ?>,
+      <?= $phraseLink(WordListFilters::KEYWORD_WITHOUT . '/e', 'auszuschließende Buchstaben') ?>
+      oder sogar <?= $phraseLink('9-buchstaben/' . WordListFilters::KEYWORD_POSITION . '/3/a', 'einen Buchstaben an einer bestimmten Position') ?>
       im Wort angeben, um eine genauere Antwort zu erhalten.
     </p>
   </section>

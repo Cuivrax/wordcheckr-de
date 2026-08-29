@@ -129,7 +129,10 @@ final class LengthLinksBuilder
                 // D-DE-010 : "-lettres" -> "-buchstaben" (localisation d'URL, voir docs/DECISIONS.md).
                 // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8') -- $letter peut
                 // contenir Ä/Ö/Ü (list_counts), signale par l'audit independant.
-                $url = WordListFilters::fromPath($length . '-buchstaben/position/' . $position . '/' . mb_strtolower($letter, 'UTF-8'))?->canonicalUrl();
+                // D-DE-015 : "position" reste "position" (cognate allemand, voir
+                // WordListFilters), mais passe par la constante KEYWORD_POSITION comme tous
+                // les autres segments -- plus de chaine ecrite a la main.
+                $url = WordListFilters::fromPath($length . '-buchstaben/' . WordListFilters::KEYWORD_POSITION . '/' . $position . '/' . mb_strtolower($letter, 'UTF-8'))?->canonicalUrl();
 
                 if ($url !== null) {
                     $byPositionGrouped[$position][] = ['letter' => $letter, 'url' => $url, 'count' => $count];
@@ -205,7 +208,8 @@ final class LengthLinksBuilder
 
                     // D-DE-010 : "-lettres" -> "-buchstaben" (localisation d'URL, voir docs/DECISIONS.md).
                     // D-DE-011 : strtolower() (ASCII) -> mb_strtolower(..., 'UTF-8').
-                    $url = WordListFilters::fromPath($length . '-buchstaben/avec/' . mb_strtolower($letter, 'UTF-8'))?->canonicalUrl();
+                    // D-DE-015 : "avec" -> WordListFilters::KEYWORD_WITH ("mit-buchstaben").
+                    $url = WordListFilters::fromPath($length . '-buchstaben/' . WordListFilters::KEYWORD_WITH . '/' . mb_strtolower($letter, 'UTF-8'))?->canonicalUrl();
 
                     if ($url !== null) {
                         $byWith[] = ['letter' => $letter, 'url' => $url, 'count' => $count];

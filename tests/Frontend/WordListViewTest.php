@@ -65,12 +65,12 @@ return function (): void {
     // Aufsteigend/Absteigend"), assertions mises a jour en consequence.
     Assert::true(str_contains($htmlLength, 'Liste Verfeinern'), 'section toggles attendue');
     Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben" aria-current="page">Alle</a>'), '"Alle" actif par defaut');
-    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/statut/admis">Gültig</a>'), 'lien "Gültig" non actif');
-    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/statut/non-admis">Nicht Gültig</a>'), 'lien "Nicht Gültig" non actif');
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/status/admis">Gültig</a>'), 'lien "Gültig" non actif');
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/status/non-admis">Nicht Gültig</a>'), 'lien "Nicht Gültig" non actif');
     Assert::true(str_contains($htmlLength, 'Liste sortieren'), 'groupe tri attendu (longueur presente)');
     Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben" aria-current="page">Alphabetisch</a>'), '"Alphabetisch" actif par defaut');
-    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/tri/points">Punkte Aufsteigend</a>'));
-    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/tri/points-desc">Punkte Absteigend</a>'));
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/sortierung/points">Punkte Aufsteigend</a>'));
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/sortierung/points-desc">Punkte Absteigend</a>'));
 
     // Aucun maillage interne sans $lengthLinks.
     Assert::true(!str_contains($htmlLength, 'Beginnend Mit'), 'aucune section de maillage sans $lengthLinks');
@@ -100,7 +100,7 @@ return function (): void {
     // pointent vers l'URL courante, les variantes preservent l'autre dimension.
     // -------------------------------------------------------------------
     $statusSortPage = new WordListPage(
-        canonicalPath: '13-buchstaben/statut/admis/tri/points-desc',
+        canonicalPath: '13-buchstaben/status/admis/sortierung/points-desc',
         page: 1,
         pageSize: 50,
         items: [$item('ABACTERIENNES')],
@@ -112,10 +112,10 @@ return function (): void {
         queryCount: 2,
     );
     $htmlStatusSort = $render($statusSortPage);
-    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/statut/admis/tri/points-desc" aria-current="page">Gültig</a>'), '"Gültig" actif');
-    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/tri/points-desc">Alle</a>'), '"Alle" preserve le tri actif en le retirant du seul statut');
-    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/statut/admis/tri/points-desc" aria-current="page">Punkte Absteigend</a>'), '"Punkte Absteigend" actif');
-    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/statut/admis">Alphabetisch</a>'), '"Alphabetisch" preserve le statut actif en retirant seulement le tri');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/status/admis/sortierung/points-desc" aria-current="page">Gültig</a>'), '"Gültig" actif');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/sortierung/points-desc">Alle</a>'), '"Alle" preserve le tri actif en le retirant du seul statut');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/status/admis/sortierung/points-desc" aria-current="page">Punkte Absteigend</a>'), '"Punkte Absteigend" actif');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/status/admis">Alphabetisch</a>'), '"Alphabetisch" preserve le statut actif en retirant seulement le tri');
 
     // -------------------------------------------------------------------
     // Maillage interne (D-022) : trois groupes + lien hub, aucune section vide.
@@ -200,7 +200,7 @@ return function (): void {
     Assert::true(str_contains($htmlAnchoredFour, '<a href="/woerter/13-buchstaben/page/5" rel="nofollow">Weiter →</a>'), 'page 4->5 (profondeur > 3) : nofollow');
 
     $unanchoredPage = new WordListPage(
-        canonicalPath: 'contenant/cha',
+        canonicalPath: 'enthalten/cha',
         page: 1,
         pageSize: 50,
         items: [$item('CHAT')],
@@ -212,14 +212,14 @@ return function (): void {
         queryCount: 1,
     );
     $htmlUnanchored = $render($unanchoredPage);
-    Assert::true(str_contains($htmlUnanchored, '<a href="/woerter/contenant/cha/page/2" rel="nofollow">Weiter →</a>'), 'liste non ancree : nofollow des la page 2, quelle que soit la profondeur (I-1 historique)');
+    Assert::true(str_contains($htmlUnanchored, '<a href="/woerter/enthalten/cha/page/2" rel="nofollow">Weiter →</a>'), 'liste non ancree : nofollow des la page 2, quelle que soit la profondeur (I-1 historique)');
 
     // -------------------------------------------------------------------
     // Meta title/description enrichis (audit D-031, constat I-3) : citent le(s) mot(s)
     // reel(s) plutot qu'une phrase entierement templatee, pour les listes courtes.
     // -------------------------------------------------------------------
     $onePage = new WordListPage(
-        canonicalPath: '3-buchstaben/avec/a/b/e',
+        canonicalPath: '3-buchstaben/mit-buchstaben/a/b/e',
         page: 1,
         pageSize: 50,
         items: [$item('ABE', 'french_not_admitted')],
@@ -241,7 +241,7 @@ return function (): void {
     // Page hors bornes (total = 1 mais items vide, ex. ".../page/2" sur une liste a 1
     // resultat) : repli sur la phrase generique, jamais un crash sur $page->items[0].
     $oneOutOfRangePage = new WordListPage(
-        canonicalPath: '3-buchstaben/avec/a/b/e',
+        canonicalPath: '3-buchstaben/mit-buchstaben/a/b/e',
         page: 2,
         pageSize: 50,
         items: [],
@@ -258,7 +258,7 @@ return function (): void {
 
     // Liste courte (2 a 5 resultats) : description enumere les mots reels.
     $shortListPage = new WordListPage(
-        canonicalPath: '4-buchstaben/avec/q/x',
+        canonicalPath: '4-buchstaben/mit-buchstaben/q/x',
         page: 1,
         pageSize: 50,
         items: [$item('QUXE'), $item('AXQU', 'french_not_admitted')],
