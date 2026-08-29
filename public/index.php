@@ -22,8 +22,9 @@ declare(strict_types=1);
  *                         Fichier partage (CLAUDE.md) : ajout signale pour validation.
  *
  * Route ajoutee en Phase 3 (docs/08, agent data-engine) :
- *   GET /woerter/...       listes de mots par longueur, beginnend-mit, contenant, endend-mit,
- *                          avec, sans, motif, seules ou combinees dans l'ordre canonique
+ *   GET /woerter/...       listes de mots par longueur, beginnend-mit, enthalten, endend-mit,
+ *                          mit-buchstaben, ohne, muster, seules ou combinees dans l'ordre
+ *                          canonique
  *                          (docs/05) -- App\Search\WordListSolver::solve(), au plus 2
  *                          requetes indexees (reports/query-plans/phase3.md). Toute
  *                          permutation non canonique redirige en 301 vers la forme imposee
@@ -32,9 +33,18 @@ declare(strict_types=1);
  * ADAPTATION ALLEMANDE (localisation d'URL, D-DE-009, docs/DECISIONS.md) : "/mot" -> "/wort",
  *   "/mots" -> "/woerter", "/jouer" -> "/wortsuche", "/verifier" -> "/pruefen",
  *   "commencant"/"terminant" -> "beginnend-mit"/"endend-mit" -- partout dans ce fichier, routes
- *   ET repli formulaire GET (noms de champ inclus). "contenant"/"avec"/"sans"/"motif"/"statut"/
- *   "tri"/"position" restent VOLONTAIREMENT en francais cette passe (voir App\Search\
- *   WordListFilters, docblock de classe, pour la justification complete).
+ *   ET repli formulaire GET.
+ *
+ * D-DE-015 (second palier de localisation d'URL, docs/DECISIONS.md) : "contenant"/"avec"/
+ *   "sans"/"motif"/"statut"/"tri" -> "enthalten"/"mit-buchstaben"/"ohne"/"muster"/"status"/
+ *   "sortierung". "position" reste "position" (substantif allemand a part entiere, cognate
+ *   exact) -- voir App\Search\WordListFilters, docblock de classe, pour la source de chaque
+ *   terme. Les VALEURS d'enumeration ("admis"/"non-admis", "points"/"points-desc") restent
+ *   francaises, lot suivant. Les NOMS DE CHAMP du repli GET ci-dessous (longueur, contenant,
+ *   avec, sans, motif) restent francais eux aussi : noms de fil internes entre app/View/
+ *   home.php et ce fichier, jamais visibles dans l'URL finale (toujours une 302 vers la forme
+ *   canonique) -- les renommer exige de toucher aussi la regle CSS #motif (public/assets/,
+ *   perimetre de l'agent frontend), signale comme lot suivant.
  *
  * Route ajoutee en Phase 5 (docs/08, agent data-engine) :
  *   GET /api/suggest?q=..  autocompletion, backend seul (une combobox cote frontend consomme
@@ -353,18 +363,23 @@ if ($path === '/woerter' || preg_match('#^/woerter(/.*)$#u', $path, $matches) ==
     $rest = $matches[1] ?? '';
 
     // Repli formulaire GET sans JavaScript pour le constructeur de contraintes de la home
-    // (app/View/home.php, rapprochement de prototype/index.html) et l'outil "contenant" de la
+    // (app/View/home.php, rapprochement de prototype/index.html) et l'outil "enthalten" de la
     // page hub /woerter (App\Search\ExploreHub ci-dessous) : 0 requete SQLite, redirection pure
     // vers la forme canonique -- meme principe que /pruefen?mot=.. et /wortsuche?lettres=...
-    // Chaque champ texte devient un segment de chemin ; "avec"/"sans" eclatent leur valeur en
-    // un segment par lettre (App\Search\WordListFilters::readLetterMultiset() n'accepte qu'une
-    // lettre par segment). Un champ absent ou vide n'ajoute aucun segment. "contenant",
-    // "avec", "sans", "motif" restent volontairement hors sitemap/index (combinaisons infinies,
-    // App\Seo\Family::NEVER_SITEMAP) : ce formulaire est un outil, jamais une liste de pages
-    // pre-generees.
+    // Chaque champ texte devient un segment de chemin ; "mit-buchstaben"/"ohne" eclatent leur
+    // valeur en un segment par lettre (App\Search\WordListFilters::readLetterMultiset()
+    // n'accepte qu'une lettre par segment). Un champ absent ou vide n'ajoute aucun segment.
+    // "enthalten", "mit-buchstaben", "ohne", "muster" restent volontairement hors sitemap/index
+    // (combinaisons infinies, App\Seo\Family::NEVER_SITEMAP) : ce formulaire est un outil,
+    // jamais une liste de pages pre-generees.
     //
-    // D-DE-009 : noms de champ "beginnend-mit"/"endend-mit" (au lieu de "commencant"/
-    // "terminant") -- alignes sur App\Search\WordListFilters::KEYWORDS, voir app/View/home.php.
+    // D-DE-015 : les segments de chemin construits ci-dessous ne sont PLUS ecrits a la main.
+    // Ils viennent des constantes App\Search\WordListFilters::KEYWORD_*, seule source du
+    // vocabulaire d'URL. C'est exactement ce bloc qui avait laisse passer un bug reel lors de
+    // D-DE-009 (segments "commencant/..."/"terminant/..." encore francais alors que KEYWORDS
+    // avait deja bascule : le repli sans JavaScript renvoyait alors systematiquement
+    // /woerter?erreur=1). Les NOMS DE CHAMP GET ($field('contenant')...) restent francais,
+    // voir l'entete de ce fichier.
     if ($rest === '' && $_GET !== []) {
         $field = static function (string $name) use ($config): string {
             $raw = $_GET[$name] ?? '';
@@ -382,32 +397,32 @@ if ($path === '/woerter' || preg_match('#^/woerter(/.*)$#u', $path, $matches) ==
 
         $beginnendMit = $field('beginnend-mit');
         if ($beginnendMit !== '') {
-            $segments[] = 'beginnend-mit/' . $beginnendMit;
+            $segments[] = WordListFilters::KEYWORD_PREFIX . '/' . $beginnendMit;
         }
 
         $contenant = $field('contenant');
         if ($contenant !== '') {
-            $segments[] = 'contenant/' . $contenant;
+            $segments[] = WordListFilters::KEYWORD_CONTAINS . '/' . $contenant;
         }
 
         $endendMit = $field('endend-mit');
         if ($endendMit !== '') {
-            $segments[] = 'endend-mit/' . $endendMit;
+            $segments[] = WordListFilters::KEYWORD_SUFFIX . '/' . $endendMit;
         }
 
         $avec = $field('avec');
         if ($avec !== '') {
-            $segments[] = 'avec/' . implode('/', mb_str_split($avec));
+            $segments[] = WordListFilters::KEYWORD_WITH . '/' . implode('/', mb_str_split($avec));
         }
 
         $sans = $field('sans');
         if ($sans !== '') {
-            $segments[] = 'sans/' . implode('/', mb_str_split($sans));
+            $segments[] = WordListFilters::KEYWORD_WITHOUT . '/' . implode('/', mb_str_split($sans));
         }
 
         $motif = $field('motif');
         if ($motif !== '') {
-            $segments[] = 'motif/' . $motif;
+            $segments[] = WordListFilters::KEYWORD_PATTERN . '/' . $motif;
         }
 
         if ($segments !== []) {
