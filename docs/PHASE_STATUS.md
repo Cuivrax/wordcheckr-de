@@ -504,15 +504,34 @@ D-027/D-035/D-036/D-037/D-038/D-039/D-040/D-041 — 1er audit consolidé
 
 # PHASE_STATUS — SITE ALLEMAND
 
-État réel de CE dépôt (indépendant du site français ci-dessus). Mis à jour le 2026-08-27.
+État réel de CE dépôt (indépendant du site français ci-dessus). Mis à jour le 2026-08-29 --
+la section ci-dessous (jusqu'à "Comptes De La Base") décrivait encore l'état du 2026-08-27
+(construction initiale seule) alors que 4 paliers supplémentaires ont depuis livré le
+schéma d'URL complet, la traduction visible complète et un premier palier de registre SEO --
+resynchronisée ici, voir docs/DECISIONS.md D-DE-009 à D-DE-017 pour le détail complet.
 
 ## Phase Courante
 
 ```text
-Construction initiale du dictionnaire allemand (équivalent Phase 0-1 côté français) --
-  couche donnees complete et verifiee, couche application (app/Search/) adaptee et testee,
-  couche presentation (app/View/) et registre SEO (app/Seo/) NON touches (hors perimetre de
-  l'agent data-engine pour cette tache).
+Moteur (donnees + app/Search/) : GO, audite, complet (construction initiale + D-DE-002/003/006).
+Schema d'URL (D-DE-009, D-DE-015) : COMPLET -- les 13 mots-cles de segment sont tous traduits
+  (/wort, /woerter, /wortsuche, /pruefen, beginnend-mit, endend-mit, -buchstaben, enthalten,
+  mit-buchstaben, ohne, muster, position, status, sortierung). Aucun segment francais reconnu,
+  ancien schema 404 sec (jamais une redirection).
+Texte visible (D-DE-025 a D-DE-033) : COMPLET pour le perimetre core (home, fiche mot, liste
+  de mots, solveur, hub, 404, contact) + JS (suggest.js/tiles.js) -- <html lang="de">. Pages
+  legales (mentions-legales.php, confidentialite.php) toujours en francais, deliberement
+  hors perimetre, chantier separe.
+Registre SEO (D-DE-013, D-DE-016, D-DE-017) : storage/seo_de.sqlite construit et applique --
+  home (1), word_list_length COMPLET (14/14 longueurs), word_admitted COMPLET (590 856/590 856
+  mots, decision explicite du proprietaire du produit "comme le FR"), PLUS un premier palier
+  des familles combinees : beginnend-mit (29 URL, 1 lettre) et endend-mit (455 URL, 2 lettres
+  -- asymetrie mesuree et deliberee, voir D-DE-017). 591 355 URL au total, 19 fragments
+  sitemap. Familles restantes (longueur+beginnend-mit combine, beginnend-mit 3 lettres,
+  mit-buchstaben, enthalten/ohne/muster/position) mesurees et volontairement NON ouvertes ce
+  palier, raisons techniques precises documentees en D-DE-017.
+Classes CSS / identifiants internes : toujours en francais, deliberement differe a la toute
+  derniere passe (avec les definitions), decision explicite du proprietaire du produit.
 ```
 
 ## Livré
@@ -578,19 +597,30 @@ rapport AFTER de l'agent data-engine                                          OK
 audit code-reviewer                                                           EN ATTENTE
 ```
 
-## Non Fait, Explicitement Hors Périmètre De Cette Tâche
+## Non Fait, Explicitement Hors Périmètre (état 2026-08-29, voir aussi Phase Courante ci-dessus)
 
 ```text
-app/View/ : badges "ODS8"/"ODS9" incorrects pour l'allemand (D-DE-003), highlighting
-  "changer une lettre" non vérifié pour Ä/Ö/Ü -- nécessite un passage frontend dédié
-app/Seo/ : storage/seo_de.sqlite non construit (Registry gère nativement son absence,
-  noindex,follow par défaut -- aucun impact fonctionnel, juste pas encore de rollout)
-scripts/build_explore_hub_counts_de.php : non écrit -- list_counts reste à 0 ligne, hub
-  /mots et maillage interne vides jusqu'à un futur lot dédié
-scripts/bench_*.php, build_seo_registry.php, propose_seo_batch.php,
-  check_combinatorial_duplicates.php, apply_full_word_rollout.php, add_*_index.php :
-  référencent encore storage/dictionary_fr.sqlite et le schéma français, non adaptés
-déploiement o2switch : ce dépôt reste un travail entièrement local, aucun serveur touché
+badges "ODS8"/"ODS9" (D-DE-003) : RESOLU par D-DE-011 (badge unique "Gültig"/status-badge)
+highlighting "changer une lettre" Ä/Ö/Ü (D-DE-011) : RESOLU, mb_substr/mb_str_split
+storage/seo_de.sqlite : CONSTRUIT ET APPLIQUE (voir Phase Courante -- plus a l'etat "non
+  construit"), premier palier des familles combinees livre D-DE-017
+list_counts (maillage interne longueur x lettre) : TOUJOURS a 0 ligne -- bloque le hub
+  /woerter (rend des sections vides) et toute famille combinee qui en depend (longueur+
+  beginnend-mit, mit-buchstaben en entonnoir propre) -- a router vers un agent data-engine
+pages legales (mentions-legales.php, confidentialite.php) : toujours en francais (droit
+  francais, CNIL, adresse Paris) -- necessite un vrai Impressum conforme SS5 TMG + RGPD,
+  pas une traduction improvisee, chantier separe non commence
+audit seo-technical-auditor : jamais relance sur l'etat post-D-DE-017 (591 355 lignes) --
+  recommande avant tout deploiement reel
+scripts/bench_*.php, propose_seo_batch.php, check_combinatorial_duplicates.php,
+  add_*_index.php : referencent encore storage/dictionary_fr.sqlite et le schema francais,
+  non adaptes, inertes (jamais executes par tests/run.php)
+tests/Frontend/{WordView,Home}Test.php et bench_conjugation_queries.php/
+  bench_relations_queries.php : chargent encore config/sites/fr.php pour certaines valeurs
+  (sans effet fonctionnel avere, non corrige)
+deploiement o2switch : ce depot reste un travail entierement local, aucun serveur touche.
+  wordcheckr.de a un DNS pointe mais rien n'ecoute encore sur le port 80/443 (verifie
+  directement, voir memoire de session -- domain_strategy)
 ```
 
 ## GO / NO GO

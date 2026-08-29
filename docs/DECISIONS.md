@@ -4230,3 +4230,94 @@ Commits phase-de-035-url-keywords-localization (3463ee0), phase-de-038-apply-rou
   combined (cc30175, application du diff par la session principale)
 ```
 
+## D-DE-017 — Palier 1 De "beginnend-mit"/"endend-mit" : 1 Lettre / 2 Lettres, Asymétrie Mesurée
+
+Date : 2026-08-29
+Statut : accepté
+
+Contexte : décision explicite du propriétaire du produit de construire l'indexation des
+mots-clés restants (beginnend-mit, endend-mit, enthalten, mit-buchstaben, ohne, muster,
+position) "comme le FR", avec la même prudence que le site français a dû apprendre pour ces
+familles précises (D-017, D-019, D-024, D-025, D-025bis, D-029 à D-031).
+
+Décision :
+
+```text
+storage/seo_de.sqlite, familles word_list_commencant (29 URL, /woerter/beginnend-mit/{lettre},
+  1 lettre) et word_list_terminant (455 URL, /woerter/endend-mit/{2 lettres}, REALISEES sur
+  841 combinaisons theoriques) appliquees via scripts/apply_seo_batch.php +
+  scripts/seo-batches/start-end-single-letter-2026-08-29.php. R1-R7 verifiees mecaniquement,
+  0 refus. Sitemaps regeneres (17 -> 19 fragments : +starts-0001, +ends-0001, 591 355 URL).
+
+ASYMETRIE DELIBEREE (pas une erreur) : beginnend-mit ouvre a 1 lettre, endend-mit a 2 --
+  App\Search\RelationsFinder::relatedSearches() lie reellement chaque mot admis a son prefixe
+  1 lettre, mais TOUJOURS a un suffixe de 2 lettres (mb_substr($word, -min(2,$length)),
+  Normalizer::MIN_LENGTH=2 constant, jamais 1). Mesure : sur 29 pages endend-mit/{1 lettre}
+  possibles, UNE SEULE (endend-mit/s, lien statique home.php) a un lien entrant reel -- les
+  28 autres seraient orphelines. endend-mit ouvre donc a 2 lettres, seul palier avec un
+  maillage entrant reel et verifie sur l'integralite de la famille. L'hypothese de depart
+  donnee a l'agent ("beginnend-mit et endend-mit seuls a 1 lettre") etait donc partiellement
+  fausse -- corrigee par la mesure avant toute ecriture, pas apres coup.
+```
+
+Vérifications faites (toutes réelles, balayage complet des deux familles, pas un échantillon) :
+
+```text
+29/29 beginnend-mit, 455/455 endend-mit : 0 au-dessus du budget TTFB 250 ms
+  (beginnend-mit 0,23-5,21 ms ; endend-mit 0,14-84,22 ms), EXPLAIN QUERY PLAN toujours SEARCH
+  via index (sqlite_autoindex_terms_1 / idx_terms_reversed), jamais SCAN
+echantillon HTTP reel (php -S) : 45 pages (29/29 beginnend-mit + 16 endend-mit dont les
+  12 tronquees), 0 anomalie -- 200, robots correct, canonical autonome, titres 35-40 caracteres
+12/455 pages endend-mit tronquees (resultat reel > ROW_EXAMINATION_CEILING=10 000, ex.
+  endend-mit/en = 108 008 reels) -- affichage honnete verifie en direct ("Mindestens
+  10000... nicht garantiert vollstandig"), meme precedent accepte cote francais D-028bis/D-029
+0 page a resultat vide (R5) ; 61 pages endend-mit a exactement 1 resultat -- GARDEES,
+  signalees separement, pas auto-exclues
+```
+
+Familles mesurées et NON ouvertes ce lot, chacune pour une raison technique distincte :
+
+```text
+longueur+beginnend-mit combine : 0 lien entrant reel (list_counts vide -- 0 ligne, tous les
+  *LinksBuilder qui en dependent, herites du depot francais, rendent des sections vides) --
+  a router vers l'agent data-engine (app/Search/, hors perimetre seo-registry)
+beginnend-mit+endend-mit combine (1+1 lettre) : 690 combinaisons realisees, 1 SEULE page
+  reellement liee (home.php) -- 689 orphelines
+beginnend-mit a 3 lettres : 3 703 pages CANDIDATES avec un lien reel demontre, mesure de
+  performance faite (echantillon, 0/10 au-dessus du budget) -- volume NON discute avec le
+  proprietaire du produit dans cette passe, candidat explicite pour un palier 2
+mit-buchstaben (avec) : 6 861 combinaisons ont un lien reel mais EPARPILLE (chaque combo
+  liee SEULEMENT par les mots ayant EXACTEMENT ces lettres comme leurs 3 premieres distinctes
+  triees) -- pas un entonnoir propre par palier comme D-029/D-030/D-031 cote francais,
+  explicitement exclu par la tache recue, a mesurer plus finement avant un futur palier
+enthalten/ohne/muster : fermees en PERMANENCE (App\Seo\Family::NEVER_SITEMAP) -- requete
+  sans ancrage fonctionnellement equivalente a un parcours de table complet des qu'aucune
+  longueur/prefixe/suffixe n'est presente
+position : 0 lien entrant reel (relatedSearches() n'emet aucun lien vers cette famille)
+```
+
+Raison :
+
+```text
+discipline mesure-avant-ouverture identique au site francais (D-024/D-025/D-029 a D-031) :
+  jamais ouvrir une famille sans maillage entrant REEL verifie (pas suppose depuis un seul
+  point d'entree), jamais de lot complet sans discussion de volume tracee
+```
+
+Conséquences :
+
+```text
+scripts/apply_seo_batch.php (R4b etendu), scripts/build_sitemaps.php (+2 prefixes, 2
+  commentaires perimes corriges), scripts/seo-batches/start-end-single-letter-2026-08-29.php
+  (nouveau, 484 lignes), tests/Seo/BuildScriptsTest.php (+4 cas)
+storage/seo_de.sqlite : 590 871 -> 591 355 lignes (+484)
+public/sitemaps/starts-0001.xml (29 URL), ends-0001.xml (455 URL), sitemap-index.xml
+  (17 -> 19 fragments), public/robots.txt et docs/05_URL_SEO_INDEXATION.md resynchronises
+  (D-DE-015/D-DE-016 n'y etaient pas encore refletes -- trouve en marge, corrige)
+php tests/run.php = 20/21 (echec pre-existant WordListViewTest, sans rapport, inchange)
+Commit phase-de-040-start-end-single-letter-rollout (1e17e99), pousse sur origin/master
+Reste a mesurer avant un palier 2 : beginnend-mit 3 lettres (volume a discuter),
+  mit-buchstaben (entonnoir propre a construire, list_counts a peupler par data-engine),
+  longueur+beginnend-mit (bloque tant que list_counts reste vide)
+```
+
