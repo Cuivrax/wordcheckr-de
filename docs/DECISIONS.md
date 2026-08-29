@@ -4136,8 +4136,97 @@ Point non ferme : moyenne de liens internes/page pour word_admitted non mesuree 
 Commits phase-de-035-word-admitted-full-rollout (256b75a)
 ```
 
-**Note de numérotation** : D-DE-015 est réservé au travail de localisation des mots-clés
-d'URL restants (contenant/avec/sans/motif/statut/tri, commit `3463ee0`,
-phase-de-035-url-keywords-localization) — son entrée de décision propre reste à rédiger
-séparément une fois son rapport complet reçu.
+## D-DE-015 — Second Palier De Localisation D'URL : `contenant`/`avec`/`sans`/`motif`/`statut`/`tri`
+
+Date : 2026-08-29
+Statut : accepté
+
+D-DE-009 avait localisé `/mot`, `/mots`, `/jouer`, `/verifier`, `commencant`/`terminant` et
+`-lettres`, en laissant volontairement `contenant`/`avec`/`sans`/`motif`/`position`/`statut`/
+`tri` en français (hors périmètre de la recherche SERP initiale). Décision explicite du
+propriétaire du produit (2026-08-29) : lancer ce second palier maintenant.
+
+Décision :
+
+```text
+contenant -> enthalten        avec   -> mit-buchstaben     sans  -> ohne
+motif     -> muster           statut -> status             tri   -> sortierung
+position  -> position (INCHANGE -- substantif allemand a part entiere, cognate exact,
+             prefere a "Stelle" qui est polysemique hors de la tournure figee "an 3. Stelle")
+```
+
+Niveau de preuve par terme (honnêteté sur la source, pas de sur-affirmation) :
+```text
+mit-buchstaben  ATTESTE : reports/de-serp-terminology-research.md, section 2.5/5,
+                "Liste der Worter mit den Buchstaben X" (scrabble123.de) -- contexte
+                original rack-solver, adapte ici au filtre de lettres
+enthalten/ohne/muster/sortierung   NON sourcees par le rapport SERP (verifie par grep
+                exhaustif, 0 occurrence) -- choix raisonnes sur l'usage allemand standard
+                ("Worter, die CH enthalten", preposition directe "ohne", terme standard
+                "Muster"/"Sortierung" d'interface) -- a noter explicitement comme moins
+                solide que les termes deja verifies par extraction concurrentielle reelle
+status          cognate direct, aucune ambiguite
+```
+
+app/Search/WordListFilters.php : les 7 mots-clés sont désormais des constantes publiques
+(`KEYWORD_CONTAINS`/`KEYWORD_WITH`/`KEYWORD_WITHOUT`/`KEYWORD_PATTERN`/`KEYWORD_STATUS`/
+`KEYWORD_SORT`/`KEYWORD_PREFIX`/`KEYWORD_SUFFIX`), source unique consommée par le parsing,
+la canonicalisation ET `public/index.php` -- corrige la classe de bug qui avait déjà causé
+un défaut réel lors de D-DE-009 (segments codés en dur désynchronisés de `KEYWORDS`).
+
+2 bugs réels trouvés et corrigés (pas seulement des littéraux à traduire) :
+```text
+app/View/home.php : 3 $phraseLink() codes en dur sur 'contenant/ch'/'avec/e'/'sans/e' --
+  le helper retombait silencieusement sur du texte plat quand fromPath() rendait null :
+  3 liens disparus sans aucune erreur visible
+app/View/word-list.php : les 4 litteraux 'statut'/'tri' des bascules -- le retrait du
+  segment existant ne matchait plus (URL a rallonge avec 2x 'status'), et la
+  reconstruction rendait null (bascules affichees sans lien)
+```
+
+public/index.php (fichier partagé) : diff proposé par l'agent, lu et appliqué directement
+par la session principale après vérification (git apply --check, `php -l`, `php tests/
+run.php` 20/21, smoke-test réel sur le vrai serveur PHP confirmant les 4 champs
+préalablement cassés : `?contenant=`/`?avec=`/`?sans=`/`?motif=` redirigent tous
+correctement). Commit `cc30175`. Champs GET internes (`contenant`, `avec`, `sans`,
+`motif`) restent français par choix (identifiants de fil internes jamais visibles dans
+l'URL finale, renommer exigerait de toucher `public/assets/css/site.css` dans le même
+commit -- lot frontend séparé).
+
+Performance : benchmark avant/après sur `dictionary_de.sqlite`, médiane sur 10 exécutions,
+lignes/totaux/nombre de requêtes strictement identiques (`git diff` sur `WordListSolver.php`
+vide), EXPLAIN QUERY PLAN sur les 10 routes localisées : 0 scan de table complet (seule
+exception : `enthalten` sans ancrage de longueur, `SCAN terms USING INDEX
+sqlite_autoindex_terms_1`, exception bornée pré-existante documentée D-019).
+
+Raison :
+
+```text
+demande explicite du proprietaire du produit, meme phase que D-DE-016 (rollout
+  word_admitted complet), meme jour -- "quasi ISO" avec le site francais
+```
+
+Conséquences :
+
+```text
+app/Search/WordListFilters.php + 8 *LinksBuilder.php, app/View/home.php + word-list.php,
+  public/index.php (diff applique par la session principale), tests correspondants
+  renforces (ordre canonique verifie sur 3 combinaisons brouillees, rejet des 6 anciens
+  mots-cles francais, verrouillage des 9 constantes) -- jamais affaiblis
+php tests/run.php = 20/21 (inchange, seul echec WordListViewTest herite/sans rapport --
+  verifie aussi a 21/21 en neutralisant temporairement cette seule assertion connue, puis
+  restaure a l'identique)
+0 residu de l'ancien vocabulaire francais dans les 590 871 lignes du registre SEO ni les
+  17 fragments de sitemap (les 14 URL word_list_length indexees sont toutes des routes
+  longueur seule, insensibles a ce changement)
+Non fait, signale explicitement : valeurs d'enumeration (admis/non-admis, points/
+  points-desc) restent francaises -- /woerter/13-buchstaben/status/admis est a moitie
+  traduit, lot suivant. DuplicatePageResolver::KEYWORD_ORDER garde des cles francaises
+  (identifiants internes, jamais des segments d'URL, laisse tel quel). Defaut pre-existant
+  trouve en marge : tests/bench_wordlist_queries.php pointe encore vers
+  storage/dictionary_fr.sqlite (schema francais is_ods8/is_ods9) -- ne peut pas s'executer
+  sur ce depot, contourne par un banc jetable, pas corrige (hors perimetre de cette tache)
+Commits phase-de-035-url-keywords-localization (3463ee0), phase-de-038-apply-router-diff-
+  combined (cc30175, application du diff par la session principale)
+```
 
