@@ -4,7 +4,13 @@
   <loc>https://www.wordcheckr.de/sitemaps/core-0001.xml</loc>
  </sitemap>
  <sitemap>
+  <loc>https://www.wordcheckr.de/sitemaps/ends-0001.xml</loc>
+ </sitemap>
+ <sitemap>
   <loc>https://www.wordcheckr.de/sitemaps/letters-0001.xml</loc>
+ </sitemap>
+ <sitemap>
+  <loc>https://www.wordcheckr.de/sitemaps/starts-0001.xml</loc>
  </sitemap>
  <sitemap>
   <loc>https://www.wordcheckr.de/sitemaps/words-0001.xml</loc>

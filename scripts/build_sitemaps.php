@@ -75,18 +75,28 @@ function encodeRoutePath(string $routePath): string
  * @var array<string, string>
  */
 const FAMILY_FRAGMENT_PREFIXES = [
-    // home (racine '/' + hub de navigation '/woerter') : 2 pages au total, D-DE-013.
+    // home (racine '/' + hub de navigation '/woerter') : 1 page a ce stade ('/' seul, le hub
+    // reste noindex,follow -- D-DE-013 point 5, list_counts vide), D-DE-013.
     'home' => 'core',
     // word_admitted (/wort/{mot}, mots admis enz/german-wordlist + hippler/german-wordlist) :
-    // D-DE-013.
+    // 590 856 URL, D-DE-016.
     'word_admitted' => 'words',
-    // word_list_length (/woerter/{N}-buchstaben) : SEULEMENT 7 et 9 buchstaben, D-DE-013 --
-    // les 12 autres longueurs restent noindex,follow (aucun lien entrant reel demontre tant
-    // que list_counts reste vide).
+    // word_list_length (/woerter/{N}-buchstaben) : les 14 longueurs (2 a 15), D-DE-013
+    // (correction du plan initial qui n'en anticipait que 2 -- CHAQUE fiche de mot admis lie
+    // inconditionnellement sa propre page de longueur, App\Search\RelationsFinder::
+    // relatedSearches(), verifie en direct).
     'word_list_length' => 'letters',
-    // rack, contenant/avec/sans/motif, et toute famille beginnend-mit/endend-mit/position/
-    // combined future : absents volontairement -- soit App\Seo\Family::NEVER_SITEMAP (jamais
-    // de prefixe), soit non encore ouverts (D-DE-013).
+    // word_list_commencant (/woerter/beginnend-mit/{lettre}) : palier 1 lettre unique, 29
+    // lettres (alphabet allemand + AOU), D-DE-017.
+    'word_list_commencant' => 'starts',
+    // word_list_terminant (/woerter/endend-mit/{2 lettres}) : palier 2 lettres (PAS 1 lettre --
+    // voir docs/DECISIONS.md D-DE-017 pour la raison mesuree : App\Search\RelationsFinder::
+    // relatedSearches() n'emet jamais de suffixe a 1 seule lettre, seulement 2, la longueur
+    // MIN_LENGTH=2 rendant mb_substr($word, -min(2,$length)) toujours egal a 2).
+    'word_list_terminant' => 'ends',
+    // rack, enthalten/mit-buchstaben/ohne/muster, et toute famille beginnend-mit/endend-mit
+    // combinee/position future : absents volontairement -- soit App\Seo\Family::NEVER_SITEMAP
+    // (jamais de prefixe), soit non encore ouverts (D-DE-017).
 ];
 
 $baseUrl = null;

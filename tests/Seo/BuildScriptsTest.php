@@ -98,11 +98,30 @@ return function (): void {
                 'result_count' => 83825,
                 'notes' => 'echtes internes Linking von der Startseite (app/View/home.php)',
             ],
+            // D-DE-017 : formes valides pour word_list_commencant/word_list_terminant --
+            // meme regle R4b que word_list_length ci-dessus, verifiee ici pour les deux
+            // nouvelles familles couvertes par familySeoBatchRouteShapeError().
+            [
+                'route_path' => '/woerter/beginnend-mit/a',
+                'family' => 'word_list_commencant',
+                'robots' => 'index,follow',
+                'sitemap_fragment' => 'starts-0001',
+                'result_count' => 67727,
+                'notes' => 'echtes internes Linking via RelationsFinder::relatedSearches() (D-DE-017)',
+            ],
+            [
+                'route_path' => '/woerter/endend-mit/en',
+                'family' => 'word_list_terminant',
+                'robots' => 'index,follow',
+                'sitemap_fragment' => 'ends-0001',
+                'result_count' => 10000,
+                'notes' => 'echtes internes Linking via RelationsFinder::relatedSearches() (D-DE-017)',
+            ],
         ]);
 
         [$exitCode, $stdout] = $run('apply_seo_batch.php', [$goodBatch]);
         Assert::same(0, $exitCode, "lot valide refuse a tort : {$stdout}");
-        Assert::true(str_contains($stdout, '3 ligne(s)'));
+        Assert::true(str_contains($stdout, '5 ligne(s)'));
 
         // --- R5 : resultat vide jamais indexable. Route_path bien formee pour sa famille. ---
         $emptyResultBatch = $tmpDir . '/empty_result_batch.php';
@@ -169,6 +188,42 @@ return function (): void {
         Assert::true($exitCode !== 0, 'R4b aurait du refuser un ancien segment francais');
         Assert::true(str_contains($stderr, 'R4'));
 
+        // --- R4b (D-DE-017) : forme word_list_commencant etrangere a sa grammaire (segment
+        // francais residuel "commencant", jamais "beginnend-mit"). ---
+        $commencantShapeBatch = $tmpDir . '/commencant_shape_batch.php';
+        $writeBatch($commencantShapeBatch, [
+            [
+                'route_path' => '/woerter/commencant/a',
+                'family' => 'word_list_commencant',
+                'robots' => 'index,follow',
+                'sitemap_fragment' => 'starts-0001',
+                'result_count' => 10,
+                'notes' => 'ne doit jamais passer -- ancien segment francais',
+            ],
+        ], 'bad-r4b-commencant-shape');
+
+        [$exitCode, , $stderr] = $run('apply_seo_batch.php', [$commencantShapeBatch]);
+        Assert::true($exitCode !== 0, 'R4b aurait du refuser un segment francais pour word_list_commencant');
+        Assert::true(str_contains($stderr, 'R4'));
+
+        // --- R4b (D-DE-017) : forme word_list_terminant etrangere a sa grammaire (chemin
+        // /woerter manquant). ---
+        $terminantShapeBatch = $tmpDir . '/terminant_shape_batch.php';
+        $writeBatch($terminantShapeBatch, [
+            [
+                'route_path' => '/endend-mit/en',
+                'family' => 'word_list_terminant',
+                'robots' => 'index,follow',
+                'sitemap_fragment' => 'ends-0001',
+                'result_count' => 10,
+                'notes' => 'ne doit jamais passer -- prefixe /woerter manquant',
+            ],
+        ], 'bad-r4b-terminant-shape');
+
+        [$exitCode, , $stderr] = $run('apply_seo_batch.php', [$terminantShapeBatch]);
+        Assert::true($exitCode !== 0, 'R4b aurait du refuser une forme sans prefixe /woerter pour word_list_terminant');
+        Assert::true(str_contains($stderr, 'R4'));
+
         // --- R3 : alias indexable (canonical different de route_path). ---
         $aliasBatch = $tmpDir . '/alias_batch.php';
         $writeBatch($aliasBatch, [
@@ -203,7 +258,7 @@ return function (): void {
         // --- Verifie qu'aucun des lots refuses n'a laisse de trace (transaction unique). ---
         $pdo = new PDO('sqlite:' . $dbPath, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
         $count = $pdo->query('SELECT COUNT(*) c FROM registry')->fetch()['c'];
-        Assert::same(3, (int) $count, 'seul le lot valide (3 lignes : home "/" + hub "/woerter" + word_list_length) doit rester en base');
+        Assert::same(5, (int) $count, 'seul le lot valide (5 lignes : home "/" + hub "/woerter" + word_list_length + word_list_commencant + word_list_terminant) doit rester en base');
         unset($pdo);
 
         // --- build_sitemaps.php : fragments generes avec le bon prefixe par famille. ---
@@ -211,6 +266,8 @@ return function (): void {
         Assert::same(0, $exitCode, "build_sitemaps.php aurait du reussir : {$stdout}");
         Assert::true(is_file($publicDir . '/sitemaps/core-0001.xml'));
         Assert::true(is_file($publicDir . '/sitemaps/letters-0001.xml'));
+        Assert::true(is_file($publicDir . '/sitemaps/starts-0001.xml'));
+        Assert::true(is_file($publicDir . '/sitemaps/ends-0001.xml'));
         Assert::true(is_file($publicDir . '/sitemap-index.xml'));
 
         $coreFragment = file_get_contents($publicDir . '/sitemaps/core-0001.xml');
@@ -220,9 +277,17 @@ return function (): void {
         $lettersFragment = file_get_contents($publicDir . '/sitemaps/letters-0001.xml');
         Assert::true(str_contains($lettersFragment, 'https://exemple-test.invalid/woerter/9-buchstaben'));
 
+        $startsFragment = file_get_contents($publicDir . '/sitemaps/starts-0001.xml');
+        Assert::true(str_contains($startsFragment, 'https://exemple-test.invalid/woerter/beginnend-mit/a'));
+
+        $endsFragment = file_get_contents($publicDir . '/sitemaps/ends-0001.xml');
+        Assert::true(str_contains($endsFragment, 'https://exemple-test.invalid/woerter/endend-mit/en'));
+
         $index = file_get_contents($publicDir . '/sitemap-index.xml');
         Assert::true(str_contains($index, 'https://exemple-test.invalid/sitemaps/core-0001.xml'));
         Assert::true(str_contains($index, 'https://exemple-test.invalid/sitemaps/letters-0001.xml'));
+        Assert::true(str_contains($index, 'https://exemple-test.invalid/sitemaps/starts-0001.xml'));
+        Assert::true(str_contains($index, 'https://exemple-test.invalid/sitemaps/ends-0001.xml'));
 
         // --- build_sitemaps.php sans --base-url : refuse plutot que publier un domaine faux. ---
         [$exitCode, , $stderr] = $run('build_sitemaps.php');

@@ -359,11 +359,12 @@ Les tris et paramètres ne sont pas indexables.
 # Section Allemande
 
 État réel de CE dépôt (indépendant du site français ci-dessus), mis à jour le 2026-08-29
-(D-DE-013). Toutes les règles génériques ci-dessus (registre unique, ordre canonique, règle
-"pages à un résultat", limite de 40 000 URL/fragment, pagination) s'appliquent telles quelles ;
-seules les routes concrètes et les familles réellement peuplées diffèrent.
+(D-DE-017, dernier palier appliqué — historique complet D-DE-013 → D-DE-017). Toutes les règles
+génériques ci-dessus (registre unique, ordre canonique, règle "pages à un résultat", limite de
+40 000 URL/fragment, pagination) s'appliquent telles quelles ; seules les routes concrètes et
+les familles réellement peuplées diffèrent.
 
-## Routes Réelles (D-DE-009)
+## Routes Réelles (D-DE-009, mots-clés localisés en second palier par D-DE-015)
 
 ```text
 /
@@ -376,30 +377,35 @@ seules les routes concrètes et les familles réellement peuplées diffèrent.
 /woerter/beginnend-mit/ch
 /woerter/7-buchstaben/beginnend-mit/ch
 /woerter/endend-mit/ung
-/woerter/contenant/sch
-/woerter/avec/a/a/r
-/woerter/5-buchstaben/motif/c--e-
+/woerter/enthalten/sch
+/woerter/mit-buchstaben/a/a/r
+/woerter/5-buchstaben/muster/c--e-
 ```
 
-`contenant`/`avec`/`sans`/`motif`/`statut`/`tri`/`position`/`page` restent volontairement en
-français (D-DE-009) : hors périmètre de la recherche concurrentielle qui a localisé le reste,
-et de toute façon jamais indexés (`contenant`/`avec`/`sans`/`motif` restent dans
-`App\Seo\Family::NEVER_SITEMAP` en permanence ; `statut`/`tri`/`position` sont des raffinements
-d'affichage).
+Les 7 mots-clés restants (`contenant`→`enthalten`, `avec`→`mit-buchstaben`, `sans`→`ohne`,
+`motif`→`muster`, `statut`→`status`, `tri`→`sortierung`, `position` inchangé — cognate allemand)
+ont été localisés par D-DE-015 ; plus aucun segment français dans le schéma d'URL. Les VALEURS
+d'énumération (`admis`/`non-admis`, `points`/`points-desc`) restent volontairement françaises
+(lot suivant, non fait, signalé D-DE-015). `enthalten`/`mit-buchstaben`/`ohne`/`muster` restent
+dans `App\Seo\Family::NEVER_SITEMAP` en permanence (combinaisons non bornées) ; `status`/
+`sortierung`/`position` sont des raffinements d'affichage ou exigent toujours une longueur
+explicite.
 
 ## Ordre Canonique
 
-Identique à l'ordre générique ci-dessus, mots-clés localisés :
+Identique à l'ordre générique ci-dessus, mots-clés localisés (D-DE-009, D-DE-015) :
 
 ```text
 longueur (N-buchstaben)
 beginnend-mit
-contenant
+enthalten
 endend-mit
 position
-avec
-sans
-motif
+mit-buchstaben
+ohne
+muster
+status
+sortierung
 ```
 
 ## Modèle À Statuts (différence structurelle avec le dépôt français)
@@ -410,63 +416,95 @@ seulement : `is_admitted` / inconnu). `App\Seo\Family` n'a donc aucune constante
 `WORD_FRENCH_NOT_ADMITTED`/`WORD_SPANISH_NOT_ADMITTED` des dépôts cousins — à ajouter le jour où
 une source réelle existera, jamais avant (voir `app/Seo/Family.php`).
 
-## Familles Réellement Peuplées (D-DE-013)
+## Familles Réellement Peuplées (D-DE-013, D-DE-016, D-DE-017)
 
 ```text
-home              '/' uniquement (PAS '/woerter' -- voir plus bas)
-word_list_length  /woerter/{N}-buchstaben, les 14 longueurs (2 à 15)
-```
-
-`word_admitted` (590 856 pages potentielles, `/wort/{mot}`) reste **entièrement noindex,follow**
-à ce stade — deux blocages distincts, aucun des deux un simple oubli :
-
-```text
-1. app/View/word.php : le gabarit <title> dépasse 60 caractères pour 100% des mots admis
-   (mesure exhaustive, pas un échantillon), 70 caractères pour 64% d'entre eux -- hors
-   périmètre de l'agent seo-registry (app/View/), signalé à l'agent frontend.
-2. Contrainte de rôle dure ("never propose indexing an entire word family at once without
-   discussing batch size first") -- aucune décision de dimensionnement de lot n'a encore été
-   prise par le propriétaire du produit pour cette famille (contrairement à D-017 côté dépôt
-   français, décision explicite et documentée). scripts/apply_word_admitted_rollout.php est prêt
-   (testé en --dry-run, règles R1/R3/R4/R5/R7 appliquées mécaniquement par assertRow(), refuse
-   d'écrire au-delà d'un plafond de sécurité sans --confirm-full-rollout) mais n'a pas encore
-   été exécuté contre storage/seo_de.sqlite.
+home                   '/' uniquement (PAS '/woerter' -- voir plus bas)
+word_admitted          /wort/{mot}, intégralité, 590 856 pages (D-DE-016)
+word_list_length       /woerter/{N}-buchstaben, les 14 longueurs (2 à 15) (D-DE-013)
+word_list_commencant   /woerter/beginnend-mit/{lettre}, 1 lettre, 29 pages (D-DE-017)
+word_list_terminant    /woerter/endend-mit/{lettres}, 2 lettres, 455 pages RÉALISÉES sur 841
+                        combinaisons théoriques (D-DE-017 -- PAS 1 lettre, voir "Maillage
+                        Interne Vérifié" ci-dessous pour la raison mesurée)
 ```
 
 `/woerter` (hub) reste **noindex,follow** : `list_counts` est vide sur ce dépôt (même décision
 que côté espagnol cousin) — les trois sections de grille ("Nach Länge"/"Beginnend
 Mit"/"Endend Mit") rendent `<div class="related-links"></div>` strictement vide, vérifié en
-direct (`curl` contre un vrai serveur `php -S`), pas seulement en lisant le code. Seuls les
-formulaires "Enthält"/"Prüfen" et le texte d'introduction constituent un contenu réel — jugé
-insuffisant pour indexer une page dont les trois quarts du contenu annoncé sont vides.
+direct (`curl`/`file_get_contents` contre un vrai serveur `php -S`), pas seulement en lisant le
+code. Seuls les formulaires "Enthält"/"Prüfen" et le texte d'introduction constituent un contenu
+réel — jugé insuffisant pour indexer une page dont les trois quarts du contenu annoncé sont
+vides. Bloque aussi, par ricochet, tout maillage `list_counts`-dépendant (longueur+beginnend-mit
+combiné, beginnend-mit+endend-mit combiné, `App\Search\LengthLinksBuilder`,
+`StartEndWithLinksBuilder` et les autres `*LinksBuilder` hérités du dépôt français — tous
+produisent des sections vides tant que cette table reste à 0 ligne, hors périmètre de l'agent
+seo-registry, à router vers l'agent data-engine).
 
-## Maillage Interne Vérifié (D-DE-013)
+## Maillage Interne Vérifié (D-DE-013, affiné D-DE-017)
 
 `App\Search\RelationsFinder::relatedSearches()` émet, sur **chaque** fiche de mot admis
 (qu'elle soit elle-même indexée ou non — `noindex,follow` continue de faire suivre ses liens
-sortants), un lien vers `/woerter/{sa-longueur}-buchstaben` en première position (jamais évincé
-par `MAX_RELATED_SEARCHES = 12`) — vérifié en direct pour les 14 longueurs (2 à 15) sur un vrai
-serveur `php -S`, pas supposé depuis `app/View/home.php` seul. `app/View/home.php` ajoute en
-plus deux liens statiques (7 et 9 lettres) et un lien vers le hub.
+sortants) :
 
-La même fonction émet aussi, sur chaque fiche, un lien `beginnend-mit` (1 et, si longueur > 3,
-3 lettres), `endend-mit` (jusqu'à 2 lettres) et `{N}-buchstaben/avec/{jusqu'à 3 lettres}` — ces
-familles (`word_list_commencant`, `word_list_terminant`, variante longueur+avec de
-`word_list_avec`) restent **noindex,follow** dans ce lot : espace combinatoire non borné par un
-simple compte de lettres réel (contrairement à `word_list_length`), aucun balayage complet
-(`EXPLAIN QUERY PLAN` + TTFB sur TOUTES les combinaisons réelles, pas un échantillon) n'a été
-mené à ce stade. Un sondage borné (14 mots, ~40 URL cibles) le 2026-08-29 n'a trouvé aucun scan
-de table complet (`SEARCH ... USING INDEX`, jamais `SCAN`) et aucun temps de réponse au-dessus
-de 150 ms — signal favorable, PAS un balayage exhaustif au sens de D-024/D-025/D-029 à D-031
-côté dépôt français ; à mener par l'agent data-engine avant toute décision d'ouverture.
+```text
+length      1 lien vers /woerter/{sa-longueur}-buchstaben, toujours present, jamais evince
+startsWith  1 lien vers beginnend-mit/{1re lettre}, TOUJOURS present (word_list_commencant,
+            D-DE-017) ; +1 lien beginnend-mit/{3 premieres lettres} si longueur > 3 (candidat
+            mesure pour un palier 2, PAS applique ce lot -- 3703 pages, volume non discute)
+endsWith    1 lien vers endend-mit/{2 dernieres lettres}, TOUJOURS 2 lettres, JAMAIS 1 seule
+            (mb_substr($word, -min(2, $length)) avec Normalizer::MIN_LENGTH = 2 constant) --
+            consequence mesuree (D-DE-017) : sur les 29 pages endend-mit/{1 lettre}
+            possibles, UNE SEULE (endend-mit/s, lien statique app/View/home.php) a un lien
+            entrant reel -- les 28 autres seraient orphelines si ouvertes a 1 lettre, d'ou le
+            choix mesure d'ouvrir endend-mit a 2 lettres plutot qu'a 1 (asymetrie deliberee
+            avec beginnend-mit, PAS une erreur)
+with        1 lien vers {longueur}-buchstaben/mit-buchstaben/{jusqu'a 3 lettres distinctes
+            triees DU MOT LUI-MEME} -- maillage EPARPILLE (6861 combinaisons (longueur,lettres)
+            reellement liees, chacune par SEULEMENT les mots qui partagent EXACTEMENT cet
+            ensemble de lettres), pas un entonnoir propre par palier de nombre de lettres
+            (contrairement a D-029/D-030/D-031 cote depot francais) -- NE constitue PAS a lui
+            seul une justification d'ouverture, signale pour mesure plus fine avant tout palier
+            futur
+```
+
+`app/View/home.php` ajoute 3 liens statiques supplémentaires (`beginnend-mit/a`, `endend-mit/s`,
+`beginnend-mit/a/endend-mit/e`) — ce dernier est, à ce jour, le SEUL lien réel vers la famille
+combinée beginnend-mit+endend-mit (690 combinaisons réalisées, 689 orphelines si ouvertes).
+
+Balayage COMPLET (pas un échantillon) mené le 2026-08-29 (D-DE-017) sur les deux familles
+ouvertes par ce lot :
+
+```text
+beginnend-mit (29/29 lettres)             0/29 au-dessus de 250 ms, p95 3,27 ms, max 5,21 ms
+                                           EXPLAIN QUERY PLAN : SEARCH ... COVERING INDEX
+                                           sqlite_autoindex_terms_1, jamais SCAN
+endend-mit (455/455 suffixes réalisés)    0/455 au-dessus de 250 ms, p95 30,38 ms, max 84,22 ms
+                                           EXPLAIN QUERY PLAN : SEARCH ... COVERING INDEX
+                                           idx_terms_reversed, jamais SCAN
+                                           12/455 pages TRONQUÉES (résultat réel > 10 000,
+                                           WordListSolver::ROW_EXAMINATION_CEILING) -- compte
+                                           affiché honnête ("Mindestens 10 000... pas garanti
+                                           complet au-delà"), même précédent accepté côté
+                                           français D-028bis/D-029, pas un défaut nouveau
+```
+
+Le sondage borné antérieur (14 mots, ~40 URL cibles, D-DE-013 point 8 ; étendu à 36 cibles lors
+de l'ouverture de `word_admitted`, D-DE-016) reste la seule mesure disponible pour `enthalten`,
+`mit-buchstaben` à 2/3 lettres, `ohne`, `muster` et `position` — favorable mais **pas** un
+balayage exhaustif au sens de D-024/D-025/D-029 à D-031 côté dépôt français ; à mener par
+l'agent data-engine avant toute décision d'ouverture de ces familles.
 
 ## Sitemaps Réellement Générés
 
 ```text
 core-0001.xml     1 URL ('/')
+words-0001..0015  590 856 URL (/wort/{mot}, 14 fragments à 40 000 + 1 à 30 856)
 letters-0001.xml  14 URL (/woerter/{N}-buchstaben)
+starts-0001.xml   29 URL (/woerter/beginnend-mit/{lettre})
+ends-0001.xml     455 URL (/woerter/endend-mit/{2 lettres})
 ```
 
-Préfixes réservés mais non générés à ce stade : `words-*` (word_admitted, en attente des deux
-blocages ci-dessus), `starts-*`/`ends-*`/`contains-*`/`combined-*`/`position-*`/`avec-*` (aucune
-famille correspondante mesurée ni ouverte sur ce dépôt).
+19 fragments, 591 355 URL au total (2026-08-29). Préfixes réservés mais non générés à ce
+stade : `contains-*`/`combined-*`/`position-*`/`avec-*`/`avec-single-*` (aucune famille
+correspondante mesurée assez finement ni ouverte sur ce dépôt — voir "Maillage Interne Vérifié"
+ci-dessus pour ce qui reste à mesurer).

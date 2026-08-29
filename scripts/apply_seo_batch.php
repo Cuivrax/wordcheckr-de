@@ -65,15 +65,20 @@ declare(strict_types=1);
  *       R4b pour chaque famille COUVERTE par familySeoBatchRouteShapeError() (voir plus bas),
  *           route_path doit correspondre EXACTEMENT à la grammaire de cette famille --
  *           App\Search\WordListFilters::canonicalPath() est la source de vérité de cette
- *           grammaire pour word_list_length. Une ligne dont la forme ne correspond pas à sa
- *           famille déclarée est refusée À L'ÉCRITURE, pas seulement documentée en prose.
- *           Familles couvertes à ce stade : home, word_list_length. Familles NON couvertes,
- *           documentées plutôt qu'oubliées : word_admitted (des centaines de milliers de
- *           lignes potentielles, grammaire du slug dérivée de App\Search\Normalizer plutôt que
- *           de WordListFilters) et toutes les familles combinatoires non encore mesurées sur
- *           ce dépôt (rack déjà bloquée à la racine par R4a) -- à instruire séparément si un
- *           futur lot le justifie, même discipline que les dépôts français/espagnol (voir leur
- *           docblock équivalent).
+ *           grammaire pour word_list_length/word_list_commencant/word_list_terminant. Une
+ *           ligne dont la forme ne correspond pas à sa famille déclarée est refusée À
+ *           L'ÉCRITURE, pas seulement documentée en prose.
+ *           Familles couvertes à ce stade : home, word_list_length, word_list_commencant
+ *           (docs/DECISIONS.md D-DE-017 : palier 1 lettre unique, "/woerter/beginnend-mit/
+ *           {lettres}" — la forme couvre tout suite de lettres, pas seulement 1, la famille
+ *           n'est pas restreinte à la portée d'un seul lot), word_list_terminant (D-DE-017 :
+ *           palier 2 lettres, "/woerter/endend-mit/{lettres}", même remarque). Familles NON
+ *           couvertes, documentées plutôt qu'oubliées : word_admitted (des centaines de
+ *           milliers de lignes potentielles, grammaire du slug dérivée de App\Search\Normalizer
+ *           plutôt que de WordListFilters) et toutes les familles combinatoires non encore
+ *           mesurées sur ce dépôt (rack déjà bloquée à la racine par R4a) -- à instruire
+ *           séparément si un futur lot le justifie, même discipline que les dépôts
+ *           français/espagnol (voir leur docblock équivalent).
  *   R5  result_count === 0 avec robots='index,follow' est refusé (page à résultat vide jamais
  *       indexable). result_count === 1 N'EST PAS refusé (docs/05 : jamais sur le seul compteur)
  *       -- seulement compté séparément dans le rapport imprimé par ce script.
@@ -125,6 +130,22 @@ function familySeoBatchRouteShapeError(string $family, string $routePath): ?stri
             return preg_match('#^/woerter/\d{1,2}-buchstaben\z#', $routePath) === 1
                 ? null
                 : "forme attendue '/woerter/{N}-buchstaben'";
+
+        case Family::WORD_LIST_COMMENCANT:
+            // Grammaire de la famille entiere (toute suite de 1+ lettres A-ZAOU, docs/05,
+            // App\Search\WordListFilters::KEYWORD_PREFIX/canonicalPath()) -- PAS restreinte a
+            // la portee du lot D-DE-017 (1 lettre uniquement) : une regle de FORME valide la
+            // grammaire de la famille, jamais la portee d'un lot particulier (meme principe que
+            // word_list_length, qui accepte les 14 longueurs alors qu'un lot donne peut n'en
+            // appliquer qu'une partie).
+            return preg_match('#^/woerter/beginnend-mit/[a-zäöü]+\z#u', $routePath) === 1
+                ? null
+                : "forme attendue '/woerter/beginnend-mit/{lettres}'";
+
+        case Family::WORD_LIST_TERMINANT:
+            return preg_match('#^/woerter/endend-mit/[a-zäöü]+\z#u', $routePath) === 1
+                ? null
+                : "forme attendue '/woerter/endend-mit/{lettres}'";
 
         default:
             // Famille non couverte par ce durcissement (word_admitted, rack, ou toute famille
