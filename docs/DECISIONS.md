@@ -5016,3 +5016,64 @@ Le funnel commencant est desormais 1+2+3 lettres COMPLET, le funnel terminant 1+
   COMPLET -- iso avec le depot francais (D-029 a D-033 equivalent).
 ```
 
+## D-DE-025 — Valeurs D'Énumération `status`/`sortierung` Traduites En Allemand
+
+Date : 2026-08-30
+Statut : accepté
+
+Contexte : demande produit explicite ("Valeurs d'énumeration statut/tri encore en français").
+Les MOTS-CLÉS d'URL (`status`, `sortierung`) étaient déjà en allemand depuis D-DE-015 ; seules
+les VALEURS internes de ces deux filtres restaient en français (`admis`/`non-admis`,
+`points`/`points-desc`), héritées telles quelles du dépôt source. Ce sont de vrais boutons de
+bascule cliquables sur `app/View/word-list.php` (jamais des URL SEO indexées — confirmé par
+grep de `scripts/seo-batches/*.php`, zéro occurrence de `status/admis` ou équivalent), donc
+aucune redirection 301 n'était nécessaire pour le renommage.
+
+Décision :
+
+```text
+WordListFilters::STATUS_VALUES  ['admis', 'non-admis'] -> ['gueltig', 'nicht-gueltig']
+WordListFilters::SORT_VALUES    ['points', 'points-desc'] -> ['punkte', 'punkte-absteigend']
+```
+
+Vocabulaire retenu : celui déjà en production sur les pastilles de statut de `app/View/word.php`
+("Gültig" / "Nicht Gültig", sourcé de `reports/de-serp-terminology-research.md`, explicitement
+PAS "zulässig") — pas un nouveau choix, une simple cohérence avec l'existant.
+
+Fichiers touchés : `app/Search/WordListFilters.php` (constantes + docblocks),
+`app/Search/WordListSolver.php` (comparaisons `match`/`===` sur les 2 filtres, 4 sites
+d'usage), `app/View/word-list.php` (4 URL de bascule réelles), `public/index.php` (commentaire
+de tête). `app/Search/TermPage.php` vérifié : aucun usage réel de ces valeurs (le mot "admis"
+n'y apparaît que dans un sens non lié), non modifié.
+
+Vérifications faites :
+
+```text
+php -l sur tous les fichiers touches : propre.
+Verifie en direct (php -S 127.0.0.1:8091) : /woerter/7-buchstaben/status/gueltig -> 200 ;
+  boutons de bascule sur /woerter/7-buchstaben rendent bien href=".../status/gueltig",
+  ".../status/nicht-gueltig", ".../sortierung/punkte", ".../sortierung/punkte-absteigend".
+php tests/run.php = 20/21 (meme echec pre-existant WordListViewTest, D-DE-011, sans rapport)
+  -- 3 tests re-casses par le renommage (WordListViewTest, WordListFiltersTest,
+  WordListSolverTest, litteraux `admis`/`points` en dur) corriges pour reflechir le nouveau
+  vocabulaire, suite revenue a la base-line connue.
+```
+
+Raison :
+
+```text
+demande produit explicite (2026-08-30) -- dernier morceau de vocabulaire francais restant
+  dans la grammaire d'URL fonctionnelle du site, apres D-DE-015 (mots-cles) et D-DE-020
+  (noms de champ GET). Aucun impact SEO (jamais indexe), rename direct sans periode de
+  transition/redirection.
+```
+
+Conséquences :
+
+```text
+app/Search/WordListFilters.php, app/Search/WordListSolver.php, app/View/word-list.php,
+  public/index.php, tests/Frontend/WordListViewTest.php, tests/Search/WordListFiltersTest.php,
+  tests/Search/WordListSolverTest.php
+La grammaire d'URL fonctionnelle (mots-cles + valeurs) est desormais 100% allemande.
+```
+

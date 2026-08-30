@@ -18,8 +18,8 @@ use Tests\Support\Assert;
  * valeur figee) -- elles restent donc valides sans changement pour n'importe quelle
  * langue. Ce qui a du changer : is_ods8/is_ods9 -> is_admitted (schema.sql, un seul
  * lexique), et les MOTS/LETTRES choisis comme cas particuliers illustratifs (frequences
- * differentes en allemand -- ex. le prefixe le plus frequent est A, pas R). "status/non-
- * admis" renvoie desormais toujours 0 resultat (aucune source "reel mais non admis"
+ * differentes en allemand -- ex. le prefixe le plus frequent est A, pas R). "status/nicht-
+ * gueltig" renvoie desormais toujours 0 resultat (aucune source "reel mais non admis"
  * allemande cette passe, voir data/raw/PROVENANCE.md) -- verifie explicitement comme un
  * comportement attendu, pas une regression.
  */
@@ -350,30 +350,30 @@ return function (): void {
 
     // --- Statut, regime EXACT (longueur seule) : is_admitted precalcule, verifie par force
     // --- brute. ADAPTATION ALLEMANDE : toute ligne est is_admitted = 1 cette passe (source
-    // --- unique) -- "status/admis" doit donc egaler le total de la longueur, et
-    // --- "status/non-admis" doit toujours renvoyer 0 (comportement attendu, pas une
+    // --- unique) -- "status/gueltig" doit donc egaler le total de la longueur, et
+    // --- "status/nicht-gueltig" doit toujours renvoyer 0 (comportement attendu, pas une
     // --- regression -- voir data/raw/PROVENANCE.md). ---
-    $admittedOnly = $solver->solve('9-buchstaben/status/admis');
+    $admittedOnly = $solver->solve('9-buchstaben/status/gueltig');
     Assert::notNull($admittedOnly);
     Assert::true($admittedOnly->exact);
     Assert::same(2, $admittedOnly->queryCount, 'regime EXACT : is_admitted est un predicat de plus dans la meme clause WHERE, toujours 2 requetes');
     $expectedAdmitted9 = (int) $pdo->query('SELECT COUNT(*) c FROM terms WHERE length = 9 AND is_admitted = 1')->fetch()['c'];
     Assert::same($expectedAdmitted9, $admittedOnly->total);
     $expectedLength9Total = (int) $pdo->query('SELECT COUNT(*) c FROM terms WHERE length = 9')->fetch()['c'];
-    Assert::same($expectedLength9Total, $expectedAdmitted9, 'ADAPTATION ALLEMANDE : source unique, statut/admis egale toujours le total de la longueur');
+    Assert::same($expectedLength9Total, $expectedAdmitted9, 'ADAPTATION ALLEMANDE : source unique, statut/gueltig egale toujours le total de la longueur');
     foreach ($admittedOnly->items as $item) {
         Assert::same(9, $item['length']);
         Assert::same('admitted', $item['status']);
     }
 
-    $notAdmittedOnly = $solver->solve('9-buchstaben/status/non-admis');
+    $notAdmittedOnly = $solver->solve('9-buchstaben/status/nicht-gueltig');
     Assert::notNull($notAdmittedOnly);
-    Assert::same(0, $notAdmittedOnly->total, 'ADAPTATION ALLEMANDE : aucune forme "reelle mais non admise" cette passe, statut/non-admis renvoie toujours 0 (comportement attendu)');
+    Assert::same(0, $notAdmittedOnly->total, 'ADAPTATION ALLEMANDE : aucune forme "reelle mais non admise" cette passe, statut/nicht-gueltig renvoie toujours 0 (comportement attendu)');
     Assert::same([], $notAdmittedOnly->items);
 
     // --- Statut, regime BORNE (ancrage suffixe, verifie par force brute) : predicat
     // --- is_admitted ajoute au meme cout que les autres. ---
-    $boundedStatus = $solver->solve('endend-mit/tion/status/admis');
+    $boundedStatus = $solver->solve('endend-mit/tion/status/gueltig');
     Assert::notNull($boundedStatus);
     $expectedBoundedStatus = (int) $pdo->query("SELECT COUNT(*) c FROM terms WHERE normalized LIKE '%TION' AND is_admitted = 1")->fetch()['c'];
     Assert::true(!$boundedStatus->truncated, 'sanity check : panier "TION" + admis reste sous le plafond');
@@ -385,7 +385,7 @@ return function (): void {
 
     // --- Tri par points, regime EXACT : ordre croissant puis decroissant, verifie sur la
     // --- totalite de la longueur (pas seulement la page courante) via une requete separee. ---
-    $sortedAsc = $solver->solve('9-buchstaben/sortierung/points');
+    $sortedAsc = $solver->solve('9-buchstaben/sortierung/punkte');
     Assert::notNull($sortedAsc);
     Assert::true($sortedAsc->exact);
     for ($i = 1; $i < count($sortedAsc->items); $i++) {
@@ -394,7 +394,7 @@ return function (): void {
     $expectedFirstScore = (int) $pdo->query('SELECT MIN(score) c FROM terms WHERE length = 9')->fetch()['c'];
     Assert::same($expectedFirstScore, $sortedAsc->items[0]['score'], 'le premier mot de la page 1 doit porter le score minimal de la longueur');
 
-    $sortedDesc = $solver->solve('9-buchstaben/sortierung/points-desc');
+    $sortedDesc = $solver->solve('9-buchstaben/sortierung/punkte-absteigend');
     Assert::notNull($sortedDesc);
     for ($i = 1; $i < count($sortedDesc->items); $i++) {
         Assert::true($sortedDesc->items[$i - 1]['score'] >= $sortedDesc->items[$i]['score'], 'ordre decroissant par points attendu');
@@ -404,7 +404,7 @@ return function (): void {
 
     // --- Tri par points, regime BORNE (longueur + suffixe, ancrage reversed, tri PHP
     // --- applique sur le panier deja borne par ROW_EXAMINATION_CEILING) : meme verification. ---
-    $boundedSorted = $solver->solve('9-buchstaben/endend-mit/s/sortierung/points-desc');
+    $boundedSorted = $solver->solve('9-buchstaben/endend-mit/s/sortierung/punkte-absteigend');
     Assert::notNull($boundedSorted);
     for ($i = 1; $i < count($boundedSorted->items); $i++) {
         Assert::true($boundedSorted->items[$i - 1]['score'] >= $boundedSorted->items[$i]['score'], 'ordre decroissant par points attendu meme en regime BORNE');
@@ -415,7 +415,7 @@ return function (): void {
     }
 
     // --- Statut + tri combines : les deux raffinements s'appliquent ensemble sans interference. ---
-    $statusAndSort = $solver->solve('9-buchstaben/status/admis/sortierung/points-desc');
+    $statusAndSort = $solver->solve('9-buchstaben/status/gueltig/sortierung/punkte-absteigend');
     Assert::notNull($statusAndSort);
     Assert::same($expectedAdmitted9, $statusAndSort->total, 'meme total que le filtre statut seul (le tri ne change pas le panier)');
     foreach ($statusAndSort->items as $item) {

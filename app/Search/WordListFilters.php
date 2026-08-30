@@ -41,9 +41,9 @@ namespace App\Search;
  *                                 de tri d'une liste ; "Reihenfolge" designe une sequence/un
  *                                 enchainement, pas un critere de tri -- ecarte
  *
- * Les VALEURS d'enumeration ("admis"/"non-admis" pour statut, "points"/"points-desc" pour tri)
- * restent volontairement francaises cette passe : hors des 7 concepts listes, elles changent
- * les URL d'une famille supplementaire et sont signalees comme lot suivant, PAS un oubli.
+ * Les VALEURS d'enumeration ("gueltig"/"nicht-gueltig" pour status, "punkte"/"punkte-absteigend"
+ * pour sortierung, localisees D-DE-025 depuis "admis"/"non-admis"/"points"/"points-desc") sont
+ * desormais traduites elles aussi.
  *
  * Ordre canonique impose partout -- URL, cles, canonicals (docs/05_URL_SEO_INDEXATION.md).
  * IDENTIQUE a D-DE-009, seul le vocabulaire change :
@@ -86,15 +86,15 @@ namespace App\Search;
  *
  * "status" et "sortierung" (D-022) sont des RAFFINEMENTS d'affichage, pas des contraintes de
  * recherche a proprement parler -- places en derniere position de l'ordre canonique, apres
- * toutes les contraintes de contenu. "status/admis" ou "status/non-admis" filtre sur
- * is_admitted (colonne precalculee, voir schema.sql). "sortierung/points" ou
- * "sortierung/points-desc" trie par score plutot que par ordre alphabetique -- EXIGE une
+ * toutes les contraintes de contenu. "status/gueltig" ou "status/nicht-gueltig" (D-DE-025,
+ * localise depuis "admis"/"non-admis") filtre sur is_admitted (colonne precalculee, voir
+ * schema.sql). "sortierung/punkte" ou "sortierung/punkte-absteigend" (localise depuis
+ * "points"/"points-desc") trie par score plutot que par ordre alphabetique -- EXIGE une
  * longueur explicite (readSort() refuse sinon, 404) : seul ce sous-ensemble (longueur seule,
  * longueur+prefixe, longueur+suffixe) a ete mesure sur comme couvrant tout le budget TTFB
  * (reports/query-plans/status-filter-admitted.md) ; trier sans aucun ancrage de longueur
  * retomberait dans le meme cout qu'un parcours large non borne, jamais mesure, donc jamais
- * propose. Les VALEURS ("admis"/"non-admis", "points"/"points-desc") restent francaises, voir
- * l'entete de cette classe.
+ * propose.
  *
  * Cette classe ne fait AUCUN acces base : parsing et validation syntaxique pures, meme
  * discipline que Rack::fromInput(). WordListSolver traduit ensuite ces filtres en requetes.
@@ -148,12 +148,17 @@ final class WordListFilters
         self::KEYWORD_SORT,
     ];
 
-    /** Valeurs acceptees pour le segment "status" (D-022) -- volontairement NON localisees
-     * cette passe (hors des 7 mots-cles de D-DE-015, voir l'entete de classe). */
-    private const STATUS_VALUES = ['admis', 'non-admis'];
+    /** Valeurs acceptees pour le segment "status" (D-022, localisees D-DE-025) : "gueltig"
+     * ("gültig", vocabulaire deja etabli par app/View/word.php/RackPage, D-DE-009/
+     * reports/de-serp-terminology-research.md) / "nicht-gueltig". Jamais indexees a ce jour
+     * (aucun batch SEO ne les ouvre), mais reelles et cliquables sur toute page word-list
+     * avec une longueur (app/View/word-list.php, toggles de filtre) -- localisation directe,
+     * sans redirection 301 necessaire (jamais promue en dehors du site lui-meme). */
+    private const STATUS_VALUES = ['gueltig', 'nicht-gueltig'];
 
-    /** Valeurs acceptees pour le segment "sortierung" (D-022) -- meme remarque. */
-    private const SORT_VALUES = ['points', 'points-desc'];
+    /** Valeurs acceptees pour le segment "sortierung" (D-022, localisees D-DE-025) : "punkte"/
+     * "punkte-absteigend" -- meme remarque que STATUS_VALUES. */
+    private const SORT_VALUES = ['punkte', 'punkte-absteigend'];
 
     /**
      * @param int|null $length longueur exacte demandee, 2 a 15
@@ -171,8 +176,10 @@ final class WordListFilters
      *        accompagne d'une longueur explicite et de $positionLetter
      * @param string|null $positionLetter lettre normalisee (A-Z) a $position, null ssi
      *        $position est null
-     * @param string|null $status 'admis'|'non-admis' (D-022), null = aucun filtre de statut
-     * @param string|null $sort 'points'|'points-desc' (D-022), null = ordre alphabetique
+     * @param string|null $status 'gueltig'|'nicht-gueltig' (D-022, localise D-DE-025), null =
+     *        aucun filtre de statut
+     * @param string|null $sort 'punkte'|'punkte-absteigend' (D-022, localise D-DE-025), null =
+     *        ordre alphabetique
      *        (par defaut). Toujours accompagne d'une longueur explicite -- voir readSort().
      * @param int $page page demandee, >= 1 (1 = premiere page, jamais reflete dans l'URL)
      */

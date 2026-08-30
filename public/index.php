@@ -39,8 +39,9 @@ declare(strict_types=1);
  *   "sans"/"motif"/"statut"/"tri" -> "enthalten"/"mit-buchstaben"/"ohne"/"muster"/"status"/
  *   "sortierung". "position" reste "position" (substantif allemand a part entiere, cognate
  *   exact) -- voir App\Search\WordListFilters, docblock de classe, pour la source de chaque
- *   terme. Les VALEURS d'enumeration ("admis"/"non-admis", "points"/"points-desc") restent
- *   francaises, TOUJOURS pas traitees ici (perimetre distinct, non couvert par D-DE-020).
+ *   terme. Les VALEURS d'enumeration ("gueltig"/"nicht-gueltig", "punkte"/"punkte-absteigend",
+ *   localisees D-DE-025 depuis "admis"/"non-admis"/"points"/"points-desc") sont desormais
+ *   traduites aussi -- App\Search\WordListFilters/WordListSolver, app/View/word-list.php.
  *
  * D-DE-020 : les NOMS DE CHAMP du repli GET (laenge, enthalten, mit-buchstaben, ohne, muster,
  *   wort, buchstaben) sont desormais localises -- fils internes entre app/View/*.php et ce

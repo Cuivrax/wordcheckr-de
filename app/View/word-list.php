@@ -191,8 +191,8 @@ $filters = WordListFilters::fromPath($page->canonicalPath);
 // WordListFilters::KEYWORD_STATUS/KEYWORD_SORT. Ecrits en dur, ils auraient silencieusement
 // casse les deux groupes de toggles apres la localisation -- le retrait du segment existant
 // n'aurait plus matche (URL a rallonge cumulant deux status) et fromPath() aurait renvoye null
-// sur la reconstruction (toggles rendus sans lien). Les VALEURS ('admis'/'points-desc'...)
-// restent francaises, hors perimetre de cette passe.
+// sur la reconstruction (toggles rendus sans lien). Les VALEURS ('gueltig'/'punkte-absteigend'...)
+// sont desormais traduites aussi (D-DE-025).
 $basePath = $page->canonicalPath;
 $baseSegments = $basePath === '' ? [] : explode('/', $basePath);
 
@@ -228,15 +228,15 @@ $currentSort = $filters?->sort;
 // terminologique complete deja consignee la-bas.
 $statusToggles = [
     ['label' => 'Alle', 'url' => $refineUrl(null, $currentSort), 'active' => $currentStatus === null],
-    ['label' => 'Gültig', 'url' => $refineUrl('admis', $currentSort), 'active' => $currentStatus === 'admis'],
-    ['label' => 'Nicht Gültig', 'url' => $refineUrl('non-admis', $currentSort), 'active' => $currentStatus === 'non-admis'],
+    ['label' => 'Gültig', 'url' => $refineUrl('gueltig', $currentSort), 'active' => $currentStatus === 'gueltig'],
+    ['label' => 'Nicht Gültig', 'url' => $refineUrl('nicht-gueltig', $currentSort), 'active' => $currentStatus === 'nicht-gueltig'],
 ];
 
 $sortToggles = $filters !== null && $filters->length !== null
     ? [
         ['label' => 'Alphabetisch', 'url' => $refineUrl($currentStatus, null), 'active' => $currentSort === null],
-        ['label' => 'Punkte Aufsteigend', 'url' => $refineUrl($currentStatus, 'points'), 'active' => $currentSort === 'points'],
-        ['label' => 'Punkte Absteigend', 'url' => $refineUrl($currentStatus, 'points-desc'), 'active' => $currentSort === 'points-desc'],
+        ['label' => 'Punkte Aufsteigend', 'url' => $refineUrl($currentStatus, 'punkte'), 'active' => $currentSort === 'punkte'],
+        ['label' => 'Punkte Absteigend', 'url' => $refineUrl($currentStatus, 'punkte-absteigend'), 'active' => $currentSort === 'punkte-absteigend'],
     ]
     : [];
 

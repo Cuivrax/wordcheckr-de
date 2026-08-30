@@ -65,12 +65,12 @@ return function (): void {
     // Aufsteigend/Absteigend"), assertions mises a jour en consequence.
     Assert::true(str_contains($htmlLength, 'Liste Verfeinern'), 'section toggles attendue');
     Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben" aria-current="page">Alle</a>'), '"Alle" actif par defaut');
-    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/status/admis">Gültig</a>'), 'lien "Gültig" non actif');
-    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/status/non-admis">Nicht Gültig</a>'), 'lien "Nicht Gültig" non actif');
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/status/gueltig">Gültig</a>'), 'lien "Gültig" non actif');
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/status/nicht-gueltig">Nicht Gültig</a>'), 'lien "Nicht Gültig" non actif');
     Assert::true(str_contains($htmlLength, 'Liste sortieren'), 'groupe tri attendu (longueur presente)');
     Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben" aria-current="page">Alphabetisch</a>'), '"Alphabetisch" actif par defaut');
-    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/sortierung/points">Punkte Aufsteigend</a>'));
-    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/sortierung/points-desc">Punkte Absteigend</a>'));
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/sortierung/punkte">Punkte Aufsteigend</a>'));
+    Assert::true(str_contains($htmlLength, '<a href="/woerter/13-buchstaben/sortierung/punkte-absteigend">Punkte Absteigend</a>'));
 
     // Aucun maillage interne sans $lengthLinks.
     Assert::true(!str_contains($htmlLength, 'Beginnend Mit'), 'aucune section de maillage sans $lengthLinks');
@@ -96,11 +96,11 @@ return function (): void {
     Assert::true(!str_contains($htmlPrefix, 'Liste sortieren'), 'aucun groupe tri sans longueur explicite');
 
     // -------------------------------------------------------------------
-    // Statut actif (admis) + tri actif (points-desc) : les DEUX toggles actifs
+    // Statut actif (gueltig) + tri actif (punkte-absteigend) : les DEUX toggles actifs
     // pointent vers l'URL courante, les variantes preservent l'autre dimension.
     // -------------------------------------------------------------------
     $statusSortPage = new WordListPage(
-        canonicalPath: '13-buchstaben/status/admis/sortierung/points-desc',
+        canonicalPath: '13-buchstaben/status/gueltig/sortierung/punkte-absteigend',
         page: 1,
         pageSize: 50,
         items: [$item('ABACTERIENNES')],
@@ -112,10 +112,10 @@ return function (): void {
         queryCount: 2,
     );
     $htmlStatusSort = $render($statusSortPage);
-    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/status/admis/sortierung/points-desc" aria-current="page">Gültig</a>'), '"Gültig" actif');
-    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/sortierung/points-desc">Alle</a>'), '"Alle" preserve le tri actif en le retirant du seul statut');
-    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/status/admis/sortierung/points-desc" aria-current="page">Punkte Absteigend</a>'), '"Punkte Absteigend" actif');
-    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/status/admis">Alphabetisch</a>'), '"Alphabetisch" preserve le statut actif en retirant seulement le tri');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/status/gueltig/sortierung/punkte-absteigend" aria-current="page">Gültig</a>'), '"Gültig" actif');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/sortierung/punkte-absteigend">Alle</a>'), '"Alle" preserve le tri actif en le retirant du seul statut');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/status/gueltig/sortierung/punkte-absteigend" aria-current="page">Punkte Absteigend</a>'), '"Punkte Absteigend" actif');
+    Assert::true(str_contains($htmlStatusSort, '<a href="/woerter/13-buchstaben/status/gueltig">Alphabetisch</a>'), '"Alphabetisch" preserve le statut actif en retirant seulement le tri');
 
     // -------------------------------------------------------------------
     // Maillage interne (D-022) : trois groupes + lien hub, aucune section vide.

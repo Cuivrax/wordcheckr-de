@@ -117,29 +117,29 @@ return function (): void {
     // --- La longueur doit ouvrir le chemin (token positionnel, verifie plus bas) ; tous les
     // --- autres segments sont volontairement fournis a l'envers de l'ordre canonique.
     $scrambled = WordListFilters::fromPath(
-        '7-buchstaben/sortierung/points/status/admis/ohne/z/mit-buchstaben/b/endend-mit/en/enthalten/rr/beginnend-mit/a'
+        '7-buchstaben/sortierung/punkte/status/gueltig/ohne/z/mit-buchstaben/b/endend-mit/en/enthalten/rr/beginnend-mit/a'
     );
     Assert::notNull($scrambled, 'combinaison complete valide, quel que soit l\'ordre de saisie');
     Assert::same(
-        '/woerter/7-buchstaben/beginnend-mit/a/enthalten/rr/endend-mit/en/mit-buchstaben/b/ohne/z/status/admis/sortierung/points',
+        '/woerter/7-buchstaben/beginnend-mit/a/enthalten/rr/endend-mit/en/mit-buchstaben/b/ohne/z/status/gueltig/sortierung/punkte',
         $scrambled->canonicalUrl(),
         'ordre canonique reserialise a l\'identique apres localisation des mots-cles'
     );
 
     // Meme verification avec "position" (incompatible avec "muster", jamais combinables) :
     // "position" reste entre "endend-mit" et "mit-buchstaben" dans l'ordre canonique.
-    $scrambledPosition = WordListFilters::fromPath('9-buchstaben/sortierung/points-desc/mit-buchstaben/b/position/3/x/beginnend-mit/a');
+    $scrambledPosition = WordListFilters::fromPath('9-buchstaben/sortierung/punkte-absteigend/mit-buchstaben/b/position/3/x/beginnend-mit/a');
     Assert::notNull($scrambledPosition);
     Assert::same(
-        '/woerter/9-buchstaben/beginnend-mit/a/position/3/x/mit-buchstaben/b/sortierung/points-desc',
+        '/woerter/9-buchstaben/beginnend-mit/a/position/3/x/mit-buchstaben/b/sortierung/punkte-absteigend',
         $scrambledPosition->canonicalUrl(),
         '"position" conserve sa place entre endend-mit et mit-buchstaben'
     );
 
     // Et avec "muster", qui occupe la place juste avant "status".
-    $scrambledPattern = WordListFilters::fromPath('5-buchstaben/status/admis/muster/c--e-');
+    $scrambledPattern = WordListFilters::fromPath('5-buchstaben/status/gueltig/muster/c--e-');
     Assert::notNull($scrambledPattern);
-    Assert::same('/woerter/5-buchstaben/muster/c--e-/status/admis', $scrambledPattern->canonicalUrl(), '"muster" precede toujours "status"');
+    Assert::same('/woerter/5-buchstaben/muster/c--e-/status/gueltig', $scrambledPattern->canonicalUrl(), '"muster" precede toujours "status"');
 
     // --- Les ANCIENS mots-cles francais (avant D-DE-015) doivent desormais etre des 404 secs,
     // --- jamais silencieusement acceptes : un mot-cle inconnu ne redirige pas, il n'existe pas
@@ -307,39 +307,39 @@ return function (): void {
 
     // --- Statut / tri (D-022) : raffinements d'affichage, en derniere position de l'ordre
     // --- canonique (statut avant tri), quel que soit l'ordre recu. ---
-    $status = WordListFilters::fromPath('13-buchstaben/status/admis');
+    $status = WordListFilters::fromPath('13-buchstaben/status/gueltig');
     Assert::notNull($status);
-    Assert::same('admis', $status->status);
-    Assert::same('/woerter/13-buchstaben/status/admis', $status->canonicalUrl());
+    Assert::same('gueltig', $status->status);
+    Assert::same('/woerter/13-buchstaben/status/gueltig', $status->canonicalUrl());
 
-    $sort = WordListFilters::fromPath('13-buchstaben/sortierung/points-desc');
+    $sort = WordListFilters::fromPath('13-buchstaben/sortierung/punkte-absteigend');
     Assert::notNull($sort);
-    Assert::same('points-desc', $sort->sort);
-    Assert::same('/woerter/13-buchstaben/sortierung/points-desc', $sort->canonicalUrl());
+    Assert::same('punkte-absteigend', $sort->sort);
+    Assert::same('/woerter/13-buchstaben/sortierung/punkte-absteigend', $sort->canonicalUrl());
 
-    $statusSortReordered = WordListFilters::fromPath('13-buchstaben/sortierung/points/status/admis');
+    $statusSortReordered = WordListFilters::fromPath('13-buchstaben/sortierung/punkte/status/gueltig');
     Assert::notNull($statusSortReordered);
-    Assert::same('admis', $statusSortReordered->status);
-    Assert::same('points', $statusSortReordered->sort);
-    Assert::same('/woerter/13-buchstaben/status/admis/sortierung/points', $statusSortReordered->canonicalUrl(), 'statut toujours avant tri, quel que soit l\'ordre recu');
+    Assert::same('gueltig', $statusSortReordered->status);
+    Assert::same('punkte', $statusSortReordered->sort);
+    Assert::same('/woerter/13-buchstaben/status/gueltig/sortierung/punkte', $statusSortReordered->canonicalUrl(), 'statut toujours avant tri, quel que soit l\'ordre recu');
 
     // "status" seul, sans longueur : segment valide, vraie contrainte (isEmpty() = false).
-    $statusOnly = WordListFilters::fromPath('status/non-admis');
+    $statusOnly = WordListFilters::fromPath('status/nicht-gueltig');
     Assert::notNull($statusOnly);
     Assert::true(!$statusOnly->isEmpty());
-    Assert::same('/woerter/status/non-admis', $statusOnly->canonicalUrl());
+    Assert::same('/woerter/status/nicht-gueltig', $statusOnly->canonicalUrl());
 
     // "sortierung" exige toujours une longueur explicite -- refuse sinon (404), y compris avec un
     // autre ancrage (beginnend-mit seul n'est pas mesure pour ce tri, voir WordListSolver).
-    Assert::null(WordListFilters::fromPath('sortierung/points'), 'tri sans longueur refuse');
-    Assert::null(WordListFilters::fromPath('beginnend-mit/a/sortierung/points'), 'tri sans longueur refuse meme avec un autre ancrage');
+    Assert::null(WordListFilters::fromPath('sortierung/punkte'), 'tri sans longueur refuse');
+    Assert::null(WordListFilters::fromPath('beginnend-mit/a/sortierung/punkte'), 'tri sans longueur refuse meme avec un autre ancrage');
 
     // Valeurs fermees : toute valeur hors de la liste autorisee est refusee, jamais inventee.
     Assert::null(WordListFilters::fromPath('13-buchstaben/status/peut-etre'), 'valeur de statut hors liste fermee');
     Assert::null(WordListFilters::fromPath('13-buchstaben/sortierung/alphabetique'), '"alphabetique" est le defaut implicite (absence de tri), pas une valeur acceptee');
     Assert::null(WordListFilters::fromPath('13-buchstaben/status'), 'statut sans valeur');
     Assert::null(WordListFilters::fromPath('13-buchstaben/sortierung'), 'tri sans valeur');
-    Assert::null(WordListFilters::fromPath('13-buchstaben/status/admis/status/non-admis'), 'mot-cle statut duplique');
+    Assert::null(WordListFilters::fromPath('13-buchstaben/status/gueltig/status/nicht-gueltig'), 'mot-cle statut duplique');
 
     // isEmpty() : statut seul est une vraie restriction, tri seul ne peut jamais exister sans
     // longueur (donc jamais un cas isEmpty() a lui seul, deja verifie ci-dessus indirectement).
