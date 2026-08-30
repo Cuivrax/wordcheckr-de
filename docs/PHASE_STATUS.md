@@ -536,12 +536,14 @@ Registre SEO (D-DE-013, D-DE-016 a D-DE-019) : storage/seo_de.sqlite construit e
   PLUS palier 2 (D-DE-019) : longueur+beginnend-mit/endend-mit combine (753/754 candidats
   apres correctif 2026-08-30, 1 seule exclusion tracee restante -- le doublon de contenu reel ;
   les 9 depassements de titre a 60 caracteres ont ete re-inclus une fois le gabarit corrige,
-  commit e6eb4b8) et beginnend-mit a 3 lettres COMPLET (3703/3703), PLUS endend-mit a 1 lettre
-  (D-DE-023, 2026-08-30, 28/29 -- Q exclu, doublon INUPIAQ). 595 839 URL index,follow au
-  total, 22 fragments sitemap. list_counts COMPLET (D-DE-023, 19/19 list_type, 123 471
-  lignes -- etait 5/19, D-DE-018). Familles restantes deja precalculees mais pas encore
-  ouvertes : beginnend-mit a 2 lettres (prefix2), endend-mit a 3/4 lettres (suffix3/suffix4)
-  -- prochaine unite de travail. Reste mesure et volontairement NON ouvert (hub /woerter
+  commit e6eb4b8), endend-mit a 1 lettre (D-DE-023, 28/29 -- Q exclu puis re-corrige gagnant,
+  voir plus bas), PLUS FUNNEL COMPLET (D-DE-024, 2026-08-30) : beginnend-mit desormais
+  1+2+3 lettres (29+420+3643, 69 doublons corriges entre 2 et 3 lettres), endend-mit desormais
+  1+2+3+4 lettres (29+455+3485+15411, doublons corriges/exclus a chaque niveau). 615 095 URL
+  index,follow au total, 22 fragments sitemap. list_counts COMPLET (D-DE-023, 19/19 list_type,
+  123 471 lignes -- etait 5/19, D-DE-018). Landmine trouvee et neutralisee au passage :
+  App\Search\SuffixExtensionLinksBuilder::EXTERNAL_DUPLICATE_SUFFIXES (liste francaise figee,
+  ~630 entrees, videe D-DE-024). Reste mesure et volontairement NON ouvert (hub /woerter
   lui-meme, beginnend-mit+endend-mit combine 1+1 lettre, mit-buchstaben, enthalten/ohne/
   muster, position) -- raisons techniques documentees en D-DE-017/D-DE-018/D-DE-019.
 Classes CSS / identifiants internes : toujours en francais, deliberement differe a la toute

@@ -4934,3 +4934,85 @@ Fichiers touchés : `scripts/seo-batches/start-end-single-letter-2026-08-29.php`
 corrigée), `scripts/seo-batches/endend-mit-single-letter-2026-08-30.php` (ligne `q` ajoutée,
 29/29 au lieu de 28/29).
 
+## D-DE-024 — Funnel Complet : beginnend-mit 2 Lettres, endend-mit 3/4 Lettres
+
+Date : 2026-08-30
+Statut : accepté
+
+Contexte : demande produit explicite de compléter l'entonnoir SEO déjà entamé -- côté
+"commençant", 1 lettre (D-DE-017) et 3 lettres (D-DE-019) étaient en ligne mais pas 2 ; côté
+"terminant", seuls 1 (D-DE-023) et 2 lettres (D-DE-017) l'étaient. Les données étaient déjà
+précalculées dans `list_counts` (D-DE-023, 19/19 `list_type`), seule l'ouverture manquait.
+
+Décision :
+
+```text
+LANDMINE TROUVEE ET NEUTRALISEE avant d'ouvrir suffix3/suffix4 : App\Search\
+  SuffixExtensionLinksBuilder::EXTERNAL_DUPLICATE_SUFFIXES contenait ~630 suffixes calcules sur
+  storage/dictionary_fr.sqlite (D-040/D-041 cote francais), copies tels quels lors du portage
+  -- jamais inventoriee explicitement par D-DE-018/D-DE-023 malgre leur avertissement generique
+  sur ce type de constante. Videe (liste vide) plutot que conservee : filtrer des suffixes
+  allemands avec des chaines francaises serait pire que ne rien filtrer (coincidences de
+  caracteres sans rapport). App\Search\PrefixExtensionLinksBuilder::EXTERNAL_DUPLICATE_PREFIXES
+  etait deja vide, verifie, rien a faire de ce cote.
+
+beginnend-mit 2 lettres OUVERT (420/420 buckets prefix2) : lien interne reel deja en
+  production depuis chaque page 1 lettre ET 3 lettres (App\Search\PrefixExtensionLinksBuilder).
+  69 DOUBLONS DE CONTENU EXACT trouves contre le palier 3 lettres deja indexe (balayage
+  programmatique) : la forme la plus courte gagne (D-041) -- 60 de ces 69 pages 3 lettres
+  etaient deja index,follow (D-DE-019) et corrigees vers noindex,follow/canonical->2 lettres
+  (scripts/seo-batches/prefix3-2026-08-30.php modifie en place) ; les 9 autres n'avaient jamais
+  ete indexees (0 lien reel, deja orphelines et exclues par D-DE-019 elle-meme -- rien a
+  corriger, juste confirme).
+
+endend-mit 3 lettres OUVERT (3485/3565 buckets suffix3, 80 exclus car doublons exacts du
+  palier 2 lettres deja indexe -- jamais ajoutes, rien a corriger cote 2 lettres qui gagnait
+  deja).
+endend-mit 4 lettres OUVERT (15411/16415 buckets suffix4, 950 exclus contre le palier 3
+  lettres survivant, 54 exclus directement contre le palier 2 lettres pour les cas ou le
+  parent 3 lettres avait lui-meme deja perdu).
+```
+
+Vérifications faites (en direct, php -S, pas supposées) :
+
+```text
+php -l sur tous les fichiers touches : propre.
+Doublons : balayage PROGRAMMATIQUE a chaque niveau du funnel (1v2, 2v3 pour commencant ;
+  2v3, 3v4-vs-3, 3v4-vs-2 pour terminant), comptage EXACT (pas juste "un seul enfant non
+  vide", correctif applique apres un premier faux-positif trouve sur HM/HMO qui avait des
+  comptes differents malgre un seul enfant non vide).
+TTFB : echantillons repartis sur les 4 nouveaux lots (CD/GF/MN pour prefix2, ABC/UNG/HAUS
+  pour suffix3/4) : 5-73 ms, tous largement sous le budget 250 ms, mode EXACT (index couvrant,
+  comme les paliers deja en production).
+Echantillon HTTP reel sur chaque palier : gagnants index,follow avec canonical=soi-meme,
+  perdants noindex,follow avec canonical vers le gagnant reel (ex. beginnend-mit/gfr ->
+  beginnend-mit/gf, endend-mit/abc -> endend-mit/bc).
+php tests/run.php = 20/21 (meme echec pre-existant WordListViewTest), aucune regression a
+  chacune des 3 etapes (prefix2, suffix3, suffix4).
+```
+
+Raison :
+
+```text
+demande produit explicite (2026-08-30) de completer l'entonnoir SEO deja entame plutot que de
+  le laisser a moitie fini -- meme discipline mesure-avant-ouverture que chaque palier
+  precedent (D-DE-017, D-DE-019, D-DE-023), doublons et TTFB verifies programmatiquement a
+  chaque niveau, pas supposes par extrapolation depuis un palier voisin.
+```
+
+Conséquences :
+
+```text
+app/Search/SuffixExtensionLinksBuilder.php (liste figee videe), scripts/seo-batches/
+  beginnend-mit-two-letters-2026-08-30.php (nouveau, 420 lignes), scripts/seo-batches/
+  prefix3-2026-08-30.php (60 lignes corrigees en place), scripts/seo-batches/
+  endend-mit-three-letters-2026-08-30.php (nouveau, 3485 lignes), scripts/seo-batches/
+  endend-mit-four-letters-2026-08-30.php (nouveau, 15411 lignes)
+storage/seo_de.sqlite : 596 261 -> 615 157 lignes total, 615 095 index,follow (etait
+  595 839 avant D-DE-024)
+Sitemaps regeneres (starts-0002.xml 401->821, starts-0003.xml 3703->3643, ends-0001.xml
+  483->19 379), 22 fragments inchange
+Le funnel commencant est desormais 1+2+3 lettres COMPLET, le funnel terminant 1+2+3+4 lettres
+  COMPLET -- iso avec le depot francais (D-029 a D-033 equivalent).
+```
+

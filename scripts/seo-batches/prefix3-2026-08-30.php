@@ -52,8 +52,9 @@ declare(strict_types=1);
  * Sitemaps : starts-0003.xml (3703 URL, extension de word_list_commencant -- meme famille que
  * starts-0001.xml/starts-0002.xml, aucune nouvelle classification). App\Seo\Family inchangee.
  */
-return
-array (
+
+// CORRECTIF D-DE-024 (2026-08-30) : 60 lignes de ce lot corrigees -- doublon de contenu exact avec le palier 2 lettres desormais ouvert (beginnend-mit-two-letters-2026-08-30.php), regle de priorite D-041 (la forme la plus courte gagne). Voir docs/DECISIONS.md D-DE-024 pour le detail complet.
+return array (
   'batch_id' => 'prefix3-2026-08-30',
   'added_at' => '2026-08-30',
   'rows' => 
@@ -2072,11 +2073,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/aqu',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/aqu',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/aq',
+      'sitemap_fragment' => NULL,
       'result_count' => 109,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "AQU" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 109 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/aq (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     202 => 
     array (
@@ -2902,11 +2903,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/aöd',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/aöd',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/aö',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "AÖD" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/aö (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     285 => 
     array (
@@ -5262,11 +5263,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/cmo',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/cmo',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/cm',
+      'sitemap_fragment' => NULL,
       'result_count' => 1,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "CMO" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 1 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/cm (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     521 => 
     array (
@@ -5492,11 +5493,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/cpu',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/cpu',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/cp',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "CPU" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/cp (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     544 => 
     array (
@@ -5732,31 +5733,31 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/cäs',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/cäs',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/cä',
+      'sitemap_fragment' => NULL,
       'result_count' => 6,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "CÄS" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 6 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/cä (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     568 => 
     array (
       'route_path' => '/woerter/beginnend-mit/cöl',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/cöl',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/cö',
+      'sitemap_fragment' => NULL,
       'result_count' => 6,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "CÖL" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 6 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/cö (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     569 => 
     array (
       'route_path' => '/woerter/beginnend-mit/cüp',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/cüp',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/cü',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "CÜP" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/cü (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     570 => 
     array (
@@ -6202,11 +6203,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/dha',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/dha',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/dh',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "DHA" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/dh (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     615 => 
     array (
@@ -7042,11 +7043,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/dvd',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/dvd',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/dv',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "DVD" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/dv (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     699 => 
     array (
@@ -7122,11 +7123,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/dzo',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/dzo',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/dz',
+      'sitemap_fragment' => NULL,
       'result_count' => 1,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "DZO" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 1 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/dz (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     707 => 
     array (
@@ -8612,11 +8613,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/equ',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/equ',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/eq',
+      'sitemap_fragment' => NULL,
       'result_count' => 17,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "EQU" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 17 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/eq (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     856 => 
     array (
@@ -9582,11 +9583,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/ezz',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/ezz',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/ez',
+      'sitemap_fragment' => NULL,
       'result_count' => 1,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "EZZ" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 1 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/ez (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     953 => 
     array (
@@ -11342,11 +11343,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/gfr',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/gfr',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/gf',
+      'sitemap_fragment' => NULL,
       'result_count' => 12,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "GFR" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 12 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/gf (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1129 => 
     array (
@@ -12162,11 +12163,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/gwi',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/gwi',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/gw',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "GWI" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/gw (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1211 => 
     array (
@@ -14102,11 +14103,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/ift',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/ift',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/if',
+      'sitemap_fragment' => NULL,
       'result_count' => 4,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "IFT" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 4 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/if (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1405 => 
     array (
@@ -14202,11 +14203,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/ijj',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/ijj',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/ij',
+      'sitemap_fragment' => NULL,
       'result_count' => 1,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "IJJ" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 1 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/ij (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1415 => 
     array (
@@ -14972,11 +14973,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/iwr',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/iwr',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/iw',
+      'sitemap_fragment' => NULL,
       'result_count' => 4,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "IWR" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 4 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/iw (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1492 => 
     array (
@@ -15622,11 +15623,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/jsc',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/jsc',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/js',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "JSC" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/js (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1557 => 
     array (
@@ -15892,11 +15893,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/jöd',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/jöd',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/jö',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "JÖD" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/jö (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1584 => 
     array (
@@ -17262,11 +17263,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/kwa',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/kwa',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/kw',
+      'sitemap_fragment' => NULL,
       'result_count' => 6,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "KWA" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 6 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/kw (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1721 => 
     array (
@@ -17942,11 +17943,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/lcd',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/lcd',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/lc',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "LCD" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/lc (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1789 => 
     array (
@@ -18382,11 +18383,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/lla',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/lla',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/ll',
+      'sitemap_fragment' => NULL,
       'result_count' => 6,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "LLA" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 6 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/ll (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1833 => 
     array (
@@ -19472,11 +19473,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/mcc',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/mcc',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/mc',
+      'sitemap_fragment' => NULL,
       'result_count' => 1,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "MCC" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 1 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/mc (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1942 => 
     array (
@@ -19832,11 +19833,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/mne',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/mne',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/mn',
+      'sitemap_fragment' => NULL,
       'result_count' => 36,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "MNE" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 36 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/mn (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     1978 => 
     array (
@@ -22002,11 +22003,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/oas',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/oas',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/oa',
+      'sitemap_fragment' => NULL,
       'result_count' => 9,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "OAS" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 9 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/oa (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2195 => 
     array (
@@ -24382,11 +24383,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/pne',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/pne',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/pn',
+      'sitemap_fragment' => NULL,
       'result_count' => 24,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "PNE" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 24 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/pn (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2433 => 
     array (
@@ -25302,11 +25303,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/qbi',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/qbi',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/qb',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "QBI" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/qb (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2525 => 
     array (
@@ -25332,11 +25333,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/qop',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/qop',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/qo',
+      'sitemap_fragment' => NULL,
       'result_count' => 4,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "QOP" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 4 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/qo (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2528 => 
     array (
@@ -26522,11 +26523,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/rye',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/rye',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/ry',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "RYE" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/ry (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2647 => 
     array (
@@ -27422,11 +27423,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/sgr',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/sgr',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/sg',
+      'sitemap_fragment' => NULL,
       'result_count' => 3,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "SGR" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 3 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/sg (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2737 => 
     array (
@@ -28302,21 +28303,21 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/squ',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/squ',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/sq',
+      'sitemap_fragment' => NULL,
       'result_count' => 13,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "SQU" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 13 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/sq (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2825 => 
     array (
       'route_path' => '/woerter/beginnend-mit/sra',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/sra',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/sr',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "SRA" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/sr (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2826 => 
     array (
@@ -28632,11 +28633,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/sve',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/sve',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/sv',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "SVE" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/sv (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2858 => 
     array (
@@ -29862,11 +29863,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/tme',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/tme',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/tm',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "TME" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/tm (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     2981 => 
     array (
@@ -30852,11 +30853,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/uch',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/uch',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/uc',
+      'sitemap_fragment' => NULL,
       'result_count' => 3,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "UCH" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 3 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/uc (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3080 => 
     array (
@@ -32062,11 +32063,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/uwa',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/uwa',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/uw',
+      'sitemap_fragment' => NULL,
       'result_count' => 4,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "UWA" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 4 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/uw (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3201 => 
     array (
@@ -33512,11 +33513,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/wla',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/wla',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/wl',
+      'sitemap_fragment' => NULL,
       'result_count' => 5,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "WLA" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 5 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/wl (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3346 => 
     array (
@@ -33882,11 +33883,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/wya',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/wya',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/wy',
+      'sitemap_fragment' => NULL,
       'result_count' => 5,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "WYA" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 5 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/wy (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3383 => 
     array (
@@ -34122,11 +34123,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/xan',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/xan',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/xa',
+      'sitemap_fragment' => NULL,
       'result_count' => 77,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "XAN" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 77 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/xa (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3407 => 
     array (
@@ -34152,11 +34153,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/xho',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/xho',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/xh',
+      'sitemap_fragment' => NULL,
       'result_count' => 1,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "XHO" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 1 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/xh (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3410 => 
     array (
@@ -34202,11 +34203,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/xoa',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/xoa',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/xo',
+      'sitemap_fragment' => NULL,
       'result_count' => 3,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "XOA" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 3 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/xo (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3415 => 
     array (
@@ -34402,21 +34403,21 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/yli',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/yli',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/yl',
+      'sitemap_fragment' => NULL,
       'result_count' => 4,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "YLI" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 4 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/yl (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3435 => 
     array (
       'route_path' => '/woerter/beginnend-mit/yng',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/yng',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/yn',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "YNG" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/yn (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3436 => 
     array (
@@ -34522,11 +34523,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/yso',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/yso',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/ys',
+      'sitemap_fragment' => NULL,
       'result_count' => 4,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "YSO" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 4 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/ys (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3447 => 
     array (
@@ -34612,21 +34613,21 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/yär',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/yär',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/yä',
+      'sitemap_fragment' => NULL,
       'result_count' => 4,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "YÄR" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 4 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/yä (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3456 => 
     array (
       'route_path' => '/woerter/beginnend-mit/yür',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/yür',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/yü',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "YÜR" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/yü (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3457 => 
     array (
@@ -34952,11 +34953,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/zhu',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/zhu',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/zh',
+      'sitemap_fragment' => NULL,
       'result_count' => 1,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ZHU" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 1 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/zh (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3490 => 
     array (
@@ -35132,11 +35133,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/zlo',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/zlo',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/zl',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ZLO" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/zl (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3508 => 
     array (
@@ -35572,11 +35573,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/zvi',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/zvi',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/zv',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ZVI" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/zv (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3552 => 
     array (
@@ -36022,11 +36023,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/äff',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/äff',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/äf',
+      'sitemap_fragment' => NULL,
       'result_count' => 39,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÄFF" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 39 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/äf (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3597 => 
     array (
@@ -36122,11 +36123,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/ämt',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/ämt',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/äm',
+      'sitemap_fragment' => NULL,
       'result_count' => 11,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÄMT" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 11 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/äm (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3607 => 
     array (
@@ -36192,21 +36193,21 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/äpf',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/äpf',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/äp',
+      'sitemap_fragment' => NULL,
       'result_count' => 21,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÄPF" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 21 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/äp (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3614 => 
     array (
       'route_path' => '/woerter/beginnend-mit/äqu',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/äqu',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/äq',
+      'sitemap_fragment' => NULL,
       'result_count' => 72,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÄQU" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 72 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/äq (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3615 => 
     array (
@@ -36452,31 +36453,31 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/äxt',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/äxt',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/äx',
+      'sitemap_fragment' => NULL,
       'result_count' => 4,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÄXT" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 4 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/äx (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3640 => 
     array (
       'route_path' => '/woerter/beginnend-mit/öbs',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/öbs',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/öb',
+      'sitemap_fragment' => NULL,
       'result_count' => 5,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÖBS" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 5 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/öb (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3641 => 
     array (
       'route_path' => '/woerter/beginnend-mit/öch',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/öch',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/öc',
+      'sitemap_fragment' => NULL,
       'result_count' => 4,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÖCH" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 4 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/öc (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3642 => 
     array (
@@ -36972,21 +36973,21 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/ötz',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/ötz',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/öt',
+      'sitemap_fragment' => NULL,
       'result_count' => 7,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÖTZ" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 7 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/öt (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3692 => 
     array (
       'route_path' => '/woerter/beginnend-mit/ööm',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/ööm',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/öö',
+      'sitemap_fragment' => NULL,
       'result_count' => 2,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÖÖM" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 2 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/öö (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3693 => 
     array (
@@ -37052,11 +37053,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/ühr',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/ühr',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/üh',
+      'sitemap_fragment' => NULL,
       'result_count' => 1,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÜHR" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 1 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/üh (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
     3700 => 
     array (
@@ -37082,11 +37083,11 @@ array (
     array (
       'route_path' => '/woerter/beginnend-mit/üpp',
       'family' => 'word_list_commencant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/beginnend-mit/üpp',
-      'sitemap_fragment' => 'starts-0003',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/beginnend-mit/üp',
+      'sitemap_fragment' => NULL,
       'result_count' => 18,
-      'notes' => 'Verlinkt von JEDER admittierten Wortseite mit Laenge > 3, deren erste 3 Buchstaben "ÜPP" sind, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie startsWith, 3-Buchstaben-Praefix, $length > 3) -- vollstaendiger Sweep aller 3703 Kandidaten (nicht Stichprobe), 18 admittierte Woerter insgesamt auf dieser Seite (alle Laengen), 0 Seite ueber dem TTFB-Budget von 250 ms (max 23,98 ms gemessen), EXPLAIN QUERY PLAN SEARCH ueber COVERING INDEX sqlite_autoindex_terms_1, nie ein SCAN. Kein Inhaltsdoppel gegen die bereits indexierten Familien word_list_commencant (1 Buchstabe) und word_list_terminant (2 Buchstaben) -- exakter Wortmengenvergleich (nicht nur Zaehlervergleich), 0/610 Uebereinstimmungen bei gleicher Anzahl. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-024, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/beginnend-mit/üp (2 lettres, desormais indexee) -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php) : entre deux pages de contenu identique, la forme la plus courte gagne. Etait a tort la gagnante avant ce correctif (seule forme existante avant le palier 2 lettres, D-DE-019) ; canonical redirige desormais vers la forme courte.',
     ),
   ),
 );
