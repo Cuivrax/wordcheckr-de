@@ -528,11 +528,11 @@ return array (
     array (
       'route_path' => '/woerter/endend-mit/aq',
       'family' => 'word_list_terminant',
-      'robots' => 'index,follow',
-      'canonical_path' => '/woerter/endend-mit/aq',
-      'sitemap_fragment' => 'ends-0001',
+      'robots' => 'noindex,follow',
+      'canonical_path' => '/woerter/endend-mit/q',
+      'sitemap_fragment' => NULL,
       'result_count' => 1,
-      'notes' => 'Verlinkt von JEDER der 1 admittierten Wortseiten, die auf "AQ" enden, via App\\Search\\RelationsFinder::relatedSearches() (Kategorie endsWith, IMMER exakt 2 Buchstaben, mb_substr($word, -min(2,$length)) mit MIN_LENGTH=2, nie 1 Buchstabe) -- gemessen (nicht angenommen), 0 verwaiste Seite in dieser Familie. Verlinkt zu jedem einzelnen Wort via App\\Search\\WordListSolver/word-list.php.',
+      'notes' => 'CORRECTIF (D-DE-023, 2026-08-30) : DOUBLON DE CONTENU EXACT avec /woerter/endend-mit/q (INUPIAQ, seul mot des deux pages), desormais indexee -- regle de priorite D-041 (scripts/lib/seo_duplicate_priority.php, portee cote DE par le meme raisonnement que le precedent D-DE-019 /woerter/7-buchstaben/endend-mit/q -> endend-mit/q) : entre deux pages terminant de contenu identique, la forme la PLUS COURTE/generale gagne ("q", profondeur 1, contre "aq", profondeur 2). Etait a tort la gagnante avant ce correctif (seule forme existante a l\'epoque, D-DE-017) ; canonical redirige desormais vers la forme courte.',
     ),
     46 => 
     array (

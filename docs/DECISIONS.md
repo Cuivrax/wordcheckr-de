@@ -4900,3 +4900,37 @@ Constantes figees DUPLICATE_START_END_KEYS/EXTERNAL_DUPLICATE_WITH_KEYS/EXTERNAL
   A recalculer avant tout futur lot qui ouvrirait l'une de ces familles.
 ```
 
+### Correctif 2026-08-30 — Sens Du Canonical Q/AQ Inversé (Règle De Priorité D-041)
+
+Question directe du propriétaire du produit ("faut mettre les canonicales ?") a révélé que le
+sens choisi pour le doublon Q/AQ était inversé par rapport à la règle déjà établie côté français
+(D-041, `scripts/lib/seo_duplicate_priority.php`) : entre deux pages au contenu identique, **la
+forme la plus courte/générale gagne** (nombre de composants, puis profondeur du composant
+variable). `/woerter/endend-mit/q` (1 lettre, profondeur 1) doit donc gagner sur
+`/woerter/endend-mit/aq` (2 lettres, profondeur 2) — pas l'inverse comme appliqué initialement
+(Q exclu, AQ gagnant, seule forme qui existait avant ce lot).
+
+Confirmé cohérent avec un précédent déjà en production : `/woerter/7-buchstaben/endend-mit/q`
+(D-DE-019) a TOUJOURS eu son `canonical_path` pointant vers `/woerter/endend-mit/q`, anticipant
+déjà cette forme courte comme gagnante avant même qu'elle existe.
+
+```text
+/woerter/endend-mit/q : desormais index,follow, canonical -> soi-meme (GAGNANTE).
+/woerter/endend-mit/aq : bascule noindex,follow, canonical -> /woerter/endend-mit/q (etait a
+  tort index,follow/canonical=soi-meme, seule forme existante avant ce lot).
+```
+
+Vérifié en direct : `/woerter/endend-mit/q` → 200, `index,follow`, canonical vers soi-même ;
+`/woerter/endend-mit/aq` → 200, `noindex,follow`, canonical vers `endend-mit/q`. Registre :
+595 840 → 595 841 lignes (+1, Q devient une ligne réelle), 595 839 `index,follow` inchangé
+(AQ perd son statut, Q le gagne). Sitemaps régénérés (22 fragments, 595 839 URL, inchangé en
+nombre). `php tests/run.php` = 20/21, même échec pré-existant.
+
+ES vérifié séparément, non affecté : 0 doublon trouvé sur les 27 lettres `terminan-en` à 1
+lettre (balayage programmatique déjà fait avant l'ouverture, ES-022) — aucun cas Q/AQ
+équivalent côté espagnol.
+
+Fichiers touchés : `scripts/seo-batches/start-end-single-letter-2026-08-29.php` (ligne `aq`
+corrigée), `scripts/seo-batches/endend-mit-single-letter-2026-08-30.php` (ligne `q` ajoutée,
+29/29 au lieu de 28/29).
+
