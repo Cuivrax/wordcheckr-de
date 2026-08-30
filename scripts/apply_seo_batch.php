@@ -156,6 +156,15 @@ function familySeoBatchRouteShapeError(string $family, string $routePath): ?stri
                 ? null
                 : "forme attendue '/woerter/[{N}-buchstaben/]endend-mit/{lettres}'";
 
+        case Family::WORD_LIST_AVEC_SINGLE_LETTER:
+            // D-DE-026 : longueur OBLIGATOIRE ici (contrairement a WORD_LIST_COMMENCANT/
+            // TERMINANT ci-dessus ou elle est optionnelle) -- "mit-buchstaben" exige toujours
+            // une longueur explicite (App\Search\WordListFilters::fromPath(), meme regle que
+            // "sortierung"), une seule lettre A-ZAOU.
+            return preg_match('#^/woerter/\d{1,2}-buchstaben/mit-buchstaben/[a-zäöü]\z#u', $routePath) === 1
+                ? null
+                : "forme attendue '/woerter/{N}-buchstaben/mit-buchstaben/{X}' (une seule lettre)";
+
         default:
             // Famille non couverte par ce durcissement (word_admitted, rack, ou toute famille
             // combinatoire non encore mesuree) : aucune regle de forme ecrite ici, jamais

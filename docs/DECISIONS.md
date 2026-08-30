@@ -5077,3 +5077,84 @@ app/Search/WordListFilters.php, app/Search/WordListSolver.php, app/View/word-lis
 La grammaire d'URL fonctionnelle (mots-cles + valeurs) est desormais 100% allemande.
 ```
 
+## D-DE-026 — Palier 1 Lettre De "avec" (`word_list_avec_single_letter`) Ouvert
+
+Date : 2026-08-31
+Statut : accepté
+
+Contexte : demande produit explicite d'ouvrir les familles "avec"/"position"/"combined avec
+lettre" restees a l'etat de reservation de nom depuis D-DE-013 (voir aussi le constat de parite
+FR/DE/ES fait le meme jour : `word_list_avec_*` = 0 ligne sur DE/ES contre 31 998 sur FR). Le
+moteur (App\Search\WordListFilters, KEYWORD_WITH = "mit-buchstaben") supporte deja la
+contrainte au runtime, seul le registre SEO manquait.
+
+Décision :
+
+```text
+app/Seo/Family.php : trois nouvelles constantes WORD_LIST_AVEC_SINGLE_LETTER/TWO_LETTERS/
+  THREE_LETTERS (bornees, PAS dans NEVER_SITEMAP), distinctes de WORD_LIST_AVEC (generique,
+  reste dans NEVER_SITEMAP -- meme distinction que le depot francais). Seule
+  WORD_LIST_AVEC_SINGLE_LETTER est peuplee par ce lot ; TWO_LETTERS/THREE_LETTERS restent
+  reservees pour un prochain palier.
+scripts/apply_seo_batch.php : regle de forme ajoutee ('/woerter/{N}-buchstaben/
+  mit-buchstaben/{X}', longueur OBLIGATOIRE contrairement a beginnend-mit/endend-mit).
+scripts/build_sitemaps.php : FAMILY_FRAGMENT_PREFIXES['word_list_avec_single_letter'] =
+  'avec-single' ajoute.
+scripts/seo-batches/avec-single-letter-2026-08-31.php (nouveau, 403 lignes, applique via
+  scripts/apply_seo_batch.php) : 396 index,follow + 7 noindex,follow (doublons de contenu
+  exacts).
+```
+
+Doublons trouves (verification programmatique, methodologie) :
+
+```text
+403 candidats (list_counts 'length_with'), verifies contre TOUTES les pages deja ouvertes
+  (word_list_length : 14 ; word_list_commencant : 4493, dont 401 avec longueur ; word_list_
+  terminant : 19731, dont 352 avec longueur) -- comparaison directe par count() PUIS, pour les
+  candidats a compte petit, deduction des prefixes/suffixes COMMUNS a tous les mots du
+  candidat (1-4 caracteres) verifies contre le registre par egalite de compte exacte (methode
+  O(1) par candidat, pas un balayage pair-a-pair -- necessaire pour rester rapide face aux
+  centaines de pages "terminant" partageant un petit compte, une premiere version pair-a-pair
+  a mis >90s sur un seul candidat avant d'etre abandonnee).
+7 doublons trouves, TOUS a longueur 2 (attendu -- un mot de 2 lettres qui "contient" X n'a que
+  2 positions possibles, souvent forcees a etre le debut ou la fin des lors que peu de mots
+  existent) : 2:F/2:G/2:P/2:Q/2:W (doublon avec beginnend-mit/{lettre}/2-buchstaben), 2:J
+  (idem), 2:Y (doublon avec endend-mit/y/2-buchstaben).
+0 candidat a 0 resultat (list_counts 'length_with' deja garanti non vide par construction,
+  voir docs/DECISIONS.md D-DE-023).
+```
+
+Vérifications faites :
+
+```text
+php -l : propre.
+TTFB (php -S, echantillon 3 pages, longueurs 2/7/15) : 13-53 ms, tous largement sous le budget
+  250 ms.
+Verifie en direct : /woerter/2-buchstaben/mit-buchstaben/f -> noindex,follow, canonical vers
+  /woerter/2-buchstaben/beginnend-mit/f ; /woerter/7-buchstaben/mit-buchstaben/e ->
+  index,follow, canonical=soi-meme, sitemaps/avec-single-0001.xml -> 200, 396 <loc>.
+php tests/run.php = 20/21 (meme echec pre-existant WordListViewTest, D-DE-011, sans rapport).
+storage/seo_de.sqlite : 615 157 -> 615 560 lignes total, 615 095 -> 615 491 index,follow.
+Sitemaps regeneres : nouveau fragment avec-single-0001.xml (396 URL), sitemap-index.xml passe
+  a 23 fragments / 615 491 URL au total.
+```
+
+Raison :
+
+```text
+demande produit explicite (2026-08-31) -- ferme un ecart de parite structurel avec le depot
+  francais identifie le meme jour (comparaison directe des familles du registre SEO sur les
+  trois depots). Le palier 1 lettre est le plus simple et le mieux precedente (meme
+  methodologie que D-DE-017/ES-016 pour commencant/terminant 1 lettre) -- 2/3 lettres et
+  position suivent en lots separes, chacun avec sa propre verification de doublons.
+```
+
+Conséquences :
+
+```text
+app/Seo/Family.php, scripts/apply_seo_batch.php, scripts/build_sitemaps.php,
+  scripts/seo-batches/avec-single-letter-2026-08-31.php (nouveau), tests/Seo/FamilyTest.php
+Reste a faire (paliers separes, non couverts par cette entree) : avec 2/3 lettres, position,
+  combined_with_letter, commencant_with_letter -- sur DE ET ES.
+```
+

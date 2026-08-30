@@ -101,10 +101,13 @@ const FAMILY_FRAGMENT_PREFIXES = [
     // combinaisons reelles -- 10 exclues explicitement, D-DE-019 : 1 doublon de contenu +
     // 9 <title> >= 60 caracteres, voir scripts/seo-batches/length-start-end-2026-08-30.php).
     'word_list_terminant' => 'ends',
-    // rack, enthalten/mit-buchstaben/ohne/muster, position, et beginnend-mit+endend-mit
+    // word_list_avec_single_letter (/woerter/{N}-buchstaben/mit-buchstaben/{lettre}, palier 1
+    // lettre) : D-DE-026, distinct de word_list_avec (generique, NEVER_SITEMAP).
+    'word_list_avec_single_letter' => 'avec-single',
+    // rack, enthalten/ohne/muster, position, "avec" 2/3 lettres, et beginnend-mit+endend-mit
     // combine (690 combinaisons, 1 seule liee) : absents volontairement -- soit
     // App\Seo\Family::NEVER_SITEMAP (jamais de prefixe), soit non encore ouverts (D-DE-017/
-    // D-DE-019).
+    // D-DE-019/D-DE-026).
 ];
 
 $baseUrl = null;
