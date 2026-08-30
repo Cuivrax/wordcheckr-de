@@ -71,8 +71,12 @@ declare(strict_types=1);
  *           Familles couvertes à ce stade : home, word_list_length, word_list_commencant
  *           (docs/DECISIONS.md D-DE-017 : palier 1 lettre unique, "/woerter/beginnend-mit/
  *           {lettres}" — la forme couvre tout suite de lettres, pas seulement 1, la famille
- *           n'est pas restreinte à la portée d'un seul lot), word_list_terminant (D-DE-017 :
- *           palier 2 lettres, "/woerter/endend-mit/{lettres}", même remarque). Familles NON
+ *           n'est pas restreinte à la portée d'un seul lot ; D-DE-019 : préfixe de longueur
+ *           optionnel ajouté à la grammaire, "/woerter/[{N}-buchstaben/]beginnend-mit/{lettres}",
+ *           pour couvrir le palier longueur+1 lettre ET le palier 3 lettres sans longueur, tous
+ *           deux mesurés et ouverts par D-DE-019), word_list_terminant (D-DE-017 : palier 2
+ *           lettres, "/woerter/endend-mit/{lettres}", même remarque ; D-DE-019 : même extension
+ *           de grammaire pour le palier longueur+1 lettre). Familles NON
  *           couvertes, documentées plutôt qu'oubliées : word_admitted (des centaines de
  *           milliers de lignes potentielles, grammaire du slug dérivée de App\Search\Normalizer
  *           plutôt que de WordListFilters) et toutes les familles combinatoires non encore
@@ -133,19 +137,24 @@ function familySeoBatchRouteShapeError(string $family, string $routePath): ?stri
 
         case Family::WORD_LIST_COMMENCANT:
             // Grammaire de la famille entiere (toute suite de 1+ lettres A-ZAOU, docs/05,
-            // App\Search\WordListFilters::KEYWORD_PREFIX/canonicalPath()) -- PAS restreinte a
-            // la portee du lot D-DE-017 (1 lettre uniquement) : une regle de FORME valide la
-            // grammaire de la famille, jamais la portee d'un lot particulier (meme principe que
-            // word_list_length, qui accepte les 14 longueurs alors qu'un lot donne peut n'en
-            // appliquer qu'une partie).
-            return preg_match('#^/woerter/beginnend-mit/[a-zäöü]+\z#u', $routePath) === 1
+            // App\Search\WordListFilters::KEYWORD_PREFIX/canonicalPath()), avec un prefixe de
+            // longueur OPTIONNEL (ordre canonique : longueur avant beginnend-mit,
+            // App\Search\WordListFilters::canonicalPath()) -- PAS restreinte a la portee d'un
+            // lot particulier (D-DE-017 : 1 lettre sans longueur ; D-DE-019 : longueur+1 lettre,
+            // D-DE-018/list_counts, et 3 lettres sans longueur, D-DE-017/D-DE-019) : une regle de
+            // FORME valide la grammaire de la famille, jamais la portee d'un lot donne (meme
+            // principe que word_list_length, qui accepte les 14 longueurs alors qu'un lot donne
+            // peut n'en appliquer qu'une partie).
+            return preg_match('#^/woerter/(\d{1,2}-buchstaben/)?beginnend-mit/[a-zäöü]+\z#u', $routePath) === 1
                 ? null
-                : "forme attendue '/woerter/beginnend-mit/{lettres}'";
+                : "forme attendue '/woerter/[{N}-buchstaben/]beginnend-mit/{lettres}'";
 
         case Family::WORD_LIST_TERMINANT:
-            return preg_match('#^/woerter/endend-mit/[a-zäöü]+\z#u', $routePath) === 1
+            // Meme extension que WORD_LIST_COMMENCANT ci-dessus (D-DE-019 : longueur+2 lettres,
+            // list_counts type length_end).
+            return preg_match('#^/woerter/(\d{1,2}-buchstaben/)?endend-mit/[a-zäöü]+\z#u', $routePath) === 1
                 ? null
-                : "forme attendue '/woerter/endend-mit/{lettres}'";
+                : "forme attendue '/woerter/[{N}-buchstaben/]endend-mit/{lettres}'";
 
         default:
             // Famille non couverte par ce durcissement (word_admitted, rack, ou toute famille

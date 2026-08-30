@@ -117,11 +117,30 @@ return function (): void {
                 'result_count' => 10000,
                 'notes' => 'echtes internes Linking via RelationsFinder::relatedSearches() (D-DE-017)',
             ],
+            // D-DE-019 : R4b etendu -- prefixe de longueur OPTIONNEL devant beginnend-mit/
+            // endend-mit (palier longueur+1 lettre, App\Search\LengthLinksBuilder), verifie ici
+            // pour les deux familles.
+            [
+                'route_path' => '/woerter/9-buchstaben/beginnend-mit/a',
+                'family' => 'word_list_commencant',
+                'robots' => 'index,follow',
+                'sitemap_fragment' => 'starts-0002',
+                'result_count' => 5000,
+                'notes' => 'echtes internes Linking via LengthLinksBuilder::build()->byStart (D-DE-019)',
+            ],
+            [
+                'route_path' => '/woerter/9-buchstaben/endend-mit/en',
+                'family' => 'word_list_terminant',
+                'robots' => 'index,follow',
+                'sitemap_fragment' => 'ends-0002',
+                'result_count' => 3000,
+                'notes' => 'echtes internes Linking via LengthLinksBuilder::build()->byEnd (D-DE-019)',
+            ],
         ]);
 
         [$exitCode, $stdout] = $run('apply_seo_batch.php', [$goodBatch]);
         Assert::same(0, $exitCode, "lot valide refuse a tort : {$stdout}");
-        Assert::true(str_contains($stdout, '5 ligne(s)'));
+        Assert::true(str_contains($stdout, '7 ligne(s)'));
 
         // --- R5 : resultat vide jamais indexable. Route_path bien formee pour sa famille. ---
         $emptyResultBatch = $tmpDir . '/empty_result_batch.php';
@@ -224,6 +243,26 @@ return function (): void {
         Assert::true($exitCode !== 0, 'R4b aurait du refuser une forme sans prefixe /woerter pour word_list_terminant');
         Assert::true(str_contains($stderr, 'R4'));
 
+        // --- R4b (D-DE-019) : prefixe de longueur malforme (ancien segment francais
+        // "-lettres" au lieu de "-buchstaben") devant beginnend-mit -- la grammaire etendue
+        // (prefixe de longueur OPTIONNEL) ne doit PAS devenir permissive au point d'accepter
+        // n'importe quel prefixe. ---
+        $badLengthPrefixBatch = $tmpDir . '/bad_length_prefix_batch.php';
+        $writeBatch($badLengthPrefixBatch, [
+            [
+                'route_path' => '/woerter/9-lettres/beginnend-mit/a',
+                'family' => 'word_list_commencant',
+                'robots' => 'index,follow',
+                'sitemap_fragment' => 'starts-0002',
+                'result_count' => 10,
+                'notes' => 'ne doit jamais passer -- "-lettres" francais, jamais "-buchstaben"',
+            ],
+        ], 'bad-r4b-length-prefix');
+
+        [$exitCode, , $stderr] = $run('apply_seo_batch.php', [$badLengthPrefixBatch]);
+        Assert::true($exitCode !== 0, 'R4b aurait du refuser un prefixe de longueur au format francais pour word_list_commencant');
+        Assert::true(str_contains($stderr, 'R4'));
+
         // --- R3 : alias indexable (canonical different de route_path). ---
         $aliasBatch = $tmpDir . '/alias_batch.php';
         $writeBatch($aliasBatch, [
@@ -258,7 +297,7 @@ return function (): void {
         // --- Verifie qu'aucun des lots refuses n'a laisse de trace (transaction unique). ---
         $pdo = new PDO('sqlite:' . $dbPath, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
         $count = $pdo->query('SELECT COUNT(*) c FROM registry')->fetch()['c'];
-        Assert::same(5, (int) $count, 'seul le lot valide (5 lignes : home "/" + hub "/woerter" + word_list_length + word_list_commencant + word_list_terminant) doit rester en base');
+        Assert::same(7, (int) $count, 'seul le lot valide (7 lignes : home "/" + hub "/woerter" + word_list_length + word_list_commencant (1 lettre + longueur+1 lettre, D-DE-019) + word_list_terminant (idem)) doit rester en base');
         unset($pdo);
 
         // --- build_sitemaps.php : fragments generes avec le bon prefixe par famille. ---
@@ -276,6 +315,17 @@ return function (): void {
 
         $lettersFragment = file_get_contents($publicDir . '/sitemaps/letters-0001.xml');
         Assert::true(str_contains($lettersFragment, 'https://exemple-test.invalid/woerter/9-buchstaben'));
+
+        // D-DE-019 : starts-0002.xml/ends-0002.xml (palier longueur+1 lettre) partagent le meme
+        // prefixe de famille que starts-0001.xml/ends-0001.xml -- meme regle FAMILY_FRAGMENT_
+        // PREFIXES, aucune nouvelle entree necessaire, verifie ici par le sitemap_fragment
+        // fourni dans le lot valide ci-dessus.
+        Assert::true(is_file($publicDir . '/sitemaps/starts-0002.xml'), 'starts-0002.xml (D-DE-019, longueur+beginnend-mit) aurait du etre genere');
+        Assert::true(is_file($publicDir . '/sitemaps/ends-0002.xml'), 'ends-0002.xml (D-DE-019, longueur+endend-mit) aurait du etre genere');
+        $starts0002Fragment = file_get_contents($publicDir . '/sitemaps/starts-0002.xml');
+        Assert::true(str_contains($starts0002Fragment, 'https://exemple-test.invalid/woerter/9-buchstaben/beginnend-mit/a'));
+        $ends0002Fragment = file_get_contents($publicDir . '/sitemaps/ends-0002.xml');
+        Assert::true(str_contains($ends0002Fragment, 'https://exemple-test.invalid/woerter/9-buchstaben/endend-mit/en'));
 
         $startsFragment = file_get_contents($publicDir . '/sitemaps/starts-0001.xml');
         Assert::true(str_contains($startsFragment, 'https://exemple-test.invalid/woerter/beginnend-mit/a'));
