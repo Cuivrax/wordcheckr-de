@@ -5158,3 +5158,78 @@ Reste a faire (paliers separes, non couverts par cette entree) : avec 2/3 lettre
   combined_with_letter, commencant_with_letter -- sur DE ET ES.
 ```
 
+## D-DE-027 — Palier 2 Lettres De "avec" (`word_list_avec_two_letters`) Ouvert
+
+Date : 2026-08-31
+Statut : accepté
+
+Contexte : suite directe de D-DE-026 (palier 1 lettre). Meme demande produit, meme
+methodologie, palier suivant du meme entonnoir.
+
+Décision :
+
+```text
+scripts/apply_seo_batch.php : regle de forme ajoutee ('/woerter/{N}-buchstaben/
+  mit-buchstaben/{X}/{Y}', deux lettres distinctes triees alphabetiquement).
+scripts/build_sitemaps.php : FAMILY_FRAGMENT_PREFIXES['word_list_avec_two_letters'] =
+  'avec-two' ajoute.
+scripts/seo-batches/avec-two-letters-2026-08-31.php (nouveau, 5202 lignes) : 5127 index,follow
+  + 75 noindex,follow (doublons de contenu exacts).
+```
+
+Doublons trouves (verification programmatique, TROIS classes distinctes) :
+
+```text
+5202 candidats (list_counts 'length_with_pair'), verifies en trois passes successives :
+  1. PARENT (8 trouves) : paire(L,X,Y) == avec-single(L,X) ou avec-single(L,Y) deja ouvert --
+     comparaison directe de compte, O(1) par candidat (le palier 1 est deja en registre).
+     Exemples : 10:Q:U a 15:Q:U (tout mot de 10-15 lettres avec Q contient deja U, regle
+     orthographique allemande -- meme phenomene que le francais D-041 mais sur des longueurs
+     differentes), 2:U:Z (le seul mot de 2 lettres avec Z, ZU, contient deja U).
+  2. SIBLING (9 trouves) : deux paires DIFFERENTES a la meme longueur produisent le meme
+     ensemble de mots -- groupement par (longueur,compte) PUIS empreinte SQL group_concat sur
+     les seuls groupes de taille > 1 (jamais un balayage pair-a-pair complet, qui avait mis
+     >90s sur un seul candidat lors d'une premiere tentative abandonnee, voir methode complete
+     dans le rapport de tache). Exemple : 3:C:L et 3:C:D partagent l'unique mot LCD (verifie
+     independamment par requete directe).
+  3. EXTERNAL (58 trouves) : doublon avec une page d'une AUTRE famille deja ouverte
+     (word_list_length/commencant/terminant, avec ou sans longueur) -- deduction des
+     prefixes/suffixes COMMUNS a tous les mots du candidat (1-4 caracteres), verifies contre
+     le registre par egalite de compte exacte. Exemple : 4:H:Q == endend-mit/qoph (l'unique
+     mot de 4 lettres avec H et Q, QOPH, verifie independamment).
+Chaque doublon verifie par une requete SQL directe et independante (pas seulement l'algorithme
+  de deduction) avant application -- 0 divergence sur l'echantillon controle.
+```
+
+Vérifications faites :
+
+```text
+php -l : propre.
+TTFB (php -S, echantillon 3 pages, longueurs 2/7/15) : 13-40 ms, tous largement sous le budget
+  250 ms.
+Verifie en direct : /woerter/2-buchstaben/mit-buchstaben/u/z -> noindex,follow, canonical vers
+  /woerter/2-buchstaben/mit-buchstaben/z ; /woerter/7-buchstaben/mit-buchstaben/a/e ->
+  index,follow, canonical=soi-meme ; sitemaps/avec-two-0001.xml -> 200, 5127 <loc>.
+php tests/run.php = 20/21 (meme echec pre-existant WordListViewTest, D-DE-011, sans rapport).
+storage/seo_de.sqlite : 615 560 -> 620 762 lignes total, 615 491 -> 620 618 index,follow.
+Sitemaps regeneres : nouveau fragment avec-two-0001.xml (5127 URL), sitemap-index.xml passe a
+  24 fragments / 620 618 URL au total.
+```
+
+Raison :
+
+```text
+suite directe de D-DE-026, meme demande produit -- ferme le palier 2 lettres de l'entonnoir
+  "avec" avec la meme rigueur de verification de doublons (trois classes distinctes, chacune
+  spot-verifiee independamment).
+```
+
+Conséquences :
+
+```text
+scripts/apply_seo_batch.php, scripts/build_sitemaps.php,
+  scripts/seo-batches/avec-two-letters-2026-08-31.php (nouveau)
+Reste a faire : avec 3 lettres, position, combined_with_letter, commencant_with_letter -- sur
+  DE ET ES.
+```
+

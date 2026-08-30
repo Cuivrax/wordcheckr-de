@@ -165,6 +165,18 @@ function familySeoBatchRouteShapeError(string $family, string $routePath): ?stri
                 ? null
                 : "forme attendue '/woerter/{N}-buchstaben/mit-buchstaben/{X}' (une seule lettre)";
 
+        case Family::WORD_LIST_AVEC_TWO_LETTERS:
+            // D-DE-027 : deux lettres distinctes, triees alphabetiquement (X < Y) --
+            // App\Search\WordListFilters ksort() les lettres "avec" (D-022), meme convention
+            // que le depot francais.
+            if (preg_match('#^/woerter/\d{1,2}-buchstaben/mit-buchstaben/([a-zäöü])/([a-zäöü])\z#u', $routePath, $m) !== 1) {
+                return "forme attendue '/woerter/{N}-buchstaben/mit-buchstaben/{X}/{Y}' (deux lettres distinctes)";
+            }
+            if (!($m[1] < $m[2])) {
+                return "lettres avec doivent etre triees alphabetiquement (X < Y), recu '{$m[1]}' et '{$m[2]}'";
+            }
+            return null;
+
         default:
             // Famille non couverte par ce durcissement (word_admitted, rack, ou toute famille
             // combinatoire non encore mesuree) : aucune regle de forme ecrite ici, jamais

@@ -104,10 +104,13 @@ const FAMILY_FRAGMENT_PREFIXES = [
     // word_list_avec_single_letter (/woerter/{N}-buchstaben/mit-buchstaben/{lettre}, palier 1
     // lettre) : D-DE-026, distinct de word_list_avec (generique, NEVER_SITEMAP).
     'word_list_avec_single_letter' => 'avec-single',
-    // rack, enthalten/ohne/muster, position, "avec" 2/3 lettres, et beginnend-mit+endend-mit
+    // word_list_avec_two_letters (/woerter/{N}-buchstaben/mit-buchstaben/{X}/{Y}, palier 2
+    // lettres) : D-DE-027.
+    'word_list_avec_two_letters' => 'avec-two',
+    // rack, enthalten/ohne/muster, position, "avec" 3 lettres, et beginnend-mit+endend-mit
     // combine (690 combinaisons, 1 seule liee) : absents volontairement -- soit
     // App\Seo\Family::NEVER_SITEMAP (jamais de prefixe), soit non encore ouverts (D-DE-017/
-    // D-DE-019/D-DE-026).
+    // D-DE-019/D-DE-026/D-DE-027).
 ];
 
 $baseUrl = null;
