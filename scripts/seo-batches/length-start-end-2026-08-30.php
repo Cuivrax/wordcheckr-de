@@ -1168,11 +1168,11 @@ array (
     array (
       'route_path' => '/woerter/6-buchstaben/endend-mit/j',
       'family' => 'word_list_terminant',
-      'robots' => 'noindex,follow',
+      'robots' => 'index,follow',
       'canonical_path' => '/woerter/6-buchstaben/endend-mit/j',
-      'sitemap_fragment' => NULL,
+      'sitemap_fragment' => 'ends-0002',
       'result_count' => 1,
-      'notes' => 'TITRE TROP LONG (>= 60 caracteres), verifie en direct sur un vrai serveur PHP (pas suppose) : app/View/word-list.php enrichit <title> pour $page->total===1 en prefixant le mot unique lui-meme (audit D-031 herite, comportement de gabarit existant, hors perimetre seo-registry -- app/View/ non modifiable ici, signale pour un futur ajustement de gabarit plutot que corrige silencieusement). PAS un doublon de contenu -- canonical_path pointe vers soi-meme, cette page reste noindex uniquement pour une raison de qualite de <title>, pas de contenu. 1 seul resultat, GARDE et signale separement (pas un critere d\'exclusion a lui seul, docs/05).',
+      'notes' => 'CORRECTIF 2026-08-30 : re-inclus apres correction du gabarit (app/View/word-list.php, commit e6eb4b8) qui omet desormais le suffixe de marque quand le titre depasse 60 caracteres. Verifie EN DIRECT sur un vrai serveur PHP : <title>ADONAJ - Woerter Mit 6 Buchstaben Mit J Am Ende | WORD CHECKR</title>, 60 caracteres exactement. Verlinkt depuis /woerter/6-buchstaben via LengthLinksBuilder::byEnd (list_counts, list_type=length_end) et depuis la page mot elle-meme. Ancienne raison d\'exclusion (titre trop long) desormais caduque.',
     ),
     109 => 
     array (
@@ -1338,11 +1338,11 @@ array (
     array (
       'route_path' => '/woerter/6-buchstaben/endend-mit/ö',
       'family' => 'word_list_terminant',
-      'robots' => 'noindex,follow',
+      'robots' => 'index,follow',
       'canonical_path' => '/woerter/6-buchstaben/endend-mit/ö',
-      'sitemap_fragment' => NULL,
+      'sitemap_fragment' => 'ends-0002',
       'result_count' => 1,
-      'notes' => 'TITRE TROP LONG (>= 60 caracteres), verifie en direct sur un vrai serveur PHP (pas suppose) : app/View/word-list.php enrichit <title> pour $page->total===1 en prefixant le mot unique lui-meme (audit D-031 herite, comportement de gabarit existant, hors perimetre seo-registry -- app/View/ non modifiable ici, signale pour un futur ajustement de gabarit plutot que corrige silencieusement). PAS un doublon de contenu -- canonical_path pointe vers soi-meme, cette page reste noindex uniquement pour une raison de qualite de <title>, pas de contenu. 1 seul resultat, GARDE et signale separement (pas un critere d\'exclusion a lui seul, docs/05).',
+      'notes' => 'CORRECTIF 2026-08-30 : re-inclus apres correction du gabarit (app/View/word-list.php, commit e6eb4b8) qui omet desormais le suffixe de marque quand le titre depasse 60 caracteres. Verifie EN DIRECT sur un vrai serveur PHP : <title>WINDBOe - Woerter Mit 6 Buchstaben Mit Oe Am Ende | WORD CHECKR</title>, 60 caracteres exactement. Verlinkt depuis /woerter/6-buchstaben via LengthLinksBuilder::byEnd (list_counts, list_type=length_end) et depuis la page mot elle-meme. Ancienne raison d\'exclusion (titre trop long) desormais caduque.',
     ),
     126 => 
     array (
@@ -2188,11 +2188,11 @@ array (
     array (
       'route_path' => '/woerter/10-buchstaben/endend-mit/c',
       'family' => 'word_list_terminant',
-      'robots' => 'noindex,follow',
+      'robots' => 'index,follow',
       'canonical_path' => '/woerter/10-buchstaben/endend-mit/c',
-      'sitemap_fragment' => NULL,
+      'sitemap_fragment' => 'ends-0002',
       'result_count' => 1,
-      'notes' => 'TITRE TROP LONG (>= 60 caracteres), verifie en direct sur un vrai serveur PHP (pas suppose) : app/View/word-list.php enrichit <title> pour $page->total===1 en prefixant le mot unique lui-meme (audit D-031 herite, comportement de gabarit existant, hors perimetre seo-registry -- app/View/ non modifiable ici, signale pour un futur ajustement de gabarit plutot que corrige silencieusement). PAS un doublon de contenu -- canonical_path pointe vers soi-meme, cette page reste noindex uniquement pour une raison de qualite de <title>, pas de contenu. 1 seul resultat, GARDE et signale separement (pas un critere d\'exclusion a lui seul, docs/05).',
+      'notes' => 'CORRECTIF 2026-08-30 : re-inclus apres correction du gabarit (app/View/word-list.php, commit e6eb4b8) qui omet desormais le suffixe de marque quand le titre depasse 60 caracteres. Verifie EN DIRECT sur un vrai serveur PHP : <title>WORKAHOLIC - Woerter Mit 10 Buchstaben Mit C Am Ende</title>, 51 caracteres (suffixe de marque omis, correctement). Verlinkt depuis /woerter/10-buchstaben via LengthLinksBuilder::byEnd (list_counts, list_type=length_end) et depuis la page mot elle-meme. Ancienne raison d\'exclusion (titre trop long) desormais caduque.',
     ),
     211 => 
     array (
@@ -2398,11 +2398,11 @@ array (
     array (
       'route_path' => '/woerter/10-buchstaben/endend-mit/ü',
       'family' => 'word_list_terminant',
-      'robots' => 'noindex,follow',
+      'robots' => 'index,follow',
       'canonical_path' => '/woerter/10-buchstaben/endend-mit/ü',
-      'sitemap_fragment' => NULL,
+      'sitemap_fragment' => 'ends-0002',
       'result_count' => 1,
-      'notes' => 'TITRE TROP LONG (>= 60 caracteres), verifie en direct sur un vrai serveur PHP (pas suppose) : app/View/word-list.php enrichit <title> pour $page->total===1 en prefixant le mot unique lui-meme (audit D-031 herite, comportement de gabarit existant, hors perimetre seo-registry -- app/View/ non modifiable ici, signale pour un futur ajustement de gabarit plutot que corrige silencieusement). PAS un doublon de contenu -- canonical_path pointe vers soi-meme, cette page reste noindex uniquement pour une raison de qualite de <title>, pas de contenu. 1 seul resultat, GARDE et signale separement (pas un critere d\'exclusion a lui seul, docs/05).',
+      'notes' => 'CORRECTIF 2026-08-30 : re-inclus apres correction du gabarit (app/View/word-list.php, commit e6eb4b8) qui omet desormais le suffixe de marque quand le titre depasse 60 caracteres. Verifie EN DIRECT sur un vrai serveur PHP : <title>STEUERMENUe - Woerter Mit 10 Buchstaben Mit Ue Am Ende</title>, 51 caracteres (suffixe de marque omis, correctement). Verlinkt depuis /woerter/10-buchstaben via LengthLinksBuilder::byEnd (list_counts, list_type=length_end) et depuis la page mot elle-meme. Ancienne raison d\'exclusion (titre trop long) desormais caduque.',
     ),
     232 => 
     array (
@@ -2638,11 +2638,11 @@ array (
     array (
       'route_path' => '/woerter/11-buchstaben/endend-mit/ö',
       'family' => 'word_list_terminant',
-      'robots' => 'noindex,follow',
+      'robots' => 'index,follow',
       'canonical_path' => '/woerter/11-buchstaben/endend-mit/ö',
-      'sitemap_fragment' => NULL,
+      'sitemap_fragment' => 'ends-0002',
       'result_count' => 1,
-      'notes' => 'TITRE TROP LONG (>= 60 caracteres), verifie en direct sur un vrai serveur PHP (pas suppose) : app/View/word-list.php enrichit <title> pour $page->total===1 en prefixant le mot unique lui-meme (audit D-031 herite, comportement de gabarit existant, hors perimetre seo-registry -- app/View/ non modifiable ici, signale pour un futur ajustement de gabarit plutot que corrige silencieusement). PAS un doublon de contenu -- canonical_path pointe vers soi-meme, cette page reste noindex uniquement pour une raison de qualite de <title>, pas de contenu. 1 seul resultat, GARDE et signale separement (pas un critere d\'exclusion a lui seul, docs/05).',
+      'notes' => 'CORRECTIF 2026-08-30 : re-inclus apres correction du gabarit (app/View/word-list.php, commit e6eb4b8) qui omet desormais le suffixe de marque quand le titre depasse 60 caracteres. Verifie EN DIRECT sur un vrai serveur PHP : <title>URETHRORRHOe - Woerter Mit 11 Buchstaben Mit Oe Am Ende</title>, 52 caracteres (suffixe de marque omis, correctement). Verlinkt depuis /woerter/11-buchstaben via LengthLinksBuilder::byEnd (list_counts, list_type=length_end) et depuis la page mot elle-meme. Ancienne raison d\'exclusion (titre trop long) desormais caduque.',
     ),
     256 => 
     array (
@@ -3128,11 +3128,11 @@ array (
     array (
       'route_path' => '/woerter/13-buchstaben/endend-mit/ä',
       'family' => 'word_list_terminant',
-      'robots' => 'noindex,follow',
+      'robots' => 'index,follow',
       'canonical_path' => '/woerter/13-buchstaben/endend-mit/ä',
-      'sitemap_fragment' => NULL,
+      'sitemap_fragment' => 'ends-0002',
       'result_count' => 1,
-      'notes' => 'TITRE TROP LONG (>= 60 caracteres), verifie en direct sur un vrai serveur PHP (pas suppose) : app/View/word-list.php enrichit <title> pour $page->total===1 en prefixant le mot unique lui-meme (audit D-031 herite, comportement de gabarit existant, hors perimetre seo-registry -- app/View/ non modifiable ici, signale pour un futur ajustement de gabarit plutot que corrige silencieusement). PAS un doublon de contenu -- canonical_path pointe vers soi-meme, cette page reste noindex uniquement pour une raison de qualite de <title>, pas de contenu. 1 seul resultat, GARDE et signale separement (pas un critere d\'exclusion a lui seul, docs/05).',
+      'notes' => 'CORRECTIF 2026-08-30 : re-inclus apres correction du gabarit (app/View/word-list.php, commit e6eb4b8) qui omet desormais le suffixe de marque quand le titre depasse 60 caracteres. Verifie EN DIRECT sur un vrai serveur PHP : <title>ANTEPAeNULTIMAe - Woerter Mit 13 Buchstaben Mit Ae Am Ende</title>, 54 caracteres (suffixe de marque omis, correctement). Verlinkt depuis /woerter/13-buchstaben via LengthLinksBuilder::byEnd (list_counts, list_type=length_end) et depuis la page mot elle-meme. Ancienne raison d\'exclusion (titre trop long) desormais caduque.',
     ),
     305 => 
     array (
@@ -3158,11 +3158,11 @@ array (
     array (
       'route_path' => '/woerter/14-buchstaben/endend-mit/c',
       'family' => 'word_list_terminant',
-      'robots' => 'noindex,follow',
+      'robots' => 'index,follow',
       'canonical_path' => '/woerter/14-buchstaben/endend-mit/c',
-      'sitemap_fragment' => NULL,
+      'sitemap_fragment' => 'ends-0002',
       'result_count' => 1,
-      'notes' => 'TITRE TROP LONG (>= 60 caracteres), verifie en direct sur un vrai serveur PHP (pas suppose) : app/View/word-list.php enrichit <title> pour $page->total===1 en prefixant le mot unique lui-meme (audit D-031 herite, comportement de gabarit existant, hors perimetre seo-registry -- app/View/ non modifiable ici, signale pour un futur ajustement de gabarit plutot que corrige silencieusement). PAS un doublon de contenu -- canonical_path pointe vers soi-meme, cette page reste noindex uniquement pour une raison de qualite de <title>, pas de contenu. 1 seul resultat, GARDE et signale separement (pas un critere d\'exclusion a lui seul, docs/05).',
+      'notes' => 'CORRECTIF 2026-08-30 : re-inclus apres correction du gabarit (app/View/word-list.php, commit e6eb4b8) qui omet desormais le suffixe de marque quand le titre depasse 60 caracteres. Verifie EN DIRECT sur un vrai serveur PHP : <title>SILBERMETALLIC - Woerter Mit 14 Buchstaben Mit C Am Ende</title>, 55 caracteres (suffixe de marque omis, correctement). Verlinkt depuis /woerter/14-buchstaben via LengthLinksBuilder::byEnd (list_counts, list_type=length_end) et depuis la page mot elle-meme. Ancienne raison d\'exclusion (titre trop long) desormais caduque.',
     ),
     308 => 
     array (
@@ -3338,11 +3338,11 @@ array (
     array (
       'route_path' => '/woerter/14-buchstaben/endend-mit/w',
       'family' => 'word_list_terminant',
-      'robots' => 'noindex,follow',
+      'robots' => 'index,follow',
       'canonical_path' => '/woerter/14-buchstaben/endend-mit/w',
-      'sitemap_fragment' => NULL,
+      'sitemap_fragment' => 'ends-0002',
       'result_count' => 1,
-      'notes' => 'TITRE TROP LONG (>= 60 caracteres), verifie en direct sur un vrai serveur PHP (pas suppose) : app/View/word-list.php enrichit <title> pour $page->total===1 en prefixant le mot unique lui-meme (audit D-031 herite, comportement de gabarit existant, hors perimetre seo-registry -- app/View/ non modifiable ici, signale pour un futur ajustement de gabarit plutot que corrige silencieusement). PAS un doublon de contenu -- canonical_path pointe vers soi-meme, cette page reste noindex uniquement pour une raison de qualite de <title>, pas de contenu. 1 seul resultat, GARDE et signale separement (pas un critere d\'exclusion a lui seul, docs/05).',
+      'notes' => 'CORRECTIF 2026-08-30 : re-inclus apres correction du gabarit (app/View/word-list.php, commit e6eb4b8) qui omet desormais le suffixe de marque quand le titre depasse 60 caracteres. Verifie EN DIRECT sur un vrai serveur PHP : <title>RADIOINTERVIEW - Woerter Mit 14 Buchstaben Mit W Am Ende</title>, 55 caracteres (suffixe de marque omis, correctement). Verlinkt depuis /woerter/14-buchstaben via LengthLinksBuilder::byEnd (list_counts, list_type=length_end) et depuis la page mot elle-meme. Ancienne raison d\'exclusion (titre trop long) desormais caduque.',
     ),
     326 => 
     array (
@@ -3378,11 +3378,11 @@ array (
     array (
       'route_path' => '/woerter/14-buchstaben/endend-mit/ä',
       'family' => 'word_list_terminant',
-      'robots' => 'noindex,follow',
+      'robots' => 'index,follow',
       'canonical_path' => '/woerter/14-buchstaben/endend-mit/ä',
-      'sitemap_fragment' => NULL,
+      'sitemap_fragment' => 'ends-0002',
       'result_count' => 1,
-      'notes' => 'TITRE TROP LONG (>= 60 caracteres), verifie en direct sur un vrai serveur PHP (pas suppose) : app/View/word-list.php enrichit <title> pour $page->total===1 en prefixant le mot unique lui-meme (audit D-031 herite, comportement de gabarit existant, hors perimetre seo-registry -- app/View/ non modifiable ici, signale pour un futur ajustement de gabarit plutot que corrige silencieusement). PAS un doublon de contenu -- canonical_path pointe vers soi-meme, cette page reste noindex uniquement pour une raison de qualite de <title>, pas de contenu. 1 seul resultat, GARDE et signale separement (pas un critere d\'exclusion a lui seul, docs/05).',
+      'notes' => 'CORRECTIF 2026-08-30 : re-inclus apres correction du gabarit (app/View/word-list.php, commit e6eb4b8) qui omet desormais le suffixe de marque quand le titre depasse 60 caracteres. Verifie EN DIRECT sur un vrai serveur PHP : <title>ANTEPAENULTIMAe - Woerter Mit 14 Buchstaben Mit Ae Am Ende</title>, 55 caracteres (suffixe de marque omis, correctement). Verlinkt depuis /woerter/14-buchstaben via LengthLinksBuilder::byEnd (list_counts, list_type=length_end) et depuis la page mot elle-meme. Ancienne raison d\'exclusion (titre trop long) desormais caduque.',
     ),
     330 => 
     array (

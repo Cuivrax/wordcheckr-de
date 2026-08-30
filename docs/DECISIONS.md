@@ -4536,3 +4536,35 @@ app/View/word-list.php : le gabarit de titre enrichi pour resultat unique (D-031
   mais pas optimal, signale pour un futur raffinement data-engine
 ```
 
+### Correctif 2026-08-30 — Ré-inclusion Des 9 Pages Bloquées Par Le Bug De Titre
+
+Le point signalé ci-dessus (`app/View/word-list.php`, gabarit de titre >60 caractères) a été
+corrigé directement par la session principale (commit `e6eb4b8`, `phase-de-047-title-suffix-fix`) :
+le suffixe de marque " | WORD CHECKR" est désormais omis quand
+`mb_strlen($metaTitle . $titleSuffix, 'UTF-8') > 60`.
+
+Les 9 pages exclues pour cette raison précise dans ce lot ont été ré-vérifiées EN DIRECT sur un
+vrai serveur PHP (titres avant/après mesurés, pas supposés) puis basculées à `index,follow` :
+
+```text
+/woerter/6-buchstaben/endend-mit/j    60 caracteres (suffixe conserve)
+/woerter/6-buchstaben/endend-mit/ö    60 caracteres (suffixe conserve)
+/woerter/10-buchstaben/endend-mit/c   51 caracteres (suffixe omis)
+/woerter/10-buchstaben/endend-mit/ü   51 caracteres (suffixe omis)
+/woerter/11-buchstaben/endend-mit/ö   52 caracteres (suffixe omis)
+/woerter/13-buchstaben/endend-mit/ä   54 caracteres (suffixe omis)
+/woerter/14-buchstaben/endend-mit/c   55 caracteres (suffixe omis)
+/woerter/14-buchstaben/endend-mit/w   55 caracteres (suffixe omis)
+/woerter/14-buchstaben/endend-mit/ä   55 caracteres (suffixe omis)
+```
+
+Le vrai doublon de contenu (`/woerter/7-buchstaben/endend-mit/q` ≡ `/woerter/endend-mit/q`,
+INUPIAQ) reste `noindex,follow` — n'a jamais été concerné par le bug de titre, raison
+d'exclusion inchangée.
+
+Registre : 595 802 → 595 811 URL `index,follow` (+9). Sitemaps régénérés
+(`ends-0002.xml` : 343 → 352 URL, `sitemap-index.xml` : 595 811 URL au total, 22 fragments,
+inchangé). Échantillon HTTP réel confirmé (200, `index,follow`, `<title>` correct) sur 3 des 9
+pages. Suite de tests : 20/21, même échec pré-existant `WordListViewTest` que la baseline
+connue, aucune régression nouvelle.
+

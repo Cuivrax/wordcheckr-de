@@ -526,9 +526,10 @@ Registre SEO (D-DE-013, D-DE-016 a D-DE-019) : storage/seo_de.sqlite construit e
   home (1), word_list_length COMPLET (14/14 longueurs), word_admitted COMPLET (590 856/590 856
   mots, decision explicite du proprietaire du produit "comme le FR"), beginnend-mit (29 URL,
   1 lettre) et endend-mit (455 URL, 2 lettres -- asymetrie mesuree et deliberee, D-DE-017),
-  PLUS palier 2 (D-DE-019) : longueur+beginnend-mit/endend-mit combine (744/754 candidats,
-  10 exclusions tracees -- 1 doublon de contenu reel, 9 depassements de titre a 60 caracteres
-  signales a l'agent frontend) et beginnend-mit a 3 lettres COMPLET (3703/3703). 595 802 URL
+  PLUS palier 2 (D-DE-019) : longueur+beginnend-mit/endend-mit combine (753/754 candidats
+  apres correctif 2026-08-30, 1 seule exclusion tracee restante -- le doublon de contenu reel ;
+  les 9 depassements de titre a 60 caracteres ont ete re-inclus une fois le gabarit corrige,
+  commit e6eb4b8) et beginnend-mit a 3 lettres COMPLET (3703/3703). 595 811 URL
   index,follow au total, 22 fragments sitemap. list_counts peuplee (D-DE-018, 826 lignes,
   5/19 list_type) debloque ce palier 2. Familles restantes (hub /woerter lui-meme,
   beginnend-mit+endend-mit combine 1+1 lettre, mit-buchstaben, enthalten/ohne/muster,
