@@ -460,6 +460,17 @@ $metaTitle = ($page->total === 1 && $page->items !== [])
     ? $page->items[0]['normalized'] . ' - ' . $pageTitle
     : $pageTitle;
 
+// Correctif (audit seo-technical-auditor round 2, D-DE-019) : le mot reel prefixe
+// ci-dessus peut faire depasser 60 caracteres une fois le suffixe de marque ajoute,
+// notamment sur les pages a 1 resultat des familles longueur+beginnend-mit/endend-mit
+// (mots longs). Retire le suffixe de marque UNIQUEMENT quand la combinaison depasserait
+// le budget -- le contenu distinctif (mot + categorie) prime sur la marque, jamais
+// l'inverse. N'affecte que ce gabarit precis, pas les autres vues.
+$titleSuffix = ' | WORD CHECKR';
+if (mb_strlen($metaTitle . $titleSuffix, 'UTF-8') > 60) {
+    $titleSuffix = '';
+}
+
 // Statut par ligne : memes trois valeurs fermees que la fiche mot (jamais
 // STATUS_UNKNOWN ici, voir WordListSolver::toItems()). "Gültig"/"Nicht Gültig" : meme
 // registre que app/View/word.php (D-DE-009).
@@ -475,7 +486,7 @@ $showPagination = $page->hasPreviousPage || $page->hasNextPage;
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="<?= e($seo->robots) ?>">
-<title><?= e($metaTitle) ?> | WORD CHECKR</title>
+<title><?= e($metaTitle . $titleSuffix) ?></title>
 <meta name="description" content="<?= e($statusMeta['direct']) ?>">
 <?php if ($seo->canonicalUrl !== null): ?>
 <link rel="canonical" href="<?= e($seo->canonicalUrl) ?>">
