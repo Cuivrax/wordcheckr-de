@@ -39,7 +39,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/a',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 2066,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2066 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2066 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     1 => 
     array (
@@ -49,7 +49,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/b',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 1488,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 1488 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 1488 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     2 => 
     array (
@@ -59,7 +59,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/c',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 48,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 48 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 48 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     3 => 
     array (
@@ -68,8 +68,8 @@ array (
       'robots' => 'index,follow',
       'canonical_path' => '/woerter/endend-mit/d',
       'sitemap_fragment' => 'ends-0001',
-      'result_count' => 10000,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 14455 resultat(s) reels (TRONQUE a 10000, ROW_EXAMINATION_CEILING, meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'result_count' => 14455,
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 14455 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) -- TRONQUE A L\'AFFICHAGE a 10000 lignes (ROW_EXAMINATION_CEILING), meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif. TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     4 => 
     array (
@@ -78,8 +78,8 @@ array (
       'robots' => 'index,follow',
       'canonical_path' => '/woerter/endend-mit/e',
       'sitemap_fragment' => 'ends-0001',
-      'result_count' => 10000,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 104561 resultat(s) reels (TRONQUE a 10000, ROW_EXAMINATION_CEILING, meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'result_count' => 104561,
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 104561 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) -- TRONQUE A L\'AFFICHAGE a 10000 lignes (ROW_EXAMINATION_CEILING), meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif. TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     5 => 
     array (
@@ -89,7 +89,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/f',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 2237,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2237 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2237 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     6 => 
     array (
@@ -98,8 +98,8 @@ array (
       'robots' => 'index,follow',
       'canonical_path' => '/woerter/endend-mit/g',
       'sitemap_fragment' => 'ends-0001',
-      'result_count' => 10000,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 12964 resultat(s) reels (TRONQUE a 10000, ROW_EXAMINATION_CEILING, meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'result_count' => 12964,
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 12964 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) -- TRONQUE A L\'AFFICHAGE a 10000 lignes (ROW_EXAMINATION_CEILING), meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif. TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     7 => 
     array (
@@ -109,7 +109,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/h',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 7389,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 7389 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 7389 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     8 => 
     array (
@@ -119,7 +119,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/i',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 2048,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2048 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2048 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     9 => 
     array (
@@ -129,7 +129,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/j',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 2,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     10 => 
     array (
@@ -139,7 +139,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/k',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 3362,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 3362 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 3362 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     11 => 
     array (
@@ -149,7 +149,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/l',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 8098,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 8098 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 8098 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     12 => 
     array (
@@ -158,8 +158,8 @@ array (
       'robots' => 'index,follow',
       'canonical_path' => '/woerter/endend-mit/m',
       'sitemap_fragment' => 'ends-0001',
-      'result_count' => 10000,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 41961 resultat(s) reels (TRONQUE a 10000, ROW_EXAMINATION_CEILING, meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'result_count' => 41961,
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 41961 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) -- TRONQUE A L\'AFFICHAGE a 10000 lignes (ROW_EXAMINATION_CEILING), meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif. TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     13 => 
     array (
@@ -168,8 +168,8 @@ array (
       'robots' => 'index,follow',
       'canonical_path' => '/woerter/endend-mit/n',
       'sitemap_fragment' => 'ends-0001',
-      'result_count' => 10000,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 131784 resultat(s) reels (TRONQUE a 10000, ROW_EXAMINATION_CEILING, meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'result_count' => 131784,
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 131784 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) -- TRONQUE A L\'AFFICHAGE a 10000 lignes (ROW_EXAMINATION_CEILING), meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif. TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     14 => 
     array (
@@ -179,7 +179,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/o',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 1031,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 1031 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 1031 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     15 => 
     array (
@@ -189,7 +189,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/p',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 623,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 623 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 623 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     16 => 
     array (
@@ -198,8 +198,8 @@ array (
       'robots' => 'index,follow',
       'canonical_path' => '/woerter/endend-mit/r',
       'sitemap_fragment' => 'ends-0001',
-      'result_count' => 10000,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 56865 resultat(s) reels (TRONQUE a 10000, ROW_EXAMINATION_CEILING, meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'result_count' => 56865,
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 56865 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) -- TRONQUE A L\'AFFICHAGE a 10000 lignes (ROW_EXAMINATION_CEILING), meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif. TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     17 => 
     array (
@@ -208,8 +208,8 @@ array (
       'robots' => 'index,follow',
       'canonical_path' => '/woerter/endend-mit/s',
       'sitemap_fragment' => 'ends-0001',
-      'result_count' => 10000,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 108839 resultat(s) reels (TRONQUE a 10000, ROW_EXAMINATION_CEILING, meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'result_count' => 108839,
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 108839 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) -- TRONQUE A L\'AFFICHAGE a 10000 lignes (ROW_EXAMINATION_CEILING), meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif. TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     18 => 
     array (
@@ -218,8 +218,8 @@ array (
       'robots' => 'index,follow',
       'canonical_path' => '/woerter/endend-mit/t',
       'sitemap_fragment' => 'ends-0001',
-      'result_count' => 10000,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 86856 resultat(s) reels (TRONQUE a 10000, ROW_EXAMINATION_CEILING, meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'result_count' => 86856,
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 86856 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) -- TRONQUE A L\'AFFICHAGE a 10000 lignes (ROW_EXAMINATION_CEILING), meme precedent accepte D-DE-017 : affichage honnete "au moins 10000", jamais presente comme un compte definitif. TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     19 => 
     array (
@@ -229,7 +229,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/u',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 895,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 895 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 895 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     20 => 
     array (
@@ -239,7 +239,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/v',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 482,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 482 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 482 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     21 => 
     array (
@@ -249,7 +249,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/w',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 58,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 58 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 58 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     22 => 
     array (
@@ -259,7 +259,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/x',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 268,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 268 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 268 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     23 => 
     array (
@@ -269,7 +269,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/y',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 270,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 270 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 270 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     24 => 
     array (
@@ -279,7 +279,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/z',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 2134,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2134 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 2134 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     25 => 
     array (
@@ -289,7 +289,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/ä',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 33,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 33 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 33 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     26 => 
     array (
@@ -299,7 +299,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/ö',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 17,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 17 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 17 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
     27 => 
     array (
@@ -309,7 +309,7 @@ array (
       'canonical_path' => '/woerter/endend-mit/ü',
       'sitemap_fragment' => 'ends-0001',
       'result_count' => 21,
-      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 21 resultat(s) reels (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
+      'notes' => 'Palier 1 lettre de word_list_terminant (D-DE-023, symetrique a beginnend-mit 1 lettre deja indexe D-DE-017). Lien interne reel depuis /woerter (hub, noindex,follow -- App\\Search\\ExploreHubBuilder, section "Nach Endbuchstabe", list_counts \'end\') vers CHAQUE lettre, verifie en direct (php -S). 21 resultat(s) reels (result_count stocke le compte reel, pas le plafond d\'examen) (sous le plafond de troncature). TTFB mesure en direct (rechauffement + mediane de 3 executions) sur les buckets les plus lourds (N/S/E/T/R/M) : 88-96 ms, tres en dessous du budget 250 ms malgre la troncature.',
     ),
   ),
 );
