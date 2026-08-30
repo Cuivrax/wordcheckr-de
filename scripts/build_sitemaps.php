@@ -86,17 +86,25 @@ const FAMILY_FRAGMENT_PREFIXES = [
     // inconditionnellement sa propre page de longueur, App\Search\RelationsFinder::
     // relatedSearches(), verifie en direct).
     'word_list_length' => 'letters',
-    // word_list_commencant (/woerter/beginnend-mit/{lettre}) : palier 1 lettre unique, 29
-    // lettres (alphabet allemand + AOU), D-DE-017.
+    // word_list_commencant : PLUSIEURS paliers, meme famille, fragments distincts --
+    // starts-0001.xml (/woerter/beginnend-mit/{lettre}, 1 lettre unique, 29 lettres, D-DE-017),
+    // starts-0002.xml (/woerter/{N}-buchstaben/beginnend-mit/{lettre}, longueur+1 lettre, 401
+    // combinaisons reelles, D-DE-019/D-DE-018/list_counts), starts-0003.xml
+    // (/woerter/beginnend-mit/{3 lettres}, 3703 combinaisons a lien entrant reel, D-DE-019).
     'word_list_commencant' => 'starts',
-    // word_list_terminant (/woerter/endend-mit/{2 lettres}) : palier 2 lettres (PAS 1 lettre --
-    // voir docs/DECISIONS.md D-DE-017 pour la raison mesuree : App\Search\RelationsFinder::
-    // relatedSearches() n'emet jamais de suffixe a 1 seule lettre, seulement 2, la longueur
-    // MIN_LENGTH=2 rendant mb_substr($word, -min(2,$length)) toujours egal a 2).
+    // word_list_terminant : PLUSIEURS paliers, meme famille -- ends-0001.xml
+    // (/woerter/endend-mit/{2 lettres}, palier 2 lettres, PAS 1 lettre -- voir docs/DECISIONS.md
+    // D-DE-017 pour la raison mesuree : App\Search\RelationsFinder::relatedSearches() n'emet
+    // jamais de suffixe a 1 seule lettre, seulement 2, la longueur MIN_LENGTH=2 rendant
+    // mb_substr($word, -min(2,$length)) toujours egal a 2), ends-0002.xml
+    // (/woerter/{N}-buchstaben/endend-mit/{lettre}, longueur+1 lettre, 343 pages sur 353
+    // combinaisons reelles -- 10 exclues explicitement, D-DE-019 : 1 doublon de contenu +
+    // 9 <title> >= 60 caracteres, voir scripts/seo-batches/length-start-end-2026-08-30.php).
     'word_list_terminant' => 'ends',
-    // rack, enthalten/mit-buchstaben/ohne/muster, et toute famille beginnend-mit/endend-mit
-    // combinee/position future : absents volontairement -- soit App\Seo\Family::NEVER_SITEMAP
-    // (jamais de prefixe), soit non encore ouverts (D-DE-017).
+    // rack, enthalten/mit-buchstaben/ohne/muster, position, et beginnend-mit+endend-mit
+    // combine (690 combinaisons, 1 seule liee) : absents volontairement -- soit
+    // App\Seo\Family::NEVER_SITEMAP (jamais de prefixe), soit non encore ouverts (D-DE-017/
+    // D-DE-019).
 ];
 
 $baseUrl = null;

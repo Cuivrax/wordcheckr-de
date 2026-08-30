@@ -1,31 +1,35 @@
 # WordCheckr -- site allemand (wordcheckr.de).
 # Perimetre normal : agent seo-registry (CLAUDE.md).
 #
-# Registre SEO construit (storage/seo_de.sqlite) : etat au 2026-08-29 (docs/DECISIONS.md,
-# D-DE-013 -> D-DE-017 pour l'historique complet des paliers) --
+# Registre SEO construit (storage/seo_de.sqlite) : etat au 2026-08-30 (docs/DECISIONS.md,
+# D-DE-013 -> D-DE-019 pour l'historique complet des paliers) --
 #   home ('/' uniquement, PAS le hub '/woerter' -- list_counts vide, 3 des 4 sections de la
 #     grille rendraient un contenu vide, D-DE-013 point 5)
 #   word_admitted, integralite (590 856 pages /wort/{mot}, D-DE-016)
 #   word_list_length, les 14 listes par longueur (/woerter/{N}-buchstaben, 2 a 15, D-DE-013)
-#   word_list_commencant, palier 1 lettre (/woerter/beginnend-mit/{lettre}, 29 pages, D-DE-017)
-#   word_list_terminant, palier 2 lettres (/woerter/endend-mit/{2 lettres}, 455 pages
-#     REELLEMENT REALISEES sur 841 combinaisons theoriques, D-DE-017 -- PAS 1 lettre, voir
+#   word_list_commencant, PLUSIEURS paliers : 1 lettre (/woerter/beginnend-mit/{lettre}, 29
+#     pages, D-DE-017), longueur+1 lettre (/woerter/{N}-buchstaben/beginnend-mit/{lettre},
+#     401 pages, D-DE-019), 3 lettres (/woerter/beginnend-mit/{3 lettres}, 3703 pages, D-DE-019)
+#   word_list_terminant, PLUSIEURS paliers : 2 lettres (/woerter/endend-mit/{2 lettres}, 455
+#     pages REELLEMENT REALISEES sur 841 combinaisons theoriques, D-DE-017 -- PAS 1 lettre, voir
 #     D-DE-017 pour la raison mesuree : seul un suffixe de 2 lettres beneficie d'un maillage
-#     interne reel via App\Search\RelationsFinder::relatedSearches())
+#     interne reel via App\Search\RelationsFinder::relatedSearches()), longueur+1 lettre
+#     (/woerter/{N}-buchstaben/endend-mit/{lettre}, 352 pages sur 353 combinaisons reelles,
+#     D-DE-019 -- 1 exclue pour doublon de contenu confirme avec /woerter/endend-mit/q,
+#     canonical vers cette derniere, reste noindex,follow)
 # Toute route absente du registre reste noindex,follow par defaut
 # (App\Seo\Registry::resolve()) -- ce fichier ne fait qu'autoriser le crawl, il ne decide
 # jamais lui-meme de l'indexation.
 #
-# Restent noindex,follow (chacun pour une raison distincte, voir docs/DECISIONS.md D-DE-017
-# pour le detail chiffre) : hub '/woerter' (ci-dessus), beginnend-mit/endend-mit combines,
-# beginnend-mit a 3 lettres (candidat mesure, volume non encore discute), longueur+beginnend-mit
-# combine (0 maillage reel, list_counts vide), enthalten/mit-buchstaben/ohne/muster
+# Restent noindex,follow (chacun pour une raison distincte, voir docs/DECISIONS.md D-DE-017/
+# D-DE-019 pour le detail chiffre) : hub '/woerter' (ci-dessus), beginnend-mit+endend-mit
+# combines (1+1 lettre, 690 combinaisons, 1 seule liee), enthalten/mit-buchstaben/ohne/muster
 # (combinaisons non bornees, App\Seo\Family::NEVER_SITEMAP), position (0 maillage reel),
 # /wortsuche/{lettres} (rack, combinatoire).
 #
 # Build local uniquement a ce stade (docs/PHASE_STATUS.md) -- build et verification (XML bien
 # forme, echantillon de reponses 200/robots/canonical sur un vrai serveur php -S) faites le
-# 2026-08-29, MAIS le domaine wordcheckr.de n'est pas encore deploye. La ligne Sitemap:
+# 2026-08-30, MAIS le domaine wordcheckr.de n'est pas encore deploye. La ligne Sitemap:
 # ci-dessous est correcte pour la production future ; ne pas la retirer avant deploiement
 # (contrairement au retrait fait en D-DE-011/D-DE-012, qui visait un domaine et un schema d'URL
 # FAUX herites du scaffold FR->DE -- celui-ci est correct des maintenant).

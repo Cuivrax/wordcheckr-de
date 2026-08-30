@@ -358,8 +358,8 @@ Les tris et paramètres ne sont pas indexables.
 
 # Section Allemande
 
-État réel de CE dépôt (indépendant du site français ci-dessus), mis à jour le 2026-08-29
-(D-DE-017, dernier palier appliqué — historique complet D-DE-013 → D-DE-017). Toutes les règles
+État réel de CE dépôt (indépendant du site français ci-dessus), mis à jour le 2026-08-30
+(D-DE-019, dernier palier appliqué — historique complet D-DE-013 → D-DE-019). Toutes les règles
 génériques ci-dessus (registre unique, ordre canonique, règle "pages à un résultat", limite de
 40 000 URL/fragment, pagination) s'appliquent telles quelles ; seules les routes concrètes et
 les familles réellement peuplées diffèrent.
@@ -416,31 +416,43 @@ seulement : `is_admitted` / inconnu). `App\Seo\Family` n'a donc aucune constante
 `WORD_FRENCH_NOT_ADMITTED`/`WORD_SPANISH_NOT_ADMITTED` des dépôts cousins — à ajouter le jour où
 une source réelle existera, jamais avant (voir `app/Seo/Family.php`).
 
-## Familles Réellement Peuplées (D-DE-013, D-DE-016, D-DE-017)
+## Familles Réellement Peuplées (D-DE-013, D-DE-016, D-DE-017, D-DE-018, D-DE-019)
 
 ```text
 home                   '/' uniquement (PAS '/woerter' -- voir plus bas)
 word_admitted          /wort/{mot}, intégralité, 590 856 pages (D-DE-016)
 word_list_length       /woerter/{N}-buchstaben, les 14 longueurs (2 à 15) (D-DE-013)
-word_list_commencant   /woerter/beginnend-mit/{lettre}, 1 lettre, 29 pages (D-DE-017)
-word_list_terminant    /woerter/endend-mit/{lettres}, 2 lettres, 455 pages RÉALISÉES sur 841
-                        combinaisons théoriques (D-DE-017 -- PAS 1 lettre, voir "Maillage
-                        Interne Vérifié" ci-dessous pour la raison mesurée)
+word_list_commencant   PLUSIEURS paliers, même famille :
+                          /woerter/beginnend-mit/{lettre}, 1 lettre, 29 pages (D-DE-017)
+                          /woerter/{N}-buchstaben/beginnend-mit/{lettre}, longueur+1 lettre,
+                            401 pages sur 401 combinaisons réelles (D-DE-019, débloqué par
+                            D-DE-018/list_counts)
+                          /woerter/beginnend-mit/{3 lettres}, 3703 pages sur 3703 candidats à
+                            lien entrant réel (D-DE-019, réévaluation complète de D-DE-017)
+word_list_terminant    PLUSIEURS paliers, même famille :
+                          /woerter/endend-mit/{lettres}, 2 lettres, 455 pages RÉALISÉES sur 841
+                            combinaisons théoriques (D-DE-017 -- PAS 1 lettre, voir "Maillage
+                            Interne Vérifié" ci-dessous pour la raison mesurée)
+                          /woerter/{N}-buchstaben/endend-mit/{lettre}, longueur+1 lettre, 343
+                            pages sur 353 combinaisons réelles (D-DE-019 -- 10 exclusions
+                            explicites : 1 doublon de contenu confirmé avec
+                            /woerter/endend-mit/q, canonical vers cette dernière ; 9 pour
+                            <title> ≥ 60 caractères, canonical = soi-même, gabarit hérité
+                            D-031 qui préfixe le mot unique sur une page à 1 résultat)
 ```
 
-`/woerter` (hub) reste **noindex,follow** : `list_counts` est vide sur ce dépôt (même décision
-que côté espagnol cousin) — les trois sections de grille ("Nach Länge"/"Beginnend
-Mit"/"Endend Mit") rendent `<div class="related-links"></div>` strictement vide, vérifié en
-direct (`curl`/`file_get_contents` contre un vrai serveur `php -S`), pas seulement en lisant le
-code. Seuls les formulaires "Enthält"/"Prüfen" et le texte d'introduction constituent un contenu
-réel — jugé insuffisant pour indexer une page dont les trois quarts du contenu annoncé sont
-vides. Bloque aussi, par ricochet, tout maillage `list_counts`-dépendant (longueur+beginnend-mit
-combiné, beginnend-mit+endend-mit combiné, `App\Search\LengthLinksBuilder`,
-`StartEndWithLinksBuilder` et les autres `*LinksBuilder` hérités du dépôt français — tous
-produisent des sections vides tant que cette table reste à 0 ligne, hors périmètre de l'agent
-seo-registry, à router vers l'agent data-engine).
+`/woerter` (hub) reste **noindex,follow** : `list_counts` a désormais 826 lignes (D-DE-018),
+mais seulement pour 5 des 19 `list_type` (length/start/end/length_start/length_end) — les trois
+sections de grille du hub ("Nach Länge"/"Beginnend Mit"/"Endend Mit") rendent un contenu réel
+depuis D-DE-018 (vérifié en direct), mais la décision d'ouvrir `/woerter` elle-même reste
+distincte et n'a pas été reprise par ce lot (hors périmètre de la tâche reçue) — reste
+noindex,follow par omission jusqu'à une décision explicite dédiée. Ce qui était bloqué par
+`list_counts` vide (longueur+beginnend-mit combiné, longueur+endend-mit combiné,
+`App\Search\LengthLinksBuilder`) est désormais débloqué et appliqué par D-DE-019 ci-dessus ;
+`StartEndWithLinksBuilder` et les `*LinksBuilder` dépendant des 14 autres `list_type` à 0 ligne
+restent hors périmètre, à router vers l'agent data-engine.
 
-## Maillage Interne Vérifié (D-DE-013, affiné D-DE-017)
+## Maillage Interne Vérifié (D-DE-013, affiné D-DE-017, D-DE-019)
 
 `App\Search\RelationsFinder::relatedSearches()` émet, sur **chaque** fiche de mot admis
 (qu'elle soit elle-même indexée ou non — `noindex,follow` continue de faire suivre ses liens
@@ -449,8 +461,9 @@ sortants) :
 ```text
 length      1 lien vers /woerter/{sa-longueur}-buchstaben, toujours present, jamais evince
 startsWith  1 lien vers beginnend-mit/{1re lettre}, TOUJOURS present (word_list_commencant,
-            D-DE-017) ; +1 lien beginnend-mit/{3 premieres lettres} si longueur > 3 (candidat
-            mesure pour un palier 2, PAS applique ce lot -- 3703 pages, volume non discute)
+            D-DE-017) ; +1 lien beginnend-mit/{3 premieres lettres} si longueur > 3 -- OUVERT
+            par D-DE-019 (reverification complete, pas un echantillon : 3703/3703 candidats,
+            0 au-dessus du budget TTFB, 0 doublon de contenu confirme)
 endsWith    1 lien vers endend-mit/{2 dernieres lettres}, TOUJOURS 2 lettres, JAMAIS 1 seule
             (mb_substr($word, -min(2, $length)) avec Normalizer::MIN_LENGTH = 2 constant) --
             consequence mesuree (D-DE-017) : sur les 29 pages endend-mit/{1 lettre}
@@ -467,9 +480,17 @@ with        1 lien vers {longueur}-buchstaben/mit-buchstaben/{jusqu'a 3 lettres 
             futur
 ```
 
+`App\Search\LengthLinksBuilder::build()` (D-DE-018 : `list_counts` peuplee, D-DE-019 : ouvert a
+l'indexation) émet, sur **chaque** page `/woerter/{N}-buchstaben` déjà indexée (D-DE-013), un
+lien réel vers chaque page `{N}-buchstaben/beginnend-mit/{lettre}` (`byStart`) et
+`{N}-buchstaben/endend-mit/{lettre}` (`byEnd`) réellement présente dans `list_counts` pour cette
+longueur — vérifié en direct sur un vrai serveur PHP (`php -S`), pas seulement supposé depuis le
+code.
+
 `app/View/home.php` ajoute 3 liens statiques supplémentaires (`beginnend-mit/a`, `endend-mit/s`,
 `beginnend-mit/a/endend-mit/e`) — ce dernier est, à ce jour, le SEUL lien réel vers la famille
-combinée beginnend-mit+endend-mit (690 combinaisons réalisées, 689 orphelines si ouvertes).
+combinée beginnend-mit+endend-mit (690 combinaisons réalisées, 689 orphelines si ouvertes) —
+**reste fermée**, non concernée par D-DE-019.
 
 Balayage COMPLET (pas un échantillon) mené le 2026-08-29 (D-DE-017) sur les deux familles
 ouvertes par ce lot :
@@ -488,6 +509,29 @@ endend-mit (455/455 suffixes réalisés)    0/455 au-dessus de 250 ms, p95 30,38
                                            français D-028bis/D-029, pas un défaut nouveau
 ```
 
+Balayage COMPLET mené le 2026-08-30 (D-DE-019) sur les deux paliers ouverts par ce lot :
+
+```text
+longueur+beginnend-mit/endend-mit (754/754 combinaisons, incl. longueurs extrêmes 2 et 15)
+                                           0/754 au-dessus de 250 ms, min 1,143 ms, p50 2,440 ms,
+                                           p95 106,450 ms, p99 178,050 ms, max 207,579 ms
+                                           length_start : SEARCH ... COVERING INDEX
+                                           idx_terms_length_normalized, jamais SCAN (régime EXACT)
+                                           length_end : SEARCH ... COVERING INDEX
+                                           idx_terms_length_reversed, jamais SCAN (régime BORNÉ,
+                                           20/353 pages TRONQUÉES > 10 000, même précédent)
+                                           10 exclusions explicites (1 doublon de contenu + 9
+                                           <title> ≥ 60 caractères) -- voir "Familles Réellement
+                                           Peuplées" ci-dessus
+beginnend-mit 3 lettres (3703/3703 candidats à lien entrant réel, RÉÉVALUATION COMPLÈTE,
+  pas un échantillon contrairement à D-DE-017)
+                                           0/3703 au-dessus de 250 ms, min 0,470 ms, p50 0,769 ms,
+                                           p95 2,084 ms, p99 3,409 ms, max 23,979 ms
+                                           EXPLAIN QUERY PLAN : SEARCH ... COVERING INDEX
+                                           sqlite_autoindex_terms_1, jamais SCAN (régime EXACT,
+                                           jamais tronqué)
+```
+
 Le sondage borné antérieur (14 mots, ~40 URL cibles, D-DE-013 point 8 ; étendu à 36 cibles lors
 de l'ouverture de `word_admitted`, D-DE-016) reste la seule mesure disponible pour `enthalten`,
 `mit-buchstaben` à 2/3 lettres, `ohne`, `muster` et `position` — favorable mais **pas** un
@@ -501,10 +545,14 @@ core-0001.xml     1 URL ('/')
 words-0001..0015  590 856 URL (/wort/{mot}, 14 fragments à 40 000 + 1 à 30 856)
 letters-0001.xml  14 URL (/woerter/{N}-buchstaben)
 starts-0001.xml   29 URL (/woerter/beginnend-mit/{lettre})
+starts-0002.xml   401 URL (/woerter/{N}-buchstaben/beginnend-mit/{lettre}, D-DE-019)
+starts-0003.xml   3703 URL (/woerter/beginnend-mit/{3 lettres}, D-DE-019)
 ends-0001.xml     455 URL (/woerter/endend-mit/{2 lettres})
+ends-0002.xml     343 URL (/woerter/{N}-buchstaben/endend-mit/{lettre}, D-DE-019, 353
+                  combinaisons réelles moins 10 exclusions explicites)
 ```
 
-19 fragments, 591 355 URL au total (2026-08-29). Préfixes réservés mais non générés à ce
+22 fragments, 595 802 URL au total (2026-08-30). Préfixes réservés mais non générés à ce
 stade : `contains-*`/`combined-*`/`position-*`/`avec-*`/`avec-single-*` (aucune famille
 correspondante mesurée assez finement ni ouverte sur ce dépôt — voir "Maillage Interne Vérifié"
 ci-dessus pour ce qui reste à mesurer).
