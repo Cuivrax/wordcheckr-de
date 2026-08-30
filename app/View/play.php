@@ -208,7 +208,7 @@ $statusMeta = match (true) {
     <span>Unabhängiges Tool für Buchstabenspiele.</span>
     <?php // Voir app/View/word.php pour la justification complete de ce choix (footer
     // repete a l'identique sur toutes les vues). ?>
-    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Kontakt</a></span>
+    <span class="footer-links"><a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a> · <a href="/contact">Kontakt</a></span>
   </div>
 </footer>
 </body>

@@ -302,7 +302,7 @@ $phraseLink = static function (string $path, string $label): string {
     // repete a l'identique sur toutes les vues) : "Mentions Légales"/"Confidentialité"
     // restent en francais (pages hors perimetre, contenu encore francais/droit francais),
     // "Contact" -> "Kontakt" (page pleinement traduite dans cette passe). ?>
-    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Kontakt</a></span>
+    <span class="footer-links"><a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a> · <a href="/contact">Kontakt</a></span>
   </div>
 </footer>
 <script src="/assets/js/tiles.js" defer></script>

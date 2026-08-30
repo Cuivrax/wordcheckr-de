@@ -648,10 +648,10 @@ if ($path === '/pruefen' || preg_match('#^/pruefen/([^/]*)$#u', $path, $matches)
     return;
 }
 
-// Pages legales (D-025ter) : /mentions-legales, /confidentialite, /contact -- volontairement
-// non indexees par defaut (D-026, aucune ligne au registre SEO pour elles), $render() avec
-// leur propre chemin en canonicalPath suffit (App\Seo\Registry::resolve() renvoie
-// noindex,follow par defaut en l'absence de ligne, exactement l'etat voulu ici).
+// Pages legales (D-025ter, contenu allemand D-DE-021) : /impressum, /datenschutz, /contact --
+// volontairement non indexees par defaut (D-026, aucune ligne au registre SEO pour elles),
+// $render() avec leur propre chemin en canonicalPath suffit (App\Seo\Registry::resolve()
+// renvoie noindex,follow par defaut en l'absence de ligne, exactement l'etat voulu ici).
 if ($path === '/contact') {
     if ($method === 'POST') {
         // Piege a bots (D-025ter) : champ cache hors du flux visuel/tabulation cote vue --
@@ -668,7 +668,9 @@ if ($path === '/contact') {
         $rawEmail = str_replace(["\r", "\n"], '', $rawEmail);
         $email = filter_var($rawEmail, FILTER_VALIDATE_EMAIL);
 
-        $name = is_string($_POST['nom'] ?? null) ? mb_substr(trim($_POST['nom']), 0, 100) : '';
+        // D-DE-021 : "nom" -> "name" (identique en allemand), meme lot que le renommage des
+        // pages legales elles-memes.
+        $name = is_string($_POST['name'] ?? null) ? mb_substr(trim($_POST['name']), 0, 100) : '';
         $message = is_string($_POST['message'] ?? null) ? trim($_POST['message']) : '';
 
         // Adresse jamais versee au depot (demande anti-spam explicite, D-025ter) -- lue
@@ -683,8 +685,8 @@ if ($path === '/contact') {
             return;
         }
 
-        $subject = 'Nouveau message via WORD CHECKR';
-        $body = ($name !== '' ? "Nom : {$name}\n" : '') . "Email : {$email}\n\n{$message}\n";
+        $subject = 'Neue Nachricht über WORD CHECKR';
+        $body = ($name !== '' ? "Name: {$name}\n" : '') . "E-Mail: {$email}\n\n{$message}\n";
         $sent = @mail($contactEmail, $subject, $body, 'Reply-To: ' . $email);
 
         $redirect($sent ? '/contact?envoye=1' : '/contact?erreur=1', 302);
@@ -700,14 +702,30 @@ if ($path === '/contact') {
     return;
 }
 
+// D-DE-021 : /mentions-legales -> /impressum, /confidentialite -> /datenschutz (vues internes
+// INCHANGEES, mentions-legales.php/confidentialite.php restent des identifiants techniques,
+// pas des URL -- D-DE-020). 301 depuis les anciens chemins francais, jamais indexes (D-026)
+// mais garde par prudence au cas ou un lien externe ou un signet pointerait encore vers eux.
 if ($path === '/mentions-legales') {
-    $render('mentions-legales', [], 200, '/mentions-legales');
+    $redirect('/impressum', 301);
 
     return;
 }
 
 if ($path === '/confidentialite') {
-    $render('confidentialite', [], 200, '/confidentialite');
+    $redirect('/datenschutz', 301);
+
+    return;
+}
+
+if ($path === '/impressum') {
+    $render('mentions-legales', [], 200, '/impressum');
+
+    return;
+}
+
+if ($path === '/datenschutz') {
+    $render('confidentialite', [], 200, '/datenschutz');
 
     return;
 }

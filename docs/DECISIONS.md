@@ -4659,3 +4659,102 @@ Aucun changement de route ni de registre SEO -- ces noms de champ ne sont jamais
   dans l'URL finale ni dans storage/seo_de.sqlite.
 ```
 
+## D-DE-021 — Pages Légales En Allemand Réel (Impressum, Datenschutzerklärung)
+
+Date : 2026-08-30
+Statut : accepté
+
+Contexte : `mentions-legales.php`/`confidentialite.php` contenaient depuis le portage initial
+(D-DE-009) un contenu encore intégralement français (RGPD/CNIL/droit français), délibérément
+laissé de côté avec la route `/confidentialite` elle-même (raisonnement documenté dans
+`app/View/word.php` : un libellé allemand pointant vers du contenu français serait plus
+trompeur que l'état honnête précédent). Décision explicite et directe du propriétaire du
+produit (2026-08-30, dans la conversation, pas relayée par un agent) : ne plus différer, écrire
+le contenu réel maintenant, et localiser aussi les attributs `id`/`name` restants sur ces deux
+pages sans exception ("je veux les attributs id/name en espagnol et de, point").
+
+Décision :
+
+```text
+Routes localisees : /mentions-legales -> /impressum, /confidentialite -> /datenschutz.
+  301 depuis les deux anciens chemins francais (jamais indexes, D-026, mais garde par
+  prudence). Noms de fichier internes (mentions-legales.php/confidentialite.php) INCHANGES --
+  identifiants techniques, pas des URL, meme convention que word.php/contact.php (D-DE-020).
+Contenu integralement reecrit en allemand, restructure selon le formalisme habituel d'un
+  Impressum (§5 TMG) et d'une Datenschutzerklarung DSGVO plutot que traduit mot a mot depuis
+  la structure LCEN/RGPD francaise -- MEMES FAITS REELS que la version francaise (D-025ter,
+  jamais reinventes) : BIGBANG MEDIA (EURL, RCS Laval, SIREN 917 929 382, capital 1 000 €),
+  o2switch (SAS, RCS Clermont-Ferrand, SIREN 510 909 807, capital 100 000 €, Chemin des
+  Pardiaux 63000 Clermont-Ferrand). Nom personnel, adresse complete du siege et email restent
+  volontairement absents (meme demande explicite du proprietaire du produit que D-025ter,
+  reconduite a l'identique, pas une nouvelle decision) -- l'ecart est signale dans le texte
+  lui-meme ("Anbieter"), pas silencieusement comble.
+Point juridique verifie avant redaction (pas suppose) : BIGBANG MEDIA n'a d'etablissement
+  qu'en France -- aucun representant allemand au sens de l'article 27 RGPD n'est requis (cette
+  obligation ne vise que les responsables SANS etablissement dans l'UE). La CNIL reste
+  l'autorite de controle CHEF DE FILE (guichet unique RGPD, article 56) -- mentionnee comme
+  telle dans la Datenschutzerklarung, PAS remplacee par une autorite allemande fictive. La
+  rubrique reclamation rappelle neanmoins le droit garanti par l'article 77 RGPD de saisir
+  aussi l'autorite du pays de residence -- coordonnees reelles du BfDI (Bundesbeauftragte fur
+  den Datenschutz und die Informationsfreiheit) ajoutees a cet effet.
+TOUS les attributs id/name/href="#..." des deux pages traduits en allemand (pas seulement le
+  libelle visible du lien) : sommaire ancre entierement renomme (editeur->anbieter,
+  directeur->verantwortlich, hebergement->hosting, conception->entwicklung,
+  propriete->urheberrecht, liens->links, tiers->dienste, donnees->daten,
+  accessibilite->barrierefreiheit, disponibilite->verfuegbarkeit, modification->aenderungen,
+  droit->recht, definitions->begriffe pour l'Impressum ; preambule->einleitung,
+  responsable->verantwortlicher, donnees-collectees->erhobene-daten,
+  base-legale->rechtsgrundlage, finalites->zwecke, conservation->speicherdauer,
+  destinataires->empfaenger, transferts->uebermittlung, securite->sicherheit,
+  droits->rechte, exercice->ausuebung, cnil->aufsichtsbehoerde, mineurs->minderjaehrige,
+  modifications->aenderungen, glossaire->glossar pour la Datenschutzerklarung ; cookies
+  inchange, meme mot dans les deux langues).
+Dernier champ GET/formulaire encore francais du site trouve et corrige au passage :
+  app/View/contact.php, le champ optionnel "Name (Optional)" utilisait id/name/for="nom" --
+  renomme en "name" (identique en allemand). public/index.php ($_POST['nom'] -> ['name']) et
+  le sujet/corps de l'email envoye au proprietaire du site ("Nouveau message via WORD CHECKR",
+  "Nom : ...") etaient ÉGALEMENT encore en francais -- trouve en verifiant, pas suppose,
+  traduits aussi ("Neue Nachricht über WORD CHECKR", "Name: ...").
+Tous les liens de pied de page du site (7 gabarits : home, word, word-list, play, explore-hub,
+  not-found, contact) mis a jour vers /impressum et /datenschutz avec les nouveaux libelles.
+```
+
+Vérifications faites (en direct, php -S) :
+
+```text
+php -l sur les 10 fichiers touches : propre.
+/mentions-legales -> 301 -> /impressum (200, <title>Impressum | WORD CHECKR</title>).
+/confidentialite -> 301 -> /datenschutz (200, <title>Datenschutzerklärung | WORD CHECKR</title>).
+Integrite du sommaire ancre verifiee PROGRAMMATIQUEMENT (pas a l'oeil) sur les deux pages :
+  chaque href="#X" du sommaire correspond exactement a un id="X" reel dans la page rendue,
+  0 lien mort, 0 id orphelin (a l'exception du id="wort-check" de l'encart de recherche, qui
+  n'a jamais eu vocation a figurer au sommaire).
+Formulaire de contact : name="name" rendu et lu correctement par public/index.php.
+Balayage final grep sur tout app/View/*.php : plus AUCUN attribut id/name/for de valeur
+  francaise, uniquement allemand ou neutre (email/message/q/site_web).
+php tests/run.php = 20/21 (meme echec pre-existant WordListViewTest), aucune regression.
+```
+
+Raison :
+
+```text
+demande produit explicite et directe (2026-08-30) de ne plus differer le contenu legal ni les
+  attributs id/name restants -- l'ancien raisonnement de bundling (D-DE-020) reste valide en
+  PRINCIPE (ne jamais publier une etiquette localisee pointant vers du contenu non localise)
+  mais cesse de s'appliquer des lors que le contenu reel est ecrit dans le meme lot, ce qui est
+  desormais le cas.
+```
+
+Conséquences :
+
+```text
+public/index.php, app/View/mentions-legales.php, app/View/confidentialite.php,
+  app/View/contact.php, app/View/home.php, app/View/word.php, app/View/word-list.php,
+  app/View/play.php, app/View/explore-hub.php, app/View/not-found.php
+Aucun changement de registre SEO (D-026 inchange : /impressum et /datenschutz restent
+  noindex,follow par defaut, aucune ligne).
+Reste hors perimetre, distinct : les VALEURS d'enumeration statut/tri (D-DE-020) ; une
+  eventuelle declaration d'accessibilite formelle BITV 2.0 (mentionnee comme non encore faite
+  dans le texte lui-meme, pas une omission cachee).
+```
+

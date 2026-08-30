@@ -522,10 +522,13 @@ Schema d'URL (D-DE-009, D-DE-015) : COMPLET -- les 13 mots-cles de segment sont 
   dernier vocabulaire encore francais cote fonctionnel (jamais visible dans l'URL finale).
   Restent volontairement francais, hors perimetre D-DE-020 : les VALEURS d'enumeration
   statut/tri, et /confidentialite (route + contenu, bundles avec le chantier legal separe).
-Texte visible (D-DE-025 a D-DE-033) : COMPLET pour le perimetre core (home, fiche mot, liste
-  de mots, solveur, hub, 404, contact) + JS (suggest.js/tiles.js) -- <html lang="de">. Pages
-  legales (mentions-legales.php, confidentialite.php) toujours en francais, deliberement
-  hors perimetre, chantier separe.
+Texte visible (D-DE-025 a D-DE-033, D-DE-021) : COMPLET, y compris les pages legales
+  desormais. Home, fiche mot, liste de mots, solveur, hub, 404, contact + JS
+  (suggest.js/tiles.js) -- <html lang="de">. Pages legales (D-DE-021, 2026-08-30) :
+  Impressum reel (§5 TMG) et Datenschutzerklarung reelle (DSGVO) a /impressum et
+  /datenschutz (301 depuis /mentions-legales et /confidentialite), memes faits reels que
+  la version francaise (BIGBANG MEDIA/o2switch, D-025ter), sommaire ancre entierement en
+  allemand. Plus aucun texte francais visible sur le site.
 Registre SEO (D-DE-013, D-DE-016 a D-DE-019) : storage/seo_de.sqlite construit et applique --
   home (1), word_list_length COMPLET (14/14 longueurs), word_admitted COMPLET (590 856/590 856
   mots, decision explicite du proprietaire du produit "comme le FR"), beginnend-mit (29 URL,

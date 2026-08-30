@@ -666,14 +666,12 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
 <footer class="footer">
   <div class="word-shell footer-row">
     <span>Unabhängiges Tool für Buchstabenspiele.</span>
-    <?php // Raisons de conserver "Mentions Légales"/"Confidentialité" en francais et de traduire
-    // "Contact" (-> "Kontakt") : voir le rapport de tache -- les deux pages legales restent
-    // hors perimetre (mentions-legales.php/confidentialite.php, non touchees, contenu encore
-    // entierement francais/droit francais), traduire seulement le LIBELLE du lien produirait
-    // une etiquette allemande pointant vers un Impressum/une politique de confidentialite non
-    // conformes TMG/RGPD allemand -- risque juridique signale, pas silencieusement corrige.
-    // /contact est lui pleinement traduit dans cette passe, d'ou "Kontakt" ci-dessous. ?>
-    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Kontakt</a></span>
+    <?php // D-DE-021 : les pages legales (mentions-legales.php/confidentialite.php, noms de
+    // fichier internes inchanges) ont depuis recu un contenu allemand reel (Impressum §5 TMG,
+    // Datenschutzerklarung DSGVO) et leurs propres routes localisees (/impressum,
+    // /datenschutz) -- l'ancienne reserve juridique ci-dessus (etiquette allemande pointant
+    // vers du contenu francais) ne s'applique plus. ?>
+    <span class="footer-links"><a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a> · <a href="/contact">Kontakt</a></span>
   </div>
 </footer>
 </body>

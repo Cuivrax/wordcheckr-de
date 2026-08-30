@@ -75,8 +75,8 @@ require __DIR__ . '/helpers.php';
 
         <div class="constraint-panel">
           <div class="constraint-field">
-            <label class="label" for="nom">Name (Optional)</label>
-            <input class="field" type="text" id="nom" name="nom" maxlength="100" autocomplete="name">
+            <label class="label" for="name">Name (Optional)</label>
+            <input class="field" type="text" id="name" name="name" maxlength="100" autocomplete="name">
           </div>
           <div class="constraint-field">
             <label class="label" for="email">Ihre E-Mail-Adresse</label>
@@ -99,7 +99,7 @@ require __DIR__ . '/helpers.php';
     <span>Unabhängiges Tool für Buchstabenspiele.</span>
     <?php // Voir app/View/word.php pour la justification complete de ce choix (footer
     // repete a l'identique sur toutes les vues). ?>
-    <span class="footer-links"><a href="/mentions-legales">Mentions Légales</a> · <a href="/confidentialite">Confidentialité</a> · <a href="/contact">Kontakt</a></span>
+    <span class="footer-links"><a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a> · <a href="/contact">Kontakt</a></span>
   </div>
 </footer>
 </body>
