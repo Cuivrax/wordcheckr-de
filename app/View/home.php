@@ -23,12 +23,14 @@ declare(strict_types=1);
  * D-DE-015 (second palier) : "contenant"/"avec"/"sans"/"motif"/"statut"/"tri" -> "enthalten"/
  * "mit-buchstaben"/"ohne"/"muster"/"status"/"sortierung" ("position" inchange, cognate
  * allemand) -- voir App\Search\WordListFilters, docblock de classe, pour la source de chaque
- * terme. Les NOMS DE CHAMP du formulaire ci-dessous (name="contenant", name="avec"...) restent
- * francais cette passe : ce sont des noms de fil entre ce formulaire et le repli GET de
- * public/index.php (fichier partage, jamais visible dans l'URL finale, qui est toujours une
- * 302 vers la forme canonique). Les renommer exige de modifier public/index.php ET la regle
- * CSS #motif (public/assets/, perimetre de l'agent frontend) dans le meme commit -- signale
- * comme lot suivant, PAS un oubli.
+ * terme.
+ *
+ * D-DE-020 : les NOMS DE CHAMP du formulaire ci-dessous (name="enthalten", name="mit-
+ * buchstaben"...) sont desormais localises eux aussi -- lot signale par D-DE-015 comme "PAS
+ * un oubli, lot suivant", execute ici. Ce sont des noms de fil entre ce formulaire et le
+ * repli GET de public/index.php (fichier partage, jamais visibles dans l'URL finale, qui est
+ * toujours une 302 vers la forme canonique) -- renommes en meme temps que public/index.php
+ * ET la regle CSS #muster (public/assets/, ex-#motif) dans le meme commit.
  *
  * Refonte du bloc de recherche (Phase 2, rapprochement de prototype/index.html a la
  * demande du coordinateur) : un seul champ <input name="q">, deux boutons de
@@ -225,8 +227,8 @@ $phraseLink = static function (string $path, string $label): string {
           <p class="constraint-panel-intro">Unabhängig vom obigen Feld: durchsucht alle Wörter, die den gewählten Filtern entsprechen.</p>
           <div class="constraint-panel">
             <div class="constraint-field">
-              <label class="label" for="longueur">Länge</label>
-              <select class="select" id="longueur" name="longueur">
+              <label class="label" for="laenge">Länge</label>
+              <select class="select" id="laenge" name="laenge">
                 <option value="">Alle</option>
 <?php for ($len = $minTermLength; $len <= $maxTermLength; $len++): ?>
                 <option value="<?= e($len) ?>"><?= e($len) ?></option>
@@ -242,20 +244,20 @@ $phraseLink = static function (string $path, string $label): string {
               <input class="field" type="text" id="endend-mit" name="endend-mit" maxlength="5" placeholder="UNG" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
-              <label class="label" for="contenant">Enthält Die Folge</label>
-              <input class="field" type="text" id="contenant" name="contenant" maxlength="5" placeholder="SCH" autocomplete="off" spellcheck="false">
+              <label class="label" for="enthalten">Enthält Die Folge</label>
+              <input class="field" type="text" id="enthalten" name="enthalten" maxlength="5" placeholder="SCH" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
-              <label class="label" for="avec">Erforderliche Buchstaben</label>
-              <input class="field" type="text" id="avec" name="avec" maxlength="8" placeholder="AAR" autocomplete="off" spellcheck="false">
+              <label class="label" for="mit-buchstaben">Erforderliche Buchstaben</label>
+              <input class="field" type="text" id="mit-buchstaben" name="mit-buchstaben" maxlength="8" placeholder="AAR" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field">
-              <label class="label" for="sans">Ohne Diese Buchstaben</label>
-              <input class="field" type="text" id="sans" name="sans" maxlength="8" placeholder="XZ" autocomplete="off" spellcheck="false">
+              <label class="label" for="ohne">Ohne Diese Buchstaben</label>
+              <input class="field" type="text" id="ohne" name="ohne" maxlength="8" placeholder="XZ" autocomplete="off" spellcheck="false">
             </div>
             <div class="constraint-field constraint-field-wide">
-              <label class="label" for="motif">Bekanntes Muster</label>
-              <input class="field" type="text" id="motif" name="motif" maxlength="15" placeholder="C--E-" autocomplete="off" spellcheck="false">
+              <label class="label" for="muster">Bekanntes Muster</label>
+              <input class="field" type="text" id="muster" name="muster" maxlength="15" placeholder="C--E-" autocomplete="off" spellcheck="false">
               <p class="help">Ein Strich steht für eine unbekannte Stelle.</p>
             </div>
             <button class="btn btn-primary" type="submit">Suchen</button>

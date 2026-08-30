@@ -113,16 +113,16 @@ use App\Search\ExploreHub;
     <section class="explore-group">
       <h2>Enthält</h2>
       <form class="inline-check" action="/woerter" method="get">
-        <label class="sr-only" for="contenant">Enthaltene Buchstaben (maximal 3)</label>
-        <input class="field" type="text" id="contenant" name="contenant" maxlength="3" autocomplete="off" spellcheck="false" placeholder="Z. B. SCH">
+        <label class="sr-only" for="enthalten">Enthaltene Buchstaben (maximal 3)</label>
+        <input class="field" type="text" id="enthalten" name="enthalten" maxlength="3" autocomplete="off" spellcheck="false" placeholder="Z. B. SCH">
         <button class="btn btn-primary" type="submit">Suchen</button>
       </form>
       <p class="help">Bis zu 3 Buchstaben, in der Reihenfolge, in der sie im Wort vorkommen.</p>
     </section>
 
     <form class="inline-check" action="/pruefen" method="get">
-      <label class="sr-only" for="mot-check">Ein Wort prüfen</label>
-      <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Ein Wort prüfen">
+      <label class="sr-only" for="wort-check">Ein Wort prüfen</label>
+      <input class="field" type="text" id="wort-check" name="wort" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Ein Wort prüfen">
       <button class="btn btn-primary" type="submit">Prüfen</button>
     </form>
   </article>

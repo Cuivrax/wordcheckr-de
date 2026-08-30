@@ -196,8 +196,8 @@ $statusMeta = match (true) {
 <?php endif; ?>
 
     <form class="inline-check" action="/wortsuche" method="get">
-      <label class="sr-only" for="lettres-check">Andere Buchstaben ausprobieren</label>
-      <input class="field" type="text" id="lettres-check" name="lettres" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Andere Buchstaben ausprobieren">
+      <label class="sr-only" for="buchstaben-check">Andere Buchstaben ausprobieren</label>
+      <input class="field" type="text" id="buchstaben-check" name="buchstaben" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Andere Buchstaben ausprobieren">
       <button class="btn btn-primary" type="submit">Spielen</button>
     </form>
   </article>

@@ -119,12 +119,13 @@ return function (): void {
 
     foreach ([$htmlCapped, $htmlEmpty, $htmlFound] as $html) {
         // Le formulaire de repli doit rester un GET natif vers /wortsuche, meme nom de
-        // champ que le repli lu par public/index.php (?lettres=..).
+        // champ que le repli lu par public/index.php (?buchstaben=.., renomme depuis
+        // "lettres" par D-DE-020).
         Assert::true(
             str_contains($html, '<form class="inline-check" action="/wortsuche" method="get">'),
             'le formulaire de repli doit rester un GET natif sans JavaScript',
         );
-        Assert::true(str_contains($html, 'name="lettres"'), 'le champ doit se nommer "lettres", lu par public/index.php');
+        Assert::true(str_contains($html, 'name="buchstaben"'), 'le champ doit se nommer "buchstaben", lu par public/index.php');
         Assert::true(str_contains($html, 'noindex,follow'), 'noindex,follow par defaut (D-005)');
 
         // D-015 : aucun credit de source publie, nulle part dans le HTML servi.

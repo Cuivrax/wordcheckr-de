@@ -40,11 +40,13 @@ declare(strict_types=1);
  *   "sortierung". "position" reste "position" (substantif allemand a part entiere, cognate
  *   exact) -- voir App\Search\WordListFilters, docblock de classe, pour la source de chaque
  *   terme. Les VALEURS d'enumeration ("admis"/"non-admis", "points"/"points-desc") restent
- *   francaises, lot suivant. Les NOMS DE CHAMP du repli GET ci-dessous (longueur, contenant,
- *   avec, sans, motif) restent francais eux aussi : noms de fil internes entre app/View/
- *   home.php et ce fichier, jamais visibles dans l'URL finale (toujours une 302 vers la forme
- *   canonique) -- les renommer exige de toucher aussi la regle CSS #motif (public/assets/,
- *   perimetre de l'agent frontend), signale comme lot suivant.
+ *   francaises, TOUJOURS pas traitees ici (perimetre distinct, non couvert par D-DE-020).
+ *
+ * D-DE-020 : les NOMS DE CHAMP du repli GET (laenge, enthalten, mit-buchstaben, ohne, muster,
+ *   wort, buchstaben) sont desormais localises -- fils internes entre app/View/*.php et ce
+ *   fichier, jamais visibles dans l'URL finale (toujours une 302 vers la forme canonique),
+ *   renommes en meme temps que la regle CSS #muster (public/assets/, ex-#motif, perimetre de
+ *   l'agent frontend) dans le meme commit.
  *
  * Route ajoutee en Phase 5 (docs/08, agent data-engine) :
  *   GET /api/suggest?q=..  autocompletion, backend seul (une combobox cote frontend consomme
@@ -291,10 +293,13 @@ if ($path === '/wortsuche') {
     // Fichier partage (CLAUDE.md) : repli supplementaire ajoute par l'agent frontend
     // pour la refonte du champ unique de la home (un seul <input name="q">, deux
     // boutons submit avec des formaction differents vers /pruefen et /wortsuche -- deux
-    // noms de champ sur un seul input HTML sont impossibles). "lettres" reste lu en
+    // noms de champ sur un seul input HTML sont impossibles). "buchstaben" reste lu en
     // premier et continue de fonctionner seul (repli existant, non supprime) ; "q"
-    // n'est qu'un second nom accepte, additif uniquement.
-    $raw = $_GET['lettres'] ?? ($_GET['q'] ?? '');
+    // n'est qu'un second nom accepte, additif uniquement. Renomme depuis "lettres"
+    // (D-DE-020, dernier champ GET encore francais, signale comme lot suivant par
+    // D-DE-015 -- jamais visible dans l'URL finale, toujours une 302 vers la forme
+    // canonique).
+    $raw = $_GET['buchstaben'] ?? ($_GET['q'] ?? '');
     $raw = is_string($raw) ? trim($raw) : '';
 
     if ($raw === '' || strlen($raw) > MAX_RAW_SEGMENT_LENGTH) {
@@ -378,8 +383,9 @@ if ($path === '/woerter' || preg_match('#^/woerter(/.*)$#u', $path, $matches) ==
     // vocabulaire d'URL. C'est exactement ce bloc qui avait laisse passer un bug reel lors de
     // D-DE-009 (segments "commencant/..."/"terminant/..." encore francais alors que KEYWORDS
     // avait deja bascule : le repli sans JavaScript renvoyait alors systematiquement
-    // /woerter?erreur=1). Les NOMS DE CHAMP GET ($field('contenant')...) restent francais,
-    // voir l'entete de ce fichier.
+    // /woerter?erreur=1). Les NOMS DE CHAMP GET ($field('enthalten')...) sont desormais
+    // localises (D-DE-020, lot signale par D-DE-015 -- jamais visibles dans l'URL finale,
+    // toujours une 302 vers la forme canonique).
     if ($rest === '' && $_GET !== []) {
         $field = static function (string $name) use ($config): string {
             $raw = $_GET[$name] ?? '';
@@ -390,7 +396,7 @@ if ($path === '/woerter' || preg_match('#^/woerter(/.*)$#u', $path, $matches) ==
 
         $segments = [];
 
-        $length = $field('longueur');
+        $length = $field('laenge');
         if ($length !== '' && ctype_digit($length)) {
             $segments[] = $length . '-buchstaben';
         }
@@ -400,7 +406,7 @@ if ($path === '/woerter' || preg_match('#^/woerter(/.*)$#u', $path, $matches) ==
             $segments[] = WordListFilters::KEYWORD_PREFIX . '/' . $beginnendMit;
         }
 
-        $contenant = $field('contenant');
+        $contenant = $field('enthalten');
         if ($contenant !== '') {
             $segments[] = WordListFilters::KEYWORD_CONTAINS . '/' . $contenant;
         }
@@ -410,17 +416,17 @@ if ($path === '/woerter' || preg_match('#^/woerter(/.*)$#u', $path, $matches) ==
             $segments[] = WordListFilters::KEYWORD_SUFFIX . '/' . $endendMit;
         }
 
-        $avec = $field('avec');
+        $avec = $field('mit-buchstaben');
         if ($avec !== '') {
             $segments[] = WordListFilters::KEYWORD_WITH . '/' . implode('/', mb_str_split($avec));
         }
 
-        $sans = $field('sans');
+        $sans = $field('ohne');
         if ($sans !== '') {
             $segments[] = WordListFilters::KEYWORD_WITHOUT . '/' . implode('/', mb_str_split($sans));
         }
 
-        $motif = $field('motif');
+        $motif = $field('muster');
         if ($motif !== '') {
             $segments[] = WordListFilters::KEYWORD_PATTERN . '/' . $motif;
         }
@@ -610,9 +616,10 @@ if ($path === '/woerter' || preg_match('#^/woerter(/.*)$#u', $path, $matches) ==
 
 if ($path === '/pruefen' || preg_match('#^/pruefen/([^/]*)$#u', $path, $matches) === 1) {
     // Fichier partage (CLAUDE.md) : "q" ajoute par l'agent frontend, meme raison et
-    // meme convention que le repli "q" de /wortsuche juste au-dessus -- "mot" reste lu en
-    // premier et continue de fonctionner seul (repli existant, non supprime).
-    $raw = $matches[1] ?? ($_GET['mot'] ?? ($_GET['q'] ?? ''));
+    // meme convention que le repli "q" de /wortsuche juste au-dessus -- "wort" reste lu
+    // en premier et continue de fonctionner seul (repli existant, non supprime). Renomme
+    // depuis "mot" (D-DE-020, meme lot que "lettres"->"buchstaben" ci-dessus).
+    $raw = $matches[1] ?? ($_GET['wort'] ?? ($_GET['q'] ?? ''));
     $raw = is_string($raw) ? trim($raw) : '';
 
     if ($raw === '' || strlen($raw) > MAX_RAW_SEGMENT_LENGTH) {

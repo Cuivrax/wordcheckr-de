@@ -4568,3 +4568,94 @@ inchangé). Échantillon HTTP réel confirmé (200, `index,follow`, `<title>` co
 pages. Suite de tests : 20/21, même échec pré-existant `WordListViewTest` que la baseline
 connue, aucune régression nouvelle.
 
+## D-DE-020 — Localisation Des Noms De Champ GET Restants (Lot Signalé Par D-DE-015)
+
+Date : 2026-08-30
+Statut : accepté
+
+Contexte : D-DE-015 avait explicitement signalé (`app/View/home.php`, `public/index.php`)
+que les NOMS DE CHAMP internes du formulaire de contraintes et du repli GET sans JavaScript
+(`longueur`, `contenant`, `avec`, `sans`, `motif`) restaient français — "signalé comme lot
+suivant, PAS un oubli", car les renommer exige de toucher `public/index.php` (fichier
+partagé) ET la règle CSS `#motif` dans le même commit. Décision explicite du propriétaire du
+produit (2026-08-30) : avancer ce lot maintenant, en parallèle du correctif SEO ci-dessus.
+
+En investiguant, deux champs supplémentaires du même type ont été trouvés — jamais signalés
+explicitement comme tels, mais relevant de la même catégorie ("fil interne GET, jamais visible
+dans l'URL finale") : `mot` (case "vérifier un mot", répétée sur 7 gabarits) et `lettres`
+(case "essayer d'autres lettres", `app/View/play.php`).
+
+Décision :
+
+```text
+Noms de champ GET renommés (public/index.php, $field()/$_GET[] + tous les gabarits
+  app/View/*.php qui les emettent) :
+    longueur -> laenge         contenant -> enthalten      avec -> mit-buchstaben
+    sans -> ohne                motif -> muster             mot -> wort
+    lettres -> buchstaben
+  beginnend-mit/endend-mit/position/q INCHANGES (deja corrects ou neutres).
+Regle CSS #motif -> #muster (public/assets/css/site.css), seule regle id-selecteur
+  concernee (verifie : aucune autre regle CSS ne cible ces id/name).
+Ids DOM cosmetiques renommes en meme temps (mot-check -> wort-check, lettres-check ->
+  buchstaben-check) -- jamais lus par le backend, mais gardes coherents avec les name=
+  fonctionnels sur la meme balise.
+```
+
+Périmètre volontairement NON couvert par cette décision, distinct et non traité ici :
+
+```text
+Les VALEURS d'enumeration statut/tri ("admis"/"non-admis", "points"/"points-desc")
+  restent francaises -- signale au docblock de public/index.php, perimetre distinct.
+app/View/mentions-legales.php, confidentialite.php, la route /contact et /confidentialite
+  elles-memes (route encore "/confidentialite", pas "/datenschutz") : PAS touches -- ces
+  pages sont deliberement bundlees avec le contenu legal reel (Impressum/DSGVO) encore a
+  ecrire (voir docs/PHASE_STATUS.md, taches en attente). Renommer seulement leurs id/route
+  maintenant, avant que le contenu ne soit reellement allemand, produirait un etat plus
+  trompeur que l'actuel (une URL/un id allemand pointant vers un contenu encore
+  entierement francais, CNIL/Paris) -- confirme en lisant le commentaire deja present dans
+  app/View/word.php (D-025ter) qui documente exactement ce choix. Les 2 gabarits legaux
+  ont neanmoins recu le meme renommage de champ GET fonctionnel (name="wort" au lieu de
+  name="mot") car ce nom de fil est partage globalement par public/index.php -- ne pas le
+  renommer sur ces 2 pages aurait casse leur case "verifier un mot" (texte visible,
+  inchange, reste en francais sur ces 2 pages precisement).
+```
+
+Vérifications faites (en direct, php -S) :
+
+```text
+php -l sur les 9 fichiers touches : propre.
+GET fallback isole par champ : /woerter?laenge=6 -> /woerter/6-buchstaben,
+  /woerter?enthalten=sch -> /woerter/enthalten/sch, /woerter?mit-buchstaben=aar ->
+  /woerter/mit-buchstaben/a/a/r, /woerter?ohne=xz -> /woerter/ohne/x/z,
+  /woerter?muster=c--e- -> /woerter/5-buchstaben/muster/c--e- (longueur implicite du motif,
+  comportement WordListFilters preexistant, non modifie ici). /pruefen?wort=chat ->
+  /wort/chat. /wortsuche?buchstaben=chatte -> /wortsuche/acehtt.
+Degradation gracieuse confirmee sur les ANCIENS noms (contenant=, mot=) : plus aucun
+  segment ajoute, /woerter?contenant=sch rend le hub (200, pas de crash), /pruefen?mot=chat
+  retombe sur "q" absent -> /?erreur=1 -- pas de 500, pas de comportement silencieux
+  incorrect.
+Ids rendus confirmes sur / (id="laenge", "enthalten", "mit-buchstaben", "ohne", "muster").
+php tests/run.php = 20/21 (meme echec pre-existant WordListViewTest) -- 1 test corrige
+  (Frontend\PlayViewTest.php asserait litteralement name="lettres", mis a jour vers
+  name="buchstaben").
+```
+
+Raison :
+
+```text
+D-DE-015 avait deja pose ce lot comme volontaire et non oublie -- l'executer maintenant
+termine la localisation de tout ce qui est fonctionnellement wireable sans toucher au
+contenu legal encore non traduit, qui reste a raison un perimetre separe.
+```
+
+Conséquences :
+
+```text
+public/index.php, app/View/home.php, app/View/explore-hub.php, app/View/confidentialite.php,
+  app/View/mentions-legales.php, app/View/not-found.php, app/View/play.php,
+  app/View/word-list.php, app/View/word.php, public/assets/css/site.css,
+  tests/Frontend/PlayViewTest.php
+Aucun changement de route ni de registre SEO -- ces noms de champ ne sont jamais visibles
+  dans l'URL finale ni dans storage/seo_de.sqlite.
+```
+

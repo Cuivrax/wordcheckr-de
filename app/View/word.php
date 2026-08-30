@@ -656,8 +656,8 @@ $conjugationHeading = $conjugation->asLemma !== [] ? 'Se Conjugue' : 'Conjugaiso
     </nav>
 
     <form class="inline-check" action="/pruefen" method="get">
-      <label class="sr-only" for="mot-check">Ein anderes Wort prüfen</label>
-      <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Ein anderes Wort prüfen">
+      <label class="sr-only" for="wort-check">Ein anderes Wort prüfen</label>
+      <input class="field" type="text" id="wort-check" name="wort" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Ein anderes Wort prüfen">
       <button class="btn btn-primary" type="submit">Prüfen</button>
     </form>
   </article>

@@ -55,8 +55,8 @@ require __DIR__ . '/helpers.php';
     </section>
 
     <form class="inline-check" action="/pruefen" method="get">
-      <label class="sr-only" for="mot-check">Ein Wort prüfen</label>
-      <input class="field" type="text" id="mot-check" name="mot" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Ein Wort prüfen">
+      <label class="sr-only" for="wort-check">Ein Wort prüfen</label>
+      <input class="field" type="text" id="wort-check" name="wort" maxlength="15" autocomplete="off" spellcheck="false" placeholder="Ein Wort prüfen">
       <button class="btn btn-primary" type="submit">Prüfen</button>
     </form>
   </article>
