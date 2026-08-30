@@ -4758,3 +4758,60 @@ Reste hors perimetre, distinct : les VALEURS d'enumeration statut/tri (D-DE-020)
   dans le texte lui-meme, pas une omission cachee).
 ```
 
+## D-DE-022 — Garde Explicite Sur `scripts/propose_seo_batch.php` (Landmine Non Adapté)
+
+Date : 2026-08-30
+Statut : accepté
+
+Contexte : `scripts/propose_seo_batch.php` (copie git-archive du dépôt français, 2 851 lignes)
+signalé landmine par D-DE-018 sans jamais être neutralisé. Réinvestigué avant de décider entre
+un portage complet (disproportionné : la plupart de ses cas exigent des `list_type` de
+`list_counts` que ce dépôt n'a toujours pas construits, D-DE-018) et une neutralisation.
+
+Vérifié avant d'agir (pas supposé) : le risque réel est plus étroit que ce que les entrées
+précédentes laissaient penser. `$dictPath` pointe en dur vers `storage/dictionary_fr.sqlite`,
+SANS variable d'environnement de contournement (contrairement à
+`scripts/build_explore_hub_counts.php`, seul script réellement visé par le constat I-3 de
+l'audit qui a inspiré ce type de signalement côté FR/ES). Un lancement naïf de ce script sur
+ce dépôt échoue donc déjà aujourd'hui avec `dictionnaire introuvable`, avant même d'atteindre
+la grammaire de route française codée en dur dans chaque cas -- ce n'est PAS un cas de
+"donnée fausse écrite en silence".
+
+Décision :
+
+```text
+Garde explicite ajoutee juste apres le controle PHP_SAPI existant : le script refuse
+  desormais TOUJOURS, avec un message clair pointant vers docs/DECISIONS.md D-DE-022 et vers
+  le patron reel de ce depot (scripts/seo-batches/*.php, un script dedie par lot, calcul +
+  mesure TTFB/maillage propres a chaque fois). Ne depend plus de l'absence accidentelle de
+  storage/dictionary_fr.sqlite comme seul filet de securite -- un futur ajout malencontreux
+  d'une variable SCRABBLE_DICTIONARY_DB_PATH ne suffirait plus a rendre le script exploitable.
+Pas de portage complet : aucun cas de ce fichier ne correspond a un besoin reel non couvert
+  aujourd'hui (tous les lots ouverts jusqu'ici -- D-DE-017 a D-DE-020 -- ont ete construits via
+  des scripts dedies, jamais ce generateur), et la plupart de ses cas exigent des list_type
+  absents de ce depot (D-DE-018).
+```
+
+Vérifications faites :
+
+```text
+php -l : propre. Invocation reelle (`php scripts/propose_seo_batch.php length`) : refuse
+  immediatement avec le message attendu, exit 1.
+php tests/run.php = 20/21 (meme echec pre-existant WordListViewTest, aucune regression --
+  aucun test ne couvrait ni ne dependait de ce script).
+```
+
+Raison :
+
+```text
+signale a repetition (D-DE-018) sans jamais etre traite -- corrige au fil de l'eau pendant une
+  passe de nettoyage plutot que de laisser courir un landmine documente indefiniment. Fait de
+  facon proportionnee (garde, pas portage) une fois le risque reel mesure, pas suppose.
+```
+
+Conséquences :
+
+```text
+scripts/propose_seo_batch.php (guard ajoute, aucun autre changement).
+```
+
