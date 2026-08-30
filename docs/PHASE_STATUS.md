@@ -517,7 +517,11 @@ Moteur (donnees + app/Search/) : GO, audite, complet (construction initiale + D-
 Schema d'URL (D-DE-009, D-DE-015) : COMPLET -- les 13 mots-cles de segment sont tous traduits
   (/wort, /woerter, /wortsuche, /pruefen, beginnend-mit, endend-mit, -buchstaben, enthalten,
   mit-buchstaben, ohne, muster, position, status, sortierung). Aucun segment francais reconnu,
-  ancien schema 404 sec (jamais une redirection).
+  ancien schema 404 sec (jamais une redirection). Noms de champ GET internes (D-DE-020,
+  2026-08-30) : COMPLET aussi -- laenge/enthalten/mit-buchstaben/ohne/muster/wort/buchstaben,
+  dernier vocabulaire encore francais cote fonctionnel (jamais visible dans l'URL finale).
+  Restent volontairement francais, hors perimetre D-DE-020 : les VALEURS d'enumeration
+  statut/tri, et /confidentialite (route + contenu, bundles avec le chantier legal separe).
 Texte visible (D-DE-025 a D-DE-033) : COMPLET pour le perimetre core (home, fiche mot, liste
   de mots, solveur, hub, 404, contact) + JS (suggest.js/tiles.js) -- <html lang="de">. Pages
   legales (mentions-legales.php, confidentialite.php) toujours en francais, deliberement
