@@ -604,9 +604,13 @@ badges "ODS8"/"ODS9" (D-DE-003) : RESOLU par D-DE-011 (badge unique "Gültig"/st
 highlighting "changer une lettre" Ä/Ö/Ü (D-DE-011) : RESOLU, mb_substr/mb_str_split
 storage/seo_de.sqlite : CONSTRUIT ET APPLIQUE (voir Phase Courante -- plus a l'etat "non
   construit"), premier palier des familles combinees livre D-DE-017
-list_counts (maillage interne longueur x lettre) : TOUJOURS a 0 ligne -- bloque le hub
-  /woerter (rend des sections vides) et toute famille combinee qui en depend (longueur+
-  beginnend-mit, mit-buchstaben en entonnoir propre) -- a router vers un agent data-engine
+list_counts (maillage interne longueur x lettre) : PEUPLE PARTIELLEMENT (D-DE-018, 826
+  lignes, 5/19 list_type -- length/start/end/length_start/length_end). Le hub /woerter rend
+  desormais un contenu reel (RESOLU pour ces 3 grilles). Reste a 0 ligne pour les 14 autres
+  list_type (length_with, start_end, position, combinaisons avec/prefix/suffix) -- raisons
+  precises par type en D-DE-018. Risque signale : les listes de doublons figees
+  (*LinksBuilder::*DUPLICATE*_KEYS) sont calculees sur les donnees FRANCAISES, a recalculer
+  avant tout futur palier utilisant length_with/length_start_end/start_end
 pages legales (mentions-legales.php, confidentialite.php) : toujours en francais (droit
   francais, CNIL, adresse Paris) -- necessite un vrai Impressum conforme SS5 TMG + RGPD,
   pas une traduction improvisee, chantier separe non commence

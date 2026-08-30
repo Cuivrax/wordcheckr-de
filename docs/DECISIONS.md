@@ -4321,3 +4321,112 @@ Reste a mesurer avant un palier 2 : beginnend-mit 3 lettres (volume a discuter),
   longueur+beginnend-mit (bloque tant que list_counts reste vide)
 ```
 
+## D-DE-018 — `list_counts`, Premier Palier : length/start/end/length_start/length_end
+
+Date : 2026-08-30
+Statut : accepté
+
+Décision :
+
+```text
+scripts/build_explore_hub_counts_de.php (nouveau, 265 lignes) construit 5 des 19 list_type
+  du schema (length, start, end, length_start, length_end) dans storage/dictionary_de.sqlite
+  -- 0 -> 826 lignes. Les 14 autres list_type restent a 0 ligne, raison precise documentee
+  par type ci-dessous.
+Debloque le rendu reel des 3 grilles du hub /woerter (ExploreHubBuilder, D-DE-013, qui
+  rendait des sections vides depuis le debut malgre 14 pages /woerter/{N}-buchstaben et 484
+  pages beginnend-mit/endend-mit deja indexees, D-DE-017) et le maillage
+  longueur+beginnend-mit / longueur+endend-mit depuis ces memes 14 pages deja indexees
+  (App\Search\LengthLinksBuilder) -- verifie en direct sur un vrai serveur php -S.
+```
+
+Types NON construits ce palier, raison précise par type :
+
+```text
+length_with            maillage mesure EPARPILLE (D-DE-017), pas un entonnoir propre --
+                        explicitement exclu par la tache recue
+start_end               690 combinaisons realisees, UNE SEULE page reellement liee
+                        (D-DE-017) -- rien a debloquer avec les donnees actuelles
+length_with_position    App\Search\RelationsFinder::relatedSearches() n'emet AUCUN lien
+                        vers "position" cote allemand (D-DE-017) -- construire ce type
+                        maintenant produirait des comptes exacts branches sur rien (meme
+                        erreur deja identifiee et corrigee cote francais, D-028bis)
+length_start_end        jamais mesure cote allemand, depend de start_end (non construit),
+                        ET App\Search\LengthLinksBuilder::DUPLICATE_START_END_KEYS (52
+                        paires figees, calculees sur storage/dictionary_fr.sqlite, jamais
+                        recalculees pour l'allemand) s'appliquerait a tort -- risque de
+                        faux positifs/negatifs de deduplication silencieux
+length_with_pair/triple,
+start_end_with, start_with,
+prefix2/3/4, suffix2/3/4  dependent tous d'une famille "avec" a 1 lettre non encore ouverte
+                        cote allemand, ou jamais mesures sur les donnees allemandes
+length_avec_sans        jamais mesure cote allemand, combinatoire lourde, aucune demande
+```
+
+Limite documentée, assumée, pas un bug (asymétrie D-DE-017) :
+
+```text
+App\Search\ExploreHubBuilder / LengthLinksBuilder (herites tels quels du depot francais)
+  generent des liens 'end'/'length_end' a UNE lettre ("endend-mit/{X}"). Or seule
+  "endend-mit/s" (sur 29) a un lien entrant reel independant de ce lot -- la famille
+  REELLEMENT indexee cote allemand (word_list_terminant) est a DEUX lettres (455 URL,
+  D-DE-017). Consequence : la section "Endend Mit" du hub devient non vide (objectif
+  direct de cette tache) et le lien vers "s" reste utile, mais les 28 autres URL cibles ne
+  sont dans aucune famille SEO indexee -- routables, contenu reel, mais noindex par defaut
+  (D-005). Aucune correction de code faite ici : la decision de granularite (1 ou 2 lettres)
+  pour une famille combinee reste un choix SEO explicite a trancher separement, pas un choix
+  implicite d'un script de precalcul. 'length_end' n'a aucune consequence pratique de cette
+  limite (la famille combinee n'est indexee a aucune granularite pour l'instant).
+```
+
+Risque trouvé, signalé, non corrigé (hors périmètre de ce lot) :
+
+```text
+App\Search\LengthLinksBuilder::DUPLICATE_START_END_KEYS / EXTERNAL_DUPLICATE_WITH_KEYS,
+  App\Search\LetterCombinedLinksBuilder::EXTERNAL_DUPLICATE_KEYS,
+  App\Search\PositionLinksBuilder::EXTERNAL_DUPLICATE_KEYS contiennent des listes de paires
+  FIGEES calculees sur storage/dictionary_fr.sqlite (838 180 termes francais), copiees
+  telles quelles par le portage du depot (git archive). Verifie directement : ces
+  constantes ne sont lues QUE dans les branches 'length_with'/'length_start_end'/'start_end'
+  /'length_with_position' du switch -- jamais 'length_start'/'length_end', donc ce lot n'est
+  pas affecte. A RECALCULER pour l'allemand avant toute construction future de ces types,
+  sous peine de deduplication silencieusement fausse.
+```
+
+Vérification (data-engine, 2026-08-30) :
+
+```text
+826/826 lignes recalculees independamment par deux methodes SQL distinctes (GROUP BY complet
+  + COUNT(*) par cellule sous une forme differente, echantillon incluant Ä/Ö/Ü) : 0
+  divergence. EXPLAIN QUERY PLAN + timing des 5 requetes de construction (115-951 ms
+  chacune, toujours via un index couvrant, hors ligne uniquement) et des requetes
+  consommatrices au runtime (SCAN list_counts, 826 lignes, 0,026 ms). Verifie en direct sur
+  un vrai serveur php -S : /woerter rend desormais les 3 grilles, /woerter/9-buchstaben
+  rend les sections beginnend-mit/endend-mit combinees, pages cibles echantillonnees 200,
+  noindex,follow correct, canonical correct. php tests/run.php : 20/21 (WordListViewTest.php
+  pre-existant, documente D-DE-004/D-DE-011/D-DE-013, inchange).
+```
+
+Raison :
+
+```text
+meme discipline mesure-avant-construction que le reste de cette session -- construire
+  uniquement les types qui debloquent un besoin reel deja identifie (hub vide, D-DE-013 ;
+  maillage longueur+debut/fin ferme faute de donnees, D-DE-017), pas les 19 types d'un bloc
+```
+
+Conséquences :
+
+```text
+scripts/build_explore_hub_counts_de.php (nouveau), storage/dictionary_de.sqlite (list_counts
+  0 -> 826 lignes, ANALYZE relance dans la meme operation, D-021 herite)
+scripts/build_explore_hub_counts.php (copie non adaptee du depot francais, reference encore
+  storage/dictionary_fr.sqlite, INERTE) reste present, non touche -- signale pour un futur
+  nettoyage, pas supprime silencieusement
+la decision d'ouvrir les familles longueur+beginnend-mit / longueur+endend-mit a
+  l'indexation reste distincte de ce correctif technique (agent seo-registry, passe future)
+reste pour une passe future : les 14 list_type restants ci-dessus, le recalcul des listes de
+  doublons figees pour l'allemand avant tout usage de length_with/length_start_end/start_end
+Commit phase-de-042-explore-hub-counts-tier1 (56a29bb), pousse sur origin/master
+```
+
