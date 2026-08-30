@@ -536,12 +536,14 @@ Registre SEO (D-DE-013, D-DE-016 a D-DE-019) : storage/seo_de.sqlite construit e
   PLUS palier 2 (D-DE-019) : longueur+beginnend-mit/endend-mit combine (753/754 candidats
   apres correctif 2026-08-30, 1 seule exclusion tracee restante -- le doublon de contenu reel ;
   les 9 depassements de titre a 60 caracteres ont ete re-inclus une fois le gabarit corrige,
-  commit e6eb4b8) et beginnend-mit a 3 lettres COMPLET (3703/3703). 595 811 URL
-  index,follow au total, 22 fragments sitemap. list_counts peuplee (D-DE-018, 826 lignes,
-  5/19 list_type) debloque ce palier 2. Familles restantes (hub /woerter lui-meme,
-  beginnend-mit+endend-mit combine 1+1 lettre, mit-buchstaben, enthalten/ohne/muster,
-  position) mesurees et volontairement NON ouvertes, raisons techniques precises
-  documentees en D-DE-017/D-DE-018/D-DE-019.
+  commit e6eb4b8) et beginnend-mit a 3 lettres COMPLET (3703/3703), PLUS endend-mit a 1 lettre
+  (D-DE-023, 2026-08-30, 28/29 -- Q exclu, doublon INUPIAQ). 595 839 URL index,follow au
+  total, 22 fragments sitemap. list_counts COMPLET (D-DE-023, 19/19 list_type, 123 471
+  lignes -- etait 5/19, D-DE-018). Familles restantes deja precalculees mais pas encore
+  ouvertes : beginnend-mit a 2 lettres (prefix2), endend-mit a 3/4 lettres (suffix3/suffix4)
+  -- prochaine unite de travail. Reste mesure et volontairement NON ouvert (hub /woerter
+  lui-meme, beginnend-mit+endend-mit combine 1+1 lettre, mit-buchstaben, enthalten/ohne/
+  muster, position) -- raisons techniques documentees en D-DE-017/D-DE-018/D-DE-019.
 Classes CSS / identifiants internes : toujours en francais, deliberement differe a la toute
   derniere passe (avec les definitions), decision explicite du proprietaire du produit.
 ```
@@ -616,21 +618,23 @@ badges "ODS8"/"ODS9" (D-DE-003) : RESOLU par D-DE-011 (badge unique "Gültig"/st
 highlighting "changer une lettre" Ä/Ö/Ü (D-DE-011) : RESOLU, mb_substr/mb_str_split
 storage/seo_de.sqlite : CONSTRUIT ET APPLIQUE (voir Phase Courante -- plus a l'etat "non
   construit"), premier palier des familles combinees livre D-DE-017
-list_counts (maillage interne longueur x lettre) : PEUPLE PARTIELLEMENT (D-DE-018, 826
-  lignes, 5/19 list_type -- length/start/end/length_start/length_end). Le hub /woerter rend
-  desormais un contenu reel (RESOLU pour ces 3 grilles). Reste a 0 ligne pour les 14 autres
-  list_type (length_with, start_end, position, combinaisons avec/prefix/suffix) -- raisons
-  precises par type en D-DE-018. Risque signale : les listes de doublons figees
-  (*LinksBuilder::*DUPLICATE*_KEYS) sont calculees sur les donnees FRANCAISES, a recalculer
-  avant tout futur palier utilisant length_with/length_start_end/start_end
-pages legales (mentions-legales.php, confidentialite.php) : toujours en francais (droit
-  francais, CNIL, adresse Paris) -- necessite un vrai Impressum conforme SS5 TMG + RGPD,
-  pas une traduction improvisee, chantier separe non commence
-audit seo-technical-auditor : jamais relance sur l'etat post-D-DE-017 (591 355 lignes) --
-  recommande avant tout deploiement reel
-scripts/bench_*.php, propose_seo_batch.php, check_combinatorial_duplicates.php,
-  add_*_index.php : referencent encore storage/dictionary_fr.sqlite et le schema francais,
-  non adaptes, inertes (jamais executes par tests/run.php)
+list_counts (maillage interne longueur x lettre) : COMPLET (D-DE-023, 2026-08-30, 123 471
+  lignes, 19/19 list_type -- etait 5/19, D-DE-018). Le hub /woerter rend un contenu reel sur
+  toutes ses grilles. Risque toujours signale, PAS resolu par ce lot : les listes de doublons
+  figees (*LinksBuilder::*DUPLICATE*_KEYS) restent calculees sur les donnees FRANCAISES, a
+  recalculer avant tout futur palier utilisant length_with/length_start_end/start_end (D-DE-023
+  peuple ces types mais N'OUVRE aucune famille dessus, donc ces constantes restent inertes
+  pour l'instant)
+pages legales (mentions-legales.php, confidentialite.php) : RESOLU (D-DE-021, 2026-08-30) --
+  Impressum reel (§5 TMG) et Datenschutzerklarung reelle (DSGVO) a /impressum et /datenschutz,
+  memes faits reels que la version francaise (BIGBANG MEDIA/o2switch, D-025ter)
+audit seo-technical-auditor : jamais relance depuis D-DE-017 (591 355 lignes) -- recommande
+  avant tout deploiement reel, l'etat reel a encore avance depuis (D-DE-019 a D-DE-023)
+scripts/propose_seo_batch.php : GARDE EXPLICITE ajoutee (D-DE-022) -- refuse desormais
+  toujours, ne peut plus etre invoque par erreur. scripts/bench_*.php,
+  check_combinatorial_duplicates.php, add_*_index.php referencent encore
+  storage/dictionary_fr.sqlite et le schema francais, non adaptes, toujours inertes (jamais
+  executes par tests/run.php)
 tests/Frontend/{WordView,Home}Test.php et bench_conjugation_queries.php/
   bench_relations_queries.php : chargent encore config/sites/fr.php pour certaines valeurs
   (sans effet fonctionnel avere, non corrige)

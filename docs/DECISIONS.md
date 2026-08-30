@@ -4815,3 +4815,88 @@ Conséquences :
 scripts/propose_seo_batch.php (guard ajoute, aucun autre changement).
 ```
 
+## D-DE-023 — `list_counts` Complet (19/19), Palier "endend-mit" À 1 Lettre Ouvert
+
+Date : 2026-08-30
+Statut : accepté
+
+Contexte : `list_counts` ne construisait que 5 des 19 `list_type` (D-DE-018), signalé comme
+écart de couverture face au dépôt français. Décision explicite du propriétaire du produit
+(2026-08-30, en direct dans la conversation) : compléter les 14 types restants, puis rouvrir
+`word_list_terminant` à 1 lettre (symétrique à `word_list_commencant` déjà indexé à 1 lettre,
+D-DE-017) — remet en cause une exclusion antérieure jugée, en cours de discussion, périmée par
+un changement de contexte (voir ci-dessous).
+
+Décision :
+
+```text
+scripts/build_explore_hub_counts_de.php etendu de 5 a 19 list_type. Granularite 'end'/
+  'length_end' DISCUTEE puis TRANCHEE en cours de tache : d'abord alignee a 2 caracteres sur
+  le choix ES-017, puis REVERTEE a 1 caractere (question directe du proprietaire du produit :
+  "pourquoi 1 lettre FR/DE et 2 ES ?") -- 1 caractere reste correct pour DE/FR, c'est le choix
+  ES-017 qui diverge deliberement du francais, pas l'inverse. Nouveaux types : length_with,
+  start_end, length_with_position, length_avec_sans, length_start_end, length_with_pair,
+  length_with_triple, start_end_with, start_with, prefix2/3/4, suffix2/3/4 (mb_str_split()/
+  mbReverse() partout, jamais str_split()/strrev() -- Ä/Ö/Ü sont 2 octets UTF-8, meme classe de
+  bug deja corrigee plusieurs fois cette session).
+Palier 1-lettre de word_list_terminant OUVERT (28/29 buckets 'end', Q exclu -- voir
+  duplicat ci-dessous) : /woerter/endend-mit/{1 lettre}, symetrique a beginnend-mit deja a
+  1 lettre. RAISON DU CHANGEMENT PAR RAPPORT A D-DE-017 (qui avait ferme cette famille a 1
+  lettre) : D-DE-017 avait mesure "0 lien reel" pour 28 des 29 buckets a un moment ou
+  list_counts etait ENCORE VIDE (chronologie confirmee : D-DE-017 precede D-DE-018) -- la
+  section "Nach Endbuchstabe" du hub /woerter rendait donc 0 lien a l'epoque. Ce lot peuple
+  list_counts, le hub rend desormais 29 liens reels et verifies (App\Search\ExploreHubBuilder,
+  noindex,follow mais follow -- les liens sont bien crawles). La mesure D-DE-017 est donc
+  PERIMEE, pas fausse a l'epoque ou elle a ete faite -- rouverte sur decision produit directe
+  une fois ce fait etabli.
+1 EXCLUSION reelle : Q (INUPIAQ, 1 seul mot) -- DOUBLON DE CONTENU EXACT avec
+  /woerter/endend-mit/aq (deja indexee, D-DE-017, meme mot). Reste noindex,follow.
+```
+
+Vérifications faites (en direct, php -S, pas supposées) :
+
+```text
+php -l : propre. 123 471 lignes list_counts (19/19 list_type peuples), ~1m13 d'execution
+  hors ligne (0 rapport avec le budget TTFB runtime).
+Coherence croisee : suffix2 (calcule par ce lot) = 455 lignes, EXACTEMENT le compte de la
+  famille endend-mit 2 lettres deja live et humainement verifiee (D-DE-017) -- confirme la
+  justesse du calcul plutot que suppose.
+Doublons : balayage PROGRAMMATIQUE des 29 buckets 'end' contre les enfants 'suffix2' (2
+  lettres) -- 1 seul doublon trouve (Q/AQ, INUPIAQ), tous les 28 autres confirmes distincts.
+TTFB : rechauffement + mediane de 3 executions (methodologie ES-018 appliquee ici) sur les 6
+  buckets les plus lourds (N=131784, S=108839, E=104561, T=86856, R=56865, M=41961) : 88-96 ms,
+  tres sous le budget 250 ms malgre la troncature ROW_EXAMINATION_CEILING=10000 sur ces buckets
+  (la troncature CAPE le cout, elle ne l'aggrave pas).
+Sitemaps regeneres (ends-0001.xml : 455 -> 483 URL, sitemap-index.xml : 595 839 URL, 22
+  fragments inchange). Echantillon HTTP reel : C/N (200, index,follow), Q (200, noindex,follow
+  confirme exclu).
+php tests/run.php = 20/21 (meme echec pre-existant WordListViewTest), aucune regression.
+```
+
+Raison :
+
+```text
+demande produit explicite (2026-08-30) de completer la couverture face au francais ; la
+  reouverture du palier 1-lettre repose sur un FAIT NOUVEAU verifie (le hub rend desormais un
+  lien reel), pas sur un contournement de la discipline "jamais sans maillage entrant reel" --
+  cette discipline reste respectee, la mesure sous-jacente a simplement change.
+```
+
+Conséquences :
+
+```text
+scripts/build_explore_hub_counts_de.php (5 -> 19 list_type), scripts/seo-batches/
+  endend-mit-single-letter-2026-08-30.php (nouveau, 28 lignes)
+storage/seo_de.sqlite : 595 811 -> 595 839 lignes index,follow (+28)
+Reste a router (funnel pas encore complet, prochaine passe) : prefix2 (beginnend-mit 2
+  lettres, seul palier manquant du cote "commencant" -- 1 et 3 lettres deja en ligne),
+  suffix3/suffix4 (endend-mit 3/4 lettres). Donnees deja precalculees dans list_counts par ce
+  lot, aucun nouveau calcul necessaire, seulement la verification de doublons/TTFB puis
+  l'ouverture -- prochaine unite de travail, pas ce lot-ci.
+Constantes figees DUPLICATE_START_END_KEYS/EXTERNAL_DUPLICATE_WITH_KEYS/EXTERNAL_DUPLICATE_KEYS
+  (calculees sur le francais, D-DE-018) : toujours PAS recalculees pour l'allemand -- ce lot
+  peuple length_with/start_end/length_start_end (la DONNEE) mais n'ouvre AUCUNE de ces
+  familles a l'indexation, donc ces constantes ne sont toujours lues par aucun chemin actif.
+  A recalculer avant tout futur lot qui ouvrirait l'une de ces familles.
+```
+
