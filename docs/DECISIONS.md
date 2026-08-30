@@ -4430,3 +4430,109 @@ reste pour une passe future : les 14 list_type restants ci-dessus, le recalcul d
 Commit phase-de-042-explore-hub-counts-tier1 (56a29bb), pousse sur origin/master
 ```
 
+## D-DE-019 — Palier 2 : longueur+beginnend-mit/endend-mit Combiné, Et beginnend-mit À 3 Lettres
+
+Date : 2026-08-30
+Statut : accepté
+
+Contexte : `list_counts` peuplee (D-DE-018) debloque exactement ce que D-DE-017 avait mesure
+et differe faute de maillage reel. Decision explicite du proprietaire du produit d'indexer
+"comme le FR" et de pousser cette passe SEO. Les deux taches ci-dessous ont ete REVERIFIEES
+en direct plutot que de faire confiance aveuglement aux mesures anterieures.
+
+Décision :
+
+```text
+scripts/seo-batches/length-start-end-2026-08-30.php : famille longueur+beginnend-mit/
+  endend-mit combinee, 754 candidats reels (401 length_start + 353 length_end) -> 744
+  appliques index,follow, 10 exclusions EXPLICITES (pas silencieuses) :
+    1 doublon de contenu reel : /woerter/7-buchstaben/endend-mit/q listerait exactement le
+      meme mot unique (INUPIAQ) que /woerter/endend-mit/q deja indexee -- verifie par
+      comparaison EXACTE des ensembles de mots, pas juste des comptes -- canonicalise vers
+      la page deja indexee
+    9 pages ou le gabarit existant de titre enrichi pour resultat unique (app/View/
+      word-list.php, D-031) depasse 60 caracteres -- trouve en verification HTTP reelle,
+      pas suppose -- exclues (noindex,follow, canonical autonome) plutot qu'indexees en
+      violation du critere <title> < 60, signale a l'agent frontend, PAS corrige ici (hors
+      perimetre app/View/)
+scripts/seo-batches/prefix3-2026-08-30.php : beginnend-mit a 3 lettres, RECALCULE
+  independamment (pas reutilise depuis D-DE-017) : 3703 candidats avec un lien reel (sur
+  3744 avec un resultat -- 41 orphelins exclus correctement), correspond exactement a
+  l'estimation par echantillon de D-DE-017 -- 3703 appliques index,follow, 0 exclusion
+```
+
+Vérifications faites (balayage complet, pas un échantillon, sur les deux familles) :
+
+```text
+754/754 (tache 1) et 3703/3703 (tache 2) : 0 au-dessus du budget TTFB 250 ms -- tache 1
+  min 1,143 ms / p50 2,440 ms / p95 106,450 ms / p99 178,050 ms / max 207,579 ms ; tache 2
+  min 0,470 ms / p50 0,769 ms / p95 2,084 ms / p99 3,409 ms / max 23,979 ms
+EXPLAIN QUERY PLAN : toujours SEARCH via index couvrant (idx_terms_length_normalized /
+  idx_terms_length_reversed / sqlite_autoindex_terms_1), jamais un SCAN de table
+Listes de doublons figees francaises (D-DE-018) : verifie directement dans
+  LengthLinksBuilder.php/LetterCombinedLinksBuilder.php -- lues UNIQUEMENT dans les
+  branches length_start_end/length_with/start_end, jamais dans length_start/length_end ni
+  le chemin prefixe simple utilise ici -- confirme non affecte, pas suppose
+Verification de doublon de contenu contre les familles deja indexees (au-dela du seul cas
+  trouve ci-dessus) : 0/610 candidats a compte identique de la tache 2 sont des doublons
+  reels (comparaison exacte des ensembles de mots contre word_list_terminant ET
+  word_list_commencant)
+67/67 URL echantillonnees testees en direct (php -S) : 200, robots/canonical/title
+  corrects, y compris Ä/Ö/Ü en prefixe/suffixe et les 10 pages exclues confirmees en
+  noindex,follow attendu. Verifie aussi : /woerter/{2,9,15}-buchstaben rendent desormais
+  de vrais liens byStart/byEnd, 5 mots admis de longueur > 3 pris au hasard lient chacun
+  vers leur propre page de prefixe a 3 lettres
+20/754 pages tronquees a ROW_EXAMINATION_CEILING=10 000 -- meme precedent accepte D-DE-017
+php tests/run.php = 20/21 (echec pre-existant WordListViewTest, sans rapport, inchange --
+  confirme via git status qu'aucun fichier app/View/ ni tests/Frontend/ n'a ete touche)
+```
+
+Reste fermé (inchangé par ce palier, D-DE-013/D-DE-017/D-DE-018 toujours valables) :
+
+```text
+hub /woerter (contenu desormais reel depuis D-DE-018 mais decision d'indexation du hub
+  lui-meme pas prise ici), beginnend-mit+endend-mit combine a 1+1 lettre (689/690
+  orphelines), mit-buchstaben, enthalten/ohne/muster (NEVER_SITEMAP permanent), position
+  (0 lien reel)
+```
+
+Raison :
+
+```text
+decision explicite du proprietaire du produit ("comme le FR", pousser cette passe SEO) --
+  chaque famille ouverte ici a ete revérifiée en direct plutot que de faire confiance aux
+  mesures anterieures, chaque exclusion tracee avec sa raison exacte, pas silencieuse
+```
+
+Conséquences :
+
+```text
+scripts/apply_seo_batch.php (R4b etendu au prefixe {N}-buchstaben/), scripts/seo-batches/
+  length-start-end-2026-08-30.php (nouveau), prefix3-2026-08-30.php (nouveau),
+  tests/Seo/BuildScriptsTest.php (+3 cas), public/robots.txt et docs/05_URL_SEO_INDEXATION.md
+  resynchronises
+storage/seo_de.sqlite : +4457 lignes (4447 index,follow + 10 noindex,follow explicites)
+public/sitemaps/starts-0002.xml (401), ends-0002.xml (343), starts-0003.xml (3703),
+  sitemap-index.xml : 19 -> 22 fragments, 591 355 -> 595 802 URL index,follow au total
+Volume total du site (word_admitted + ce palier) : 595 855 URL potentielles, dont 595 802
+  effectivement index,follow -- increment borne, pas un deferlement de famille entiere
+php tests/run.php = 20/21 (inchange)
+Commits phase-de-044-length-start-end-rollout (9d958e2), phase-de-045-prefix3-rollout
+  (b3d2386), pousses sur origin/master
+```
+
+Points signalés, non corrigés (hors périmètre de ce lot) :
+
+```text
+app/View/word-list.php : le gabarit de titre enrichi pour resultat unique (D-031) peut
+  depasser 60 caracteres sur un mot long -- 9 occurrences trouvees et exclues ce palier,
+  d'autres apparaitront a tout futur palier avec des resultats uniques longs -- a router
+  vers l'agent frontend (plafonner le mot prefixe ou retirer l'enrichissement au-dela d'un
+  seuil de longueur), pas a exclure une par une indefiniment
+/woerter/7-buchstaben/endend-mit/q recoit toujours un lien interne depuis
+  /woerter/7-buchstaben (LengthLinksBuilder::byEnd n'a pas de logique d'exclusion de
+  doublon pour length_end, contrairement au mecanisme figé qu'il a pour
+  length_start_end) -- sans consequence (lien vers une page legitimement noindex,follow)
+  mais pas optimal, signale pour un futur raffinement data-engine
+```
+

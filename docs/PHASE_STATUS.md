@@ -522,14 +522,18 @@ Texte visible (D-DE-025 a D-DE-033) : COMPLET pour le perimetre core (home, fich
   de mots, solveur, hub, 404, contact) + JS (suggest.js/tiles.js) -- <html lang="de">. Pages
   legales (mentions-legales.php, confidentialite.php) toujours en francais, deliberement
   hors perimetre, chantier separe.
-Registre SEO (D-DE-013, D-DE-016, D-DE-017) : storage/seo_de.sqlite construit et applique --
+Registre SEO (D-DE-013, D-DE-016 a D-DE-019) : storage/seo_de.sqlite construit et applique --
   home (1), word_list_length COMPLET (14/14 longueurs), word_admitted COMPLET (590 856/590 856
-  mots, decision explicite du proprietaire du produit "comme le FR"), PLUS un premier palier
-  des familles combinees : beginnend-mit (29 URL, 1 lettre) et endend-mit (455 URL, 2 lettres
-  -- asymetrie mesuree et deliberee, voir D-DE-017). 591 355 URL au total, 19 fragments
-  sitemap. Familles restantes (longueur+beginnend-mit combine, beginnend-mit 3 lettres,
-  mit-buchstaben, enthalten/ohne/muster/position) mesurees et volontairement NON ouvertes ce
-  palier, raisons techniques precises documentees en D-DE-017.
+  mots, decision explicite du proprietaire du produit "comme le FR"), beginnend-mit (29 URL,
+  1 lettre) et endend-mit (455 URL, 2 lettres -- asymetrie mesuree et deliberee, D-DE-017),
+  PLUS palier 2 (D-DE-019) : longueur+beginnend-mit/endend-mit combine (744/754 candidats,
+  10 exclusions tracees -- 1 doublon de contenu reel, 9 depassements de titre a 60 caracteres
+  signales a l'agent frontend) et beginnend-mit a 3 lettres COMPLET (3703/3703). 595 802 URL
+  index,follow au total, 22 fragments sitemap. list_counts peuplee (D-DE-018, 826 lignes,
+  5/19 list_type) debloque ce palier 2. Familles restantes (hub /woerter lui-meme,
+  beginnend-mit+endend-mit combine 1+1 lettre, mit-buchstaben, enthalten/ohne/muster,
+  position) mesurees et volontairement NON ouvertes, raisons techniques precises
+  documentees en D-DE-017/D-DE-018/D-DE-019.
 Classes CSS / identifiants internes : toujours en francais, deliberement differe a la toute
   derniere passe (avec les definitions), decision explicite du proprietaire du produit.
 ```
