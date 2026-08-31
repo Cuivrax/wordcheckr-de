@@ -5627,10 +5627,72 @@ Conséquences :
 ```text
 scripts/apply_seo_batch.php, scripts/seo-batches/combined-with-letter-2026-08-31.php (nouveau)
 L'entonnoir SEO combinatoire (avec 1+2+3 lettres, position, commencant_with_letter,
-  combined_with_letter) est desormais COMPLET sur DE. Reste : le meme lot sur ES (ES-033),
-  puis, decision separee (2026-08-31) : construire Family::WORD_LIST_COMBINED lui-meme
-  (longueur+beginnend-mit/endend-mit, D-023/ES-018-equivalent) sur DE -- 0 ligne a ce jour,
-  contrairement a ES (2547 lignes depuis ES-018) -- demande produit explicite, DIFFERENT de
-  toute variante "longueur+avec" (bloquee, validation SERP/SEMrush requise).
+  combined_with_letter) est desormais COMPLET sur DE. Reste : le meme lot sur ES (ES-033).
+```
+
+## D-DE-033 — `Family::WORD_LIST_COMBINED` NE Manque PAS Sur DE : Correction D'Un Constat Erroné
+
+Date : 2026-08-31
+Statut : accepté (constat, aucune mutation de données)
+
+Contexte : demande produit explicite de construire `Family::WORD_LIST_COMBINED`
+(longueur+beginnend-mit/endend-mit) sur DE, sur la base d'un constat fait plus tôt le même
+jour ("0 ligne, contrairement à ES qui en a 2547 depuis ES-018"). Ce constat était **FAUX** --
+corrigé ici avant toute application, pas après coup.
+
+**Erreur trouvée en tentant de construire le lot** (jamais silencieusement corrigée) :
+`scripts/apply_seo_batch.php` a refusé la toute première ligne du lot généré
+(`/woerter/10-buchstaben/beginnend-mit/a`) : `route_path` DÉJÀ PRÉSENT dans le registre, sous
+`batch_id='length-start-end-2026-08-30'`. Vérification immédiate : DE a bien 401 pages
+longueur+prefixe et 352 pages longueur+suffixe déjà `index,follow` en production -- mais
+classées sous `family='word_list_commencant'`/`'word_list_terminant'` (comme sous-tiers de ces
+familles, pas sous une famille `word_list_combined` dédiée) -- **choix architectural DÉJÀ
+FAIT et déjà en production sur ce dépôt**, différent de la convention FR/ES (qui utilisent une
+famille dédiée), ni meilleur ni pire, juste distinct. `COUNT(*) WHERE family='word_list_combined'`
+renvoie bien 0 -- exact, mais ne signifiait PAS "fonctionnalité absente", contrairement à ce
+qui a été supposé en répondant à la question produit.
+
+Décision :
+
+```text
+Aucune mutation de storage/seo_de.sqlite -- le lot genere (771 lignes) a ete DETRUIT sans
+  jamais etre applique, des la decouverte du conflit sur la toute premiere ligne.
+scripts/apply_seo_batch.php / scripts/build_sitemaps.php : regle de forme et mapping de
+  prefixe de sitemap ajoutes PUIS retires (auraient ete du code mort, cette famille ne sera
+  jamais peuplee sur ce depot par construction).
+```
+
+Vérifications faites :
+
+```text
+Verifie directement : SELECT family, batch_id FROM registry WHERE route_path =
+  '/woerter/10-buchstaben/beginnend-mit/a' -> family='word_list_commencant',
+  batch_id='length-start-end-2026-08-30'.
+COUNT(*) WHERE family='word_list_commencant' AND route_path LIKE '%-buchstaben/beginnend-mit/%'
+  AND robots='index,follow' = 401 ; meme requete cote endend-mit = 352. Total 753, coherent
+  avec les 406+365=771 candidats list_counts (18 ecart = doublons/exclusions deja geres a
+  l'interieur de word_list_commencant/word_list_terminant).
+php tests/run.php = 24/25 (meme echec pre-existant, sans rapport) -- inchange, aucune
+  ecriture n'a eu lieu.
+```
+
+Raison :
+
+```text
+signaler une erreur trouvee en cours de travail est plus utile que la laisser silencieuse --
+  la demande produit portait sur une fonctionnalite REELLEMENT deja presente, juste classee
+  differemment. Ajoute une precaution reutilisable pour tout futur lot : verifier les conflits
+  de route_path AVANT application, pas seulement compter par famille (voir ES-033, qui a
+  repris cette verification par prudence).
+```
+
+Conséquences :
+
+```text
+Aucun fichier de code modifie de façon permanente (route-shape/sitemap ajoutes puis retires
+  dans le meme lot, voir historique git de ce commit pour le detail).
+Le taxonomie "longueur+prefixe/suffixe classe sous commencant/terminant" reste la convention
+  DE -- toute comparaison future avec FR/ES doit en tenir compte (comparer les COMPTES
+  fonctionnels reels, jamais uniquement les noms de famille).
 ```
 

@@ -123,6 +123,12 @@ const FAMILY_FRAGMENT_PREFIXES = [
     // word_list_combined_with_letter (/woerter/beginnend-mit/{X}/endend-mit/{Y}/
     // mit-buchstaben/{Z}, prefixe + suffixe + avec, sans longueur) : D-DE-032.
     'word_list_combined_with_letter' => 'combined-avec',
+    // word_list_combined (longueur+prefixe/longueur+suffixe, D-023) : PAS utilisee sur ce
+    // depot -- l'equivalent fonctionnel (754 pages, batch 'length-start-end-2026-08-30')
+    // existe deja, classe sous word_list_commencant/word_list_terminant plutot que sous une
+    // famille dediee (choix architectural deja fait et en production, different de FR/ES).
+    // Constatee en tentant a tort de la reconstruire ici (2026-08-31) -- rien applique, voir
+    // docs/DECISIONS.md.
     // rack, enthalten/ohne/muster : absents volontairement -- soit App\Seo\Family::
     // NEVER_SITEMAP (jamais de prefixe), soit non encore ouverts (D-DE-017/D-DE-019).
 ];
