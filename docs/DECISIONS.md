@@ -5569,3 +5569,68 @@ app/Seo/Family.php, tests/Seo/FamilyTest.php, scripts/apply_seo_batch.php,
 Reste a faire : combined_with_letter (D-DE-032, en cours) -- sur DE ET ES.
 ```
 
+## D-DE-032 — Famille `word_list_combined_with_letter` Ouverte (Prefixe + Suffixe + Avec, Sans Longueur)
+
+Date : 2026-08-31
+Statut : accepté
+
+Contexte : suite directe de D-DE-031, ferme l'entonnoir "avec"/position/combined entamé le
+même jour (D-DE-026 à D-DE-032). `App\Search\StartEndWithLinksBuilder` était déjà câblé mais
+ciblait à tort `Family::WORD_LIST_COMBINED`.
+
+**Bug évité avant tout calcul** : `list_counts` (type `start_end_with`) contient des triples
+DÉGÉNÉRÉS (`Z == X` ou `Z == Y`, ex. `A:A:A` trouvé en base) jamais filtrés au précalcul sur ce
+dépôt (contrairement à `start_with`, vérifié sans forme dégénérée à la source) --
+`WordListFilters::fromPath()` les collapse pourtant TOUJOURS en 301 (D-032). Exclus
+explicitement avant toute génération (14 508 candidats retenus sur 15 909 bruts).
+
+Décision :
+
+```text
+scripts/apply_seo_batch.php : regle de forme ajoutee ('/woerter/beginnend-mit/{X}/
+  endend-mit/{Y}/mit-buchstaben/{Z}', Z != X et Z != Y).
+scripts/seo-batches/combined-with-letter-2026-08-31.php (nouveau, 14 508 lignes) : 13 631
+  index,follow + 877 noindex,follow (doublons de contenu exacts).
+```
+
+Doublons trouvés (quatre classes, même méthode que D-DE-028/D-DE-030) :
+
+```text
+PARENT (page commencant_with_letter deja ouverte, le suffixe n'ajoute rien), SIBLING (deux
+  lettres avec differentes du meme panier {debut}:{fin}, 1812 groupes verifies, 700
+  doublons), EXTERNAL (longueur/prefixe/suffixe/commencant_with_letter cote Y). 877 doublons
+  au total, un spot-verifie (beginnend-mit/a/endend-mit/c/mit-buchstaben/e == endend-mit/obic,
+  seul mot AEROBIC, identique dans les deux sens).
+```
+
+Vérifications faites :
+
+```text
+php -l : propre.
+TTFB (php -S, echantillon 2 pages) : 30-43 ms, largement sous le budget 250 ms.
+php tests/run.php = 24/25 (meme echec pre-existant, D-DE-011, sans rapport).
+Verifie en direct : /woerter/beginnend-mit/a/endend-mit/e/mit-buchstaben/r -> index,follow.
+storage/seo_de.sqlite : 900 932 -> 915 440 lignes total, 899 534 -> 913 165 index,follow.
+Sitemaps regeneres : nouveau fragment combined-avec-0001.xml (13 631 URL), sitemap-index.xml
+  passe a 34 fragments / 913 165 URL au total.
+```
+
+Raison :
+
+```text
+suite directe de D-DE-026 a D-DE-031 -- ferme l'entonnoir SEO combinatoire "avec"/position/
+  combined_with_letter dans son ensemble.
+```
+
+Conséquences :
+
+```text
+scripts/apply_seo_batch.php, scripts/seo-batches/combined-with-letter-2026-08-31.php (nouveau)
+L'entonnoir SEO combinatoire (avec 1+2+3 lettres, position, commencant_with_letter,
+  combined_with_letter) est desormais COMPLET sur DE. Reste : le meme lot sur ES (ES-033),
+  puis, decision separee (2026-08-31) : construire Family::WORD_LIST_COMBINED lui-meme
+  (longueur+beginnend-mit/endend-mit, D-023/ES-018-equivalent) sur DE -- 0 ligne a ce jour,
+  contrairement a ES (2547 lignes depuis ES-018) -- demande produit explicite, DIFFERENT de
+  toute variante "longueur+avec" (bloquee, validation SERP/SEMrush requise).
+```
+
