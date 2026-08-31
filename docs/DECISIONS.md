@@ -5424,3 +5424,79 @@ Les DEUX familles principales de fiches mot (word_admitted, word_german_not_admi
   (ES-024).
 ```
 
+## D-DE-030 — Famille `word_list_position` Ouverte (Une Lettre À Une Position)
+
+Date : 2026-08-31
+Statut : accepté
+
+Contexte : demande produit explicite de compléter le reste de l'entonnoir SEO (position,
+combined_with_letter/commencant_with_letter). `App\Search\PositionLinksBuilder` était déjà
+câblé dans `public/index.php` (rendu sur les pages avec-single-letter, D-DE-026) et sa liste de
+doublons figée avait déjà été neutralisée par l'audit parallèle (correctif C2,
+`EXTERNAL_DUPLICATE_KEYS` vidée) — seule l'ouverture réelle du registre manquait.
+
+**Bug trouvé et corrigé pendant la construction, avant toute application** :
+
+```text
+Une premiere version du script de generation comparait les pages "position" candidates aux
+  pages "avec deux lettres" DEJA ouvertes en ne verifiant QUE l'egalite de compte -- jamais
+  l'egalite reelle de l'ensemble de mots. FAUX POSITIF trouve et verifie independamment avant
+  application : /woerter/10-buchstaben/position/2/q (32 mots) aurait ete a tort marque
+  noindex,follow/canonical vers /woerter/10-buchstaben/mit-buchstaben/f/q (32 mots aussi, MAIS
+  un ensemble reellement DIFFERENT -- AQUADROMEN... contre FANGQUOTEN..., verifie par requete
+  SQL directe). Corrige : la lettre secondaire commune a TOUS les mots du panier est desormais
+  deduite du panier lui-meme (meme methode que les prefixes/suffixes communs deja utilisee pour
+  avec 2/3 lettres), jamais une simple coincidence de compte. Regenere integralement avec le
+  correctif AVANT toute application -- jamais appliquee dans son etat buggue.
+```
+
+Décision :
+
+```text
+scripts/apply_seo_batch.php : regle de forme ajoutee ('/woerter/{N}-buchstaben/position/{P}/
+  {X}', P != 1 et P != N -- positions degenerees, collapsent en 301 vers beginnend-mit/
+  endend-mit, D-023).
+scripts/build_sitemaps.php : FAMILY_FRAGMENT_PREFIXES['word_list_position'] = 'position'
+  ajoute.
+scripts/seo-batches/position-2026-08-31.php (nouveau, 2627 lignes, filtre corrige) : 2627
+  index,follow, 0 doublon (le correctif ci-dessus a fait passer le compte de doublons de 66
+  faux positifs a 0 doublon reel).
+```
+
+Vérifications faites :
+
+```text
+php -l : propre.
+2627 candidats bruts (list_counts 'length_with_position'), 771 positions degenerees exclues
+  (P=1/P=N) avant meme la verification de doublons.
+TTFB (php -S, echantillon 3 pages, longueurs 3/7/15) : 12-41 ms, tous largement sous le
+  budget 250 ms.
+Verifie en direct : /woerter/10-buchstaben/position/2/q -> index,follow, canonical=soi-meme ;
+  lien reel confirme depuis /woerter/10-buchstaben/mit-buchstaben/e (rendu via
+  PositionLinksBuilder) ; sitemaps/position-0001.xml -> 200, 2627 <loc>.
+php tests/run.php = 24/25 (meme echec pre-existant WordListViewTest, D-DE-011, sans rapport).
+storage/seo_de.sqlite : 897 501 -> 900 128 lignes total, 896 107 -> 898 734 index,follow.
+Sitemaps regeneres : nouveau fragment position-0001.xml (2627 URL), sitemap-index.xml passe
+  a 32 fragments / 898 734 URL au total.
+```
+
+Raison :
+
+```text
+demande produit explicite (2026-08-31) -- ferme la famille position de l'entonnoir SEO, meme
+  discipline de verification de doublons que les paliers precedents (mesure avant ouverture,
+  jamais supposee), un bug reel trouve et corrige AVANT application plutot que decouvert apres
+  coup en production.
+```
+
+Conséquences :
+
+```text
+scripts/apply_seo_batch.php, scripts/build_sitemaps.php,
+  scripts/seo-batches/position-2026-08-31.php (nouveau)
+Le bug "count seul" decouvert ici (deja evite ailleurs par la methode "lettre/affixe commun
+  deduit du panier") doit rester la reference pour tout futur script de verification touchant
+  ce depot.
+Reste a faire : combined_with_letter, commencant_with_letter -- sur DE ET ES.
+```
+

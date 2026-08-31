@@ -114,10 +114,12 @@ const FAMILY_FRAGMENT_PREFIXES = [
     // word_list_avec_three_letters (/woerter/{N}-buchstaben/mit-buchstaben/{X}/{Y}/{Z},
     // palier 3 lettres) : D-DE-028.
     'word_list_avec_three_letters' => 'avec-three',
-    // rack, enthalten/ohne/muster, position, et beginnend-mit+endend-mit combine (690
-    // combinaisons, 1 seule liee) : absents volontairement -- soit App\Seo\Family::
-    // NEVER_SITEMAP (jamais de prefixe), soit non encore ouverts (D-DE-017/D-DE-019/
-    // D-DE-026/D-DE-027/D-DE-028).
+    // word_list_position (/woerter/{N}-buchstaben/position/{P}/{X}, une lettre a une
+    // position, D-023) : D-DE-030.
+    'word_list_position' => 'position',
+    // rack, enthalten/ohne/muster, et beginnend-mit+endend-mit combine (690 combinaisons, 1
+    // seule liee) : absents volontairement -- soit App\Seo\Family::NEVER_SITEMAP (jamais de
+    // prefixe), soit non encore ouverts (D-DE-017/D-DE-019/D-DE-026/D-DE-027/D-DE-028).
 ];
 
 $baseUrl = null;

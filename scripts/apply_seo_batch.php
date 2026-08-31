@@ -187,6 +187,18 @@ function familySeoBatchRouteShapeError(string $family, string $routePath): ?stri
             }
             return null;
 
+        case Family::WORD_LIST_POSITION:
+            // D-DE-030 : P != 1 et P != N (N = la longueur, capturee dans le MEME route_path) --
+            // App\Search\WordListFilters::fromPath() (D-023) collapse TOUJOURS silencieusement
+            // ces deux positions degenerees (premiere/derniere lettre) vers beginnend-mit/
+            // endend-mit, donc "/woerter/{N}-buchstaben/position/1/{X}" et ".../position/{N}/{X}"
+            // ne sont JAMAIS la forme reellement servie en 200 (redirection 301), meme correctif
+            // que le depot francais (I-4, 5e audit consolide). (?!1/) rejette P=1 directement ;
+            // (?!\1/) rejette P=N via une BACKREFERENCE PCRE sur le groupe 1 (N) deja capture.
+            return preg_match('#^/woerter/(\d{1,2})-buchstaben/position/(?!1/)(?!\1/)(\d{1,2})/[a-zäöü]\z#u', $routePath) === 1
+                ? null
+                : "forme attendue '/woerter/{N}-buchstaben/position/{P}/{lettre}', P different de 1 et de N (positions degenerees collapsees en 301 vers beginnend-mit/endend-mit, D-023)";
+
         default:
             // Famille non couverte par ce durcissement (word_admitted, rack, ou toute famille
             // combinatoire non encore mesuree) : aucune regle de forme ecrite ici, jamais
