@@ -5500,3 +5500,72 @@ Le bug "count seul" decouvert ici (deja evite ailleurs par la methode "lettre/af
 Reste a faire : combined_with_letter, commencant_with_letter -- sur DE ET ES.
 ```
 
+## D-DE-031 — Famille `word_list_commencant_with_letter` Ouverte (Prefixe + Avec, Sans Longueur)
+
+Date : 2026-08-31
+Statut : accepté
+
+Contexte : suite du travail sur l'entonnoir SEO (D-DE-026 à D-DE-030). `App\Search\
+PrefixAvecLinksBuilder` était déjà câblé dans `public/index.php`, sa liste de doublons figée
+déjà neutralisée par l'audit parallèle (correctif C2) — mais ciblait à tort la famille
+générique `Family::WORD_LIST_AVEC` (NEVER_SITEMAP) dans son docblock, faute d'une constante
+dédiée. Deux nouvelles constantes ajoutées (`WORD_LIST_COMBINED_WITH_LETTER`,
+`WORD_LIST_COMMENCANT_WITH_LETTER`), mirroir exact du dépôt français.
+
+Décision :
+
+```text
+app/Seo/Family.php : deux nouvelles constantes, distinctes de WORD_LIST_COMBINED
+  (longueur+prefixe/suffixe, D-023).
+scripts/apply_seo_batch.php : regle de forme ajoutee ('/woerter/beginnend-mit/{X}/
+  mit-buchstaben/{Y}', X != Y -- forme degeneree, collapse en 301 vers la page prefixe seule,
+  D-032).
+scripts/seo-batches/commencant-with-letter-2026-08-31.php (nouveau, 804 lignes) : 800
+  index,follow + 4 noindex,follow (doublons de contenu exacts).
+```
+
+Volumétrie : 804 candidats = quasiment le PLAFOND mathématique de cette famille (29 lettres de
+départ utilisées x 28 lettres avec possibles = 812 combinaisons max, X != Y) -- une famille à
+2 axes SANS dimension longueur reste nécessairement petite comparée à avec-two/avec-three (qui
+ont un facteur x14 longueurs en plus), pas un signe d'incomplétude.
+
+Vérifications faites :
+
+```text
+php -l : propre.
+list_counts 'start_with' vérifié SANS forme dégénérée (X:X) présente à la source -- aucun
+  filtre supplémentaire nécessaire côté génération (contrairement à 'start_end_with', voir
+  D-DE-032).
+4 doublons trouvés, spot-vérifié un (beginnend-mit/ä/mit-buchstaben/q == beginnend-mit/äq,
+  75 mots ÄQUATOR... identiques dans les deux sens, vérifié par requête SQL indépendante).
+TTFB (php -S, échantillon 2 pages) : 13-17 ms, largement sous le budget 250 ms.
+php tests/run.php = 24/25 (même échec pré-existant, D-DE-011, sans rapport).
+Vérifié en direct : /woerter/beginnend-mit/a/mit-buchstaben/e -> index,follow,
+  canonical=soi-même ; sitemaps/commencant-avec-0001.xml -> 800 <loc>.
+storage/seo_de.sqlite : 900 128 -> 900 932 lignes total, 898 734 -> 899 534 index,follow.
+Sitemaps régénérés : nouveau fragment commencant-avec-0001.xml (800 URL), sitemap-index.xml
+  passe à 33 fragments / 899 534 URL au total.
+```
+
+**Lacune constatée en répondant à une question produit directe (2026-08-31)** : il n'existe
+aucune famille "terminant+avec" (suffixe seul + avec, sans préfixe) sur AUCUN des trois dépôts,
+y compris le dépôt français lui-même — jamais construite. Signalé dans `docs/PHASE_STATUS.md`,
+pas une omission DE, aucune action prise ici (hors du périmètre de ce lot).
+
+Raison :
+
+```text
+suite directe du travail D-DE-026 à D-DE-030, même demande produit -- ferme un ecart
+  architectural (deux constantes manquantes forcaient les builders existants a mal cibler leur
+  famille) en plus d'ouvrir reellement l'indexation.
+```
+
+Conséquences :
+
+```text
+app/Seo/Family.php, tests/Seo/FamilyTest.php, scripts/apply_seo_batch.php,
+  scripts/build_sitemaps.php, scripts/seo-batches/commencant-with-letter-2026-08-31.php
+  (nouveau)
+Reste a faire : combined_with_letter (D-DE-032, en cours) -- sur DE ET ES.
+```
+

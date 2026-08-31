@@ -199,6 +199,29 @@ function familySeoBatchRouteShapeError(string $family, string $routePath): ?stri
                 ? null
                 : "forme attendue '/woerter/{N}-buchstaben/position/{P}/{lettre}', P different de 1 et de N (positions degenerees collapsees en 301 vers beginnend-mit/endend-mit, D-023)";
 
+        case Family::WORD_LIST_COMMENCANT_WITH_LETTER:
+            // D-DE-031 : prefixe UNE lettre, SANS longueur, SANS suffixe, PLUS une lettre
+            // "avec" -- deux lettres distinctes (X != Y, sinon degenere : collapse en 301 vers
+            // la page prefixe seule, D-032).
+            if (preg_match('#^/woerter/beginnend-mit/([a-zäöü])/mit-buchstaben/([a-zäöü])\z#u', $routePath, $m) !== 1) {
+                return "forme attendue '/woerter/beginnend-mit/{X}/mit-buchstaben/{Y}' (une seule lettre chacune, sans longueur, sans endend-mit)";
+            }
+            if ($m[2] === $m[1]) {
+                return "lettre avec '{$m[2]}' degeneree (egale le prefixe '{$m[1]}') -- collapse en 301 vers la page parente (D-032), jamais servie en 200";
+            }
+            return null;
+
+        case Family::WORD_LIST_COMBINED_WITH_LETTER:
+            // D-DE-032 : prefixe ET suffixe chacun d'une seule lettre, SANS longueur, PLUS une
+            // lettre "avec" -- trois roles distincts.
+            if (preg_match('#^/woerter/beginnend-mit/([a-zäöü])/endend-mit/([a-zäöü])/mit-buchstaben/([a-zäöü])\z#u', $routePath, $m) !== 1) {
+                return "forme attendue '/woerter/beginnend-mit/{X}/endend-mit/{Y}/mit-buchstaben/{Z}' (une seule lettre chacun, sans longueur)";
+            }
+            if ($m[3] === $m[1] || $m[3] === $m[2]) {
+                return "lettre avec '{$m[3]}' degeneree (egale le debut '{$m[1]}' ou la fin '{$m[2]}') -- collapse en 301 vers la page parente (D-032), jamais servie en 200";
+            }
+            return null;
+
         default:
             // Famille non couverte par ce durcissement (word_admitted, rack, ou toute famille
             // combinatoire non encore mesuree) : aucune regle de forme ecrite ici, jamais

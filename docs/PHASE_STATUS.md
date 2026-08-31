@@ -677,3 +677,23 @@ Correctifs en cours (2026-08-31) : C3 corrige directement dans ce lot (CLAUDE.md
   rapport AFTER a venir. Re-audit code-reviewer a prevoir avant de declarer GO.
 ```
 
+## Lacune Constatée (2026-08-31, Session Principale) — `terminant+avec` N'Existe Nulle Part
+
+En complétant l'entonnoir "avec"/position/combined (D-DE-026 à D-DE-032), constat fait en
+répondant à une question produit directe : il n'existe **aucune** famille "terminant+avec"
+(suffixe seul + lettre avec, sans préfixe) — ni `Family::WORD_LIST_TERMINANT_WITH_LETTER`, ni
+builder équivalent à `PrefixAvecLinksBuilder`. Vérifié sur le **dépôt français lui-même** :
+cette famille n'y a jamais été construite non plus (seules `commencant_with_letter` et
+`combined_with_letter` — préfixe+suffixe+avec — existent). Ce n'est donc pas un oubli
+DE/ES : une vraie lacune du projet, jamais tranchée côté FR. Pas d'action prise ici — signalé
+pour discussion produit si jamais demandé.
+
+Deuxième constat, même échange : **aucune version avec longueur** n'existe non plus pour
+"commençant+avec" ou "terminant+avec", sur AUCUN des trois dépôts. Vérifié sur les 13
+constantes `Family::WORD_LIST_*` du dépôt français au complet : `WORD_LIST_COMBINED` est la
+SEULE famille combinant la longueur avec autre chose, et uniquement longueur+commençant OU
+longueur+terminant (jamais une lettre "avec" en plus) ; `WORD_LIST_COMBINED_WITH_LETTER`
+(préfixe+suffixe+avec) n'a lui-même aucune dimension longueur. "{N} lettres + commençant/X +
+avec/Y" (ou l'équivalent terminant) n'existe donc nulle part — même statut que ci-dessus,
+lacune projet jamais tranchée, pas une omission DE/ES, aucune action prise ici.
+

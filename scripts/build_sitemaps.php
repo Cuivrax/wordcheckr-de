@@ -117,9 +117,14 @@ const FAMILY_FRAGMENT_PREFIXES = [
     // word_list_position (/woerter/{N}-buchstaben/position/{P}/{X}, une lettre a une
     // position, D-023) : D-DE-030.
     'word_list_position' => 'position',
-    // rack, enthalten/ohne/muster, et beginnend-mit+endend-mit combine (690 combinaisons, 1
-    // seule liee) : absents volontairement -- soit App\Seo\Family::NEVER_SITEMAP (jamais de
-    // prefixe), soit non encore ouverts (D-DE-017/D-DE-019/D-DE-026/D-DE-027/D-DE-028).
+    // word_list_commencant_with_letter (/woerter/beginnend-mit/{X}/mit-buchstaben/{Y},
+    // prefixe + avec, sans longueur) : D-DE-031.
+    'word_list_commencant_with_letter' => 'commencant-avec',
+    // word_list_combined_with_letter (/woerter/beginnend-mit/{X}/endend-mit/{Y}/
+    // mit-buchstaben/{Z}, prefixe + suffixe + avec, sans longueur) : D-DE-032.
+    'word_list_combined_with_letter' => 'combined-avec',
+    // rack, enthalten/ohne/muster : absents volontairement -- soit App\Seo\Family::
+    // NEVER_SITEMAP (jamais de prefixe), soit non encore ouverts (D-DE-017/D-DE-019).
 ];
 
 $baseUrl = null;

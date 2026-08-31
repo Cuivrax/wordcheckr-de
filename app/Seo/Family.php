@@ -101,6 +101,24 @@ final class Family
     public const WORD_LIST_AVEC_TWO_LETTERS = 'word_list_avec_two_letters';
     public const WORD_LIST_AVEC_THREE_LETTERS = 'word_list_avec_three_letters';
 
+    /**
+     * D-DE-031/D-DE-032 : deux familles distinctes de WORD_LIST_COMBINED ci-dessus (qui reste
+     * "longueur+beginnend-mit"/"longueur+endend-mit", D-023) -- meme distinction que le depot
+     * francais (WORD_LIST_COMBINED_WITH_LETTER/WORD_LIST_COMMENCANT_WITH_LETTER,
+     * FR/app/Seo/Family.php). App\Search\StartEndWithLinksBuilder/PrefixAvecLinksBuilder
+     * existaient deja (portes du depot francais, listes de doublons figees deja neutralisees
+     * par le correctif C2 de l'audit) mais ciblaient a tort WORD_LIST_COMBINED/WORD_LIST_AVEC
+     * dans leur docblock -- corrige ici par l'ajout de leurs propres constantes.
+     *   WORD_LIST_COMBINED_WITH_LETTER : /woerter/beginnend-mit/{X}/endend-mit/{Y}/
+     *     mit-buchstaben/{Z} (prefixe UNE lettre + suffixe UNE lettre + avec UNE lettre, SANS
+     *     longueur), list_counts 'start_end_with'.
+     *   WORD_LIST_COMMENCANT_WITH_LETTER : /woerter/beginnend-mit/{X}/mit-buchstaben/{Y}
+     *     (prefixe UNE lettre + avec UNE lettre, SANS longueur, SANS suffixe),
+     *     list_counts 'start_with'.
+     */
+    public const WORD_LIST_COMBINED_WITH_LETTER = 'word_list_combined_with_letter';
+    public const WORD_LIST_COMMENCANT_WITH_LETTER = 'word_list_commencant_with_letter';
+
     /** Route /wortsuche/{buchstaben} -- tirage de chevalet, combinatoire, jamais indexable. */
     public const RACK = 'rack';
 
@@ -121,6 +139,8 @@ final class Family
         self::WORD_LIST_MOTIF,
         self::WORD_LIST_POSITION,
         self::WORD_LIST_COMBINED,
+        self::WORD_LIST_COMBINED_WITH_LETTER,
+        self::WORD_LIST_COMMENCANT_WITH_LETTER,
         self::RACK,
     ];
 
