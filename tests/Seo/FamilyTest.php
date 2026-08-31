@@ -6,18 +6,15 @@ use App\Seo\Family;
 use Tests\Support\Assert;
 
 /**
- * App\Seo\Family : liste fermee des familles de reporting/gouvernance et la regle dure qui en
- * decoule (combinaisons infinies jamais dans un sitemap) -- verifie ici independamment de toute
- * base de donnees, meme esprit que tests/Search/WordListFiltersTest.php pour
- * App\Search\WordListFilters.
- *
- * PAS de test pour un plafond "non admis en masse" (contrairement aux depots francais/espagnol
- * cousins) : le modele de donnees allemand n'a, dans cette premiere passe, aucune famille de ce
- * type (app/Seo/Family.php, CLAUDE.md "Modele A Statuts").
+ * App\Seo\Family : liste fermee des familles de reporting/gouvernance et les regles dures qui
+ * en decoulent (combinaisons infinies jamais dans un sitemap, allemand non admis jamais en
+ * masse) -- verifie ici independamment de toute base de donnees, meme esprit que
+ * tests/Search/WordListFiltersTest.php pour App\Search\WordListFilters.
  */
 return function (): void {
     Assert::true(Family::isValid(Family::HOME));
     Assert::true(Family::isValid(Family::WORD_ADMITTED));
+    Assert::true(Family::isValid(Family::WORD_GERMAN_NOT_ADMITTED));
     Assert::true(Family::isValid(Family::WORD_LIST_LENGTH));
     Assert::true(!Family::isValid('unbekannte_familie'));
     Assert::true(!Family::isValid(''));
@@ -47,6 +44,7 @@ return function (): void {
     $expectedAllowed = [
         Family::HOME,
         Family::WORD_ADMITTED,
+        Family::WORD_GERMAN_NOT_ADMITTED,
         Family::WORD_LIST_LENGTH,
         Family::WORD_LIST_COMMENCANT,
         Family::WORD_LIST_TERMINANT,
@@ -62,4 +60,17 @@ return function (): void {
     foreach ($expectedAllowed as $family) {
         Assert::true(!Family::forbidsSitemap($family), "ne devrait pas etre interdit de sitemap : {$family}");
     }
+
+    // D-DE-029 : seule word_german_not_admitted porte la contrainte "jamais en masse".
+    Assert::true(Family::isGermanNotAdmitted(Family::WORD_GERMAN_NOT_ADMITTED));
+
+    foreach (Family::ALL as $family) {
+        if ($family === Family::WORD_GERMAN_NOT_ADMITTED) {
+            continue;
+        }
+
+        Assert::true(!Family::isGermanNotAdmitted($family), "ne devrait pas etre allemand non admis : {$family}");
+    }
+
+    Assert::true(Family::MAX_BATCH_SIZE_GERMAN_NOT_ADMITTED >= 236_909, 'le plafond doit couvrir le volume reel de mots allemands non admis (D-DE-029)');
 };

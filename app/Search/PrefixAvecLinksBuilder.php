@@ -84,42 +84,25 @@ final class PrefixAvecLinksBuilder
     private const SIBLING_DUPLICATE_KEYS = [];
 
     /**
-     * Doublons de contenu CROISÉS avec une famille EXTÉRIEURE à "avec" (D-041, garde-fou
-     * structurel demandé par le constat C-4 du 4e audit consolidé, docs/DECISIONS.md D-040) --
-     * distinct de DUPLICATE_CONTENT_KEYS/SIBLING_DUPLICATE_KEYS ci-dessus (qui comparent
-     * uniquement entre pages "avec" du même panier "commençant") : ici, une page
-     * "commençant/{X}/avec/{Y}" partage un contenu strictement identique avec une page d'une AUTRE
-     * famille combinatoire (terminant multi-lettres, commençant seul, avec à deux lettres...),
-     * trouvée par un balayage GÉNÉRIQUE de tout le registre
-     * (scripts/check_combinatorial_duplicates.php, D-041, balayage du 2026-08-21 : 1 656 groupes,
-     * 2 089 pages en excès) plutôt qu'une comparaison ciblée à une seule paire de familles comme
-     * les corrections précédentes (D-037 à D-040).
+     * NEUTRALISEE POUR L'ALLEMAND (correctif C2, audit NO GO 2026-08-31 -- meme discipline que
+     * D-DE-024/SuffixExtensionLinksBuilder::EXTERNAL_DUPLICATE_SUFFIXES, decision a journaliser
+     * par la session principale dans docs/DECISIONS.md) : ces 4 clés francaises precises (U:J,
+     * W:J, X:Z, Y:X, chacune liee a un mot francais specifique -- ex. U:J perdait face a
+     * /mots/terminant/htie) etaient calculees sur storage/dictionary_fr.sqlite et copiees telles
+     * quelles lors du portage du depot -- jamais revalidees pour l'allemand. Videe plutot que
+     * conservee.
      *
-     * Règle de départage : App\Search\DuplicatePageResolver::resolveDuplicateWinner() -- compte
-     * les composants de contrainte de chaque page du groupe de doublons (longueur/commençant/
-     * terminant/contenant = 1, position = 2, chaque lettre "avec"/"sans" = 1), le plus petit
-     * nombre gagne ; à égalité de composants entre deux familles différentes, l'ordre canonique
-     * des mots-clés (WordListFilters, docblock de classe) départage. "commençant/{X}/avec/{Y}" a
-     * TOUJOURS 2 composants -- perd systématiquement ici face à l'adversaire à 1 seul composant de
-     * chacun des 4 groupes concernés (commençant seul ou terminant multi-lettres).
-     *
-     * Les 4 clés (U:J, W:J, X:Z, Y:X) — un seul groupe par clé, jamais un doublon SOEUR entre deux
-     * lettres "avec" du même préfixe (ce cas reste couvert par SIBLING_DUPLICATE_KEYS, toujours
-     * vide) :
-     *   U:J  /mots/commencant/u/avec/j   perd face à /mots/terminant/htie (1 composant)
-     *   W:J  /mots/commencant/w/avec/j   perd face à /mots/commencant/webj (1 composant)
-     *   X:Z  /mots/commencant/x/avec/z   perd face à /mots/terminant/xxes (1 composant)
-     *   Y:X  /mots/commencant/y/avec/x   perd face à un adversaire à 1 composant du même groupe
-     * Recalculé indépendamment par échantillonnage direct contre `terms` (voir le rapport AFTER
-     * de cette tâche) : 0 divergence.
-     *
-     * Liste figée : valable pour l'état actuel de storage/dictionary_fr.sqlite (838 180 termes,
-     * inchangé depuis D-022). Une reconstruction future de la base devra revalider cette liste
-     * (même avertissement que DUPLICATE_CONTENT_KEYS/SIBLING_DUPLICATE_KEYS ci-dessus).
+     * Cible la famille generique "commencant+avec" (App\Seo\Family::WORD_LIST_AVEC, PAS une des
+     * sous-familles bornees avec_single/two/three_letters) : listee dans Family::NEVER_SITEMAP
+     * (espace non borne, voir app/Seo/Family.php), donc structurellement NOINDEX PERMANENT --
+     * aucune page produite par ce builder ne peut jamais devenir index,follow, quel que soit
+     * l'etat de storage/seo_de.sqlite. Le risque decrit par l'audit C2 (amputer le maillage d'une
+     * page deja indexee) est donc nul ici par construction, pas seulement par absence de donnees
+     * actuelles -- garantie la plus forte des 8 builders touches par ce correctif.
      *
      * @var list<string>
      */
-    private const EXTERNAL_DUPLICATE_KEYS = ['U:J', 'W:J', 'X:Z', 'Y:X'];
+    private const EXTERNAL_DUPLICATE_KEYS = [];
 
     public function __construct(
         private readonly Connection $connection,

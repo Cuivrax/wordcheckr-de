@@ -177,6 +177,16 @@ function familySeoBatchRouteShapeError(string $family, string $routePath): ?stri
             }
             return null;
 
+        case Family::WORD_LIST_AVEC_THREE_LETTERS:
+            // D-DE-028 : trois lettres distinctes, triees alphabetiquement (X < Y < Z).
+            if (preg_match('#^/woerter/\d{1,2}-buchstaben/mit-buchstaben/([a-zäöü])/([a-zäöü])/([a-zäöü])\z#u', $routePath, $m) !== 1) {
+                return "forme attendue '/woerter/{N}-buchstaben/mit-buchstaben/{X}/{Y}/{Z}' (trois lettres distinctes)";
+            }
+            if (!($m[1] < $m[2] && $m[2] < $m[3])) {
+                return "lettres avec doivent etre triees alphabetiquement (X < Y < Z), recu '{$m[1]}', '{$m[2]}', '{$m[3]}'";
+            }
+            return null;
+
         default:
             // Famille non couverte par ce durcissement (word_admitted, rack, ou toute famille
             // combinatoire non encore mesuree) : aucune regle de forme ecrite ici, jamais

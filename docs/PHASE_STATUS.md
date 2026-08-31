@@ -540,8 +540,10 @@ Registre SEO (D-DE-013, D-DE-016 a D-DE-019) : storage/seo_de.sqlite construit e
   voir plus bas), PLUS FUNNEL COMPLET (D-DE-024, 2026-08-30) : beginnend-mit desormais
   1+2+3 lettres (29+420+3643, 69 doublons corriges entre 2 et 3 lettres), endend-mit desormais
   1+2+3+4 lettres (29+455+3485+15411, doublons corriges/exclus a chaque niveau). 615 095 URL
-  index,follow au total, 22 fragments sitemap. list_counts COMPLET (D-DE-023, 19/19 list_type,
-  123 471 lignes -- etait 5/19, D-DE-018). Landmine trouvee et neutralisee au passage :
+  index,follow au total, 22 fragments sitemap. list_counts COMPLET (D-DE-023, 20/20 list_type
+  reel -- 19/19 annonce a l'epoque etait deja faux, corrige lors de l'audit code-reviewer du
+  2026-08-31, C3, voir plus bas -- 123 471 lignes, etait 5/19 avant D-DE-018). Landmine trouvee
+  et neutralisee au passage :
   App\Search\SuffixExtensionLinksBuilder::EXTERNAL_DUPLICATE_SUFFIXES (liste francaise figee,
   ~630 entrees, videe D-DE-024). Reste mesure et volontairement NON ouvert (hub /woerter
   lui-meme, beginnend-mit+endend-mit combine 1+1 lettre, mit-buchstaben, enthalten/ohne/
@@ -569,8 +571,9 @@ config/sites/de.php                   tuiles allemandes (102, verifiees deux foi
 app/Search/*.php                      adapte a is_admitted + multioctet Ä/Ö/Ü (TermLookup,
   RackSolver, RelationsFinder, Suggester, WordListSolver, WordListFilters, Rack,
   SenseLookup, ConjugationLookup) -- voir docs/DECISIONS.md D-DE-002/D-DE-003
-tests/                                17 fichiers passants, 1 pre-existant hors perimetre
-  (Frontend\WordListViewTest.php) -- voir docs/DECISIONS.md D-DE-004
+tests/                                17 fichiers a la construction initiale ; 21 fichiers, 20
+  passants a ce jour (2026-08-31) apres les lots suivants -- 1 echec pre-existant hors
+  perimetre (Frontend\WordListViewTest.php) -- voir docs/DECISIONS.md D-DE-004
 reports/query-plans/de-import-baseline.md   7 requetes temoins, EXPLAIN QUERY PLAN, timings
 ```
 
@@ -610,7 +613,8 @@ score/signature/reversed/length : 0 divergence sur les 590 856 lignes         OK
   reports/query-plans/de-import-baseline.md, 0,058 à 6,163 ms                 OK
 Ä/Ö/Ü distinctes de A/O/U, ß -> SS : vérifié en direct + exhaustivement       OK
 rapport AFTER de l'agent data-engine                                          OK
-audit code-reviewer                                                           EN ATTENTE
+audit code-reviewer (passe complete, 2026-08-31)                              NO GO (3 bloquants,
+  voir GO / NO GO ci-dessous) -- correctifs en cours
 ```
 
 ## Non Fait, Explicitement Hors Périmètre (état 2026-08-29, voir aussi Phase Courante ci-dessus)
@@ -621,17 +625,20 @@ highlighting "changer une lettre" Ä/Ö/Ü (D-DE-011) : RESOLU, mb_substr/mb_str
 storage/seo_de.sqlite : CONSTRUIT ET APPLIQUE (voir Phase Courante -- plus a l'etat "non
   construit"), premier palier des familles combinees livre D-DE-017
 list_counts (maillage interne longueur x lettre) : COMPLET (D-DE-023, 2026-08-30, 123 471
-  lignes, 19/19 list_type -- etait 5/19, D-DE-018). Le hub /woerter rend un contenu reel sur
-  toutes ses grilles. Risque toujours signale, PAS resolu par ce lot : les listes de doublons
-  figees (*LinksBuilder::*DUPLICATE*_KEYS) restent calculees sur les donnees FRANCAISES, a
-  recalculer avant tout futur palier utilisant length_with/length_start_end/start_end (D-DE-023
-  peuple ces types mais N'OUVRE aucune famille dessus, donc ces constantes restent inertes
-  pour l'instant)
+  lignes, 20/20 list_type reel -- etait 5/19 annonce avant D-DE-018, le "19/19" annonce a
+  D-DE-023 etait deja faux). Le hub /woerter rend un contenu reel sur toutes ses grilles.
+  CORRECTIF EN COURS (2026-08-31) : l'affirmation "constantes inertes" ci-dessus s'est revelee
+  FAUSSE -- l'audit code-reviewer du 2026-08-31 (C2) a trouve les listes de doublons figees
+  (*LinksBuilder::*DUPLICATE*_KEYS, calculees sur le FRANCAIS) bel et bien LUES au runtime sur
+  des familles allemandes deja ouvertes et indexees (length_start_end notamment), amputant le
+  maillage de pages indexees (ex. lien W:L absent de /woerter/beginnend-mit/w). Correction en
+  cours par l'agent data-engine (vidage des constantes, meme precedent que
+  EXTERNAL_DUPLICATE_SUFFIXES en D-DE-024).
 pages legales (mentions-legales.php, confidentialite.php) : RESOLU (D-DE-021, 2026-08-30) --
   Impressum reel (§5 TMG) et Datenschutzerklarung reelle (DSGVO) a /impressum et /datenschutz,
   memes faits reels que la version francaise (BIGBANG MEDIA/o2switch, D-025ter)
-audit seo-technical-auditor : jamais relance depuis D-DE-017 (591 355 lignes) -- recommande
-  avant tout deploiement reel, l'etat reel a encore avance depuis (D-DE-019 a D-DE-023)
+audit seo-technical-auditor : jamais relance depuis D-DE-017 (591 355 lignes) -- relance en
+  cours (2026-08-31) sur l'etat post D-DE-019 a D-DE-025 (615 095 URL index,follow)
 scripts/propose_seo_batch.php : GARDE EXPLICITE ajoutee (D-DE-022) -- refuse desormais
   toujours, ne peut plus etre invoque par erreur. scripts/bench_*.php,
   check_combinatorial_duplicates.php, add_*_index.php referencent encore
@@ -648,7 +655,25 @@ deploiement o2switch : ce depot reste un travail entierement local, aucun serveu
 ## GO / NO GO
 
 ```text
-Construction initiale (data-engine) — EN ATTENTE D'AUDIT (code-reviewer). Non auto-approuvé
-  par l'agent qui l'a construite, conformément à la règle du projet.
+Audit code-reviewer complet (2026-08-31), perimetre app/, schema, tests, coherence
+  documentaire -- NO GO, 3 bloquants :
+    C1  requete non preparee sans LIMIT dans ExploreHubBuilder (list_counts, 123 471 lignes
+        lues pour 72 utiles, 153,1 ms vs 0,8 ms mesures) -- viole "requetes preparees
+        uniquement" et "LIMIT strict systematique"
+    C2  listes de doublons figees calculees sur le FRANCAIS lues au runtime sur des familles
+        allemandes ouvertes et indexees (2 141 cles correspondantes trouvees), maillage
+        interne ampute sur des pages deja indexees -- PHASE_STATUS.md/DECISIONS.md les
+        disaient a tort "inertes"
+    C3  CLAUDE.md et schema.sql (fichiers partages) decrivaient un etat perime (registre SEO
+        "non construit", list_counts "vide") alors que les deux sont peuples et en production ;
+        procedure de reconstruction documentee detruisait silencieusement list_counts
+  Non bloquants restants (I1-I6, M1-M10) : bug strlen()/mb_strlen() sur Ä/Ö/Ü (partiellement
+  corrige, voir ci-dessous), aucun test sur les *LinksBuilder actifs, textes d'erreur encore en
+  francais, comptes de documentation faux, base non VACUUM apres enrichissement, plus une
+  dizaine de points mineurs. Detail complet dans le rapport de l'agent (non archive ici).
+Correctifs en cours (2026-08-31) : C3 corrige directement dans ce lot (CLAUDE.md, schema.sql,
+  public/index.php, app/bootstrap.php, comptes de ce fichier) ; C1/C2 et une partie des non
+  bloquants (I1/I2 cote app/Search/*ExtensionLinksBuilder, I6) confies a l'agent data-engine,
+  rapport AFTER a venir. Re-audit code-reviewer a prevoir avant de declarer GO.
 ```
 

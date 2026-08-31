@@ -16,15 +16,12 @@ namespace App\Seo;
  * - appliquer les regles dures par famille (ex. NEVER_SITEMAP ci-dessous), a la fois dans
  *   scripts/apply_seo_batch.php (refus a l'ecriture) et dans les rapports de rollout.
  *
- * PAS D'EQUIVALENT WORD_FRENCH_NOT_ADMITTED / WORD_SPANISH_NOT_ADMITTED ICI, contrairement
- * aux depots francais et espagnol cousins : le modele de donnees allemand n'a, dans cette
- * premiere passe, que DEUX statuts peuplés (admis / inconnu -- CLAUDE.md, "Modele A Statuts").
- * Il n'existe aucune colonne is_german/is_french-equivalent dans storage/dictionary_de.sqlite
- * (data/raw/PROVENANCE.md : aucune source de dictionnaire general allemand independante
- * retenue faute de licence claire) -- rien a classer sous une famille "allemand non admis" tant
- * que cette donnee n'existe pas. Ajouter une constante de reservation pour une famille SANS
- * aucune donnee sous-jacente serait une spéculation d'architecture, pas une décision fondée --
- * a ajouter le jour ou une source réelle existe, jamais avant.
+ * WORD_GERMAN_NOT_ADMITTED (D-DE-029) : equivalent allemand direct de WORD_FRENCH_NOT_ADMITTED
+ * (FR) / WORD_SPANISH_NOT_ADMITTED (ES) -- ajoute une fois la troisieme source arrivee
+ * (is_german, kaikki.org/dewiktionary, storage/dictionary_de.sqlite). Avant D-DE-029, le
+ * modele de donnees allemand n'avait que DEUX statuts peuples (admis / inconnu) -- voir
+ * l'historique dans git pour le raisonnement d'origine ("ajouter une constante de reservation
+ * pour une famille sans donnee sous-jacente serait une speculation, pas une decision fondee").
  *
  * ETAT REEL DE CE DEPOT (premier palier, voir docs/DECISIONS.md D-DE-013) : seules HOME,
  * WORD_ADMITTED et WORD_LIST_LENGTH ont des lignes dans storage/seo_de.sqlite a ce stade, et
@@ -49,6 +46,14 @@ final class Family
 {
     public const HOME = 'home';
     public const WORD_ADMITTED = 'word_admitted';
+
+    /**
+     * Forme allemande retenue par kaikki.org/dewiktionary (colonne is_german), absente des
+     * deux sources Scrabble (is_enz, is_hippler) -- D-DE-029. Equivalent allemand direct de
+     * Family::WORD_FRENCH_NOT_ADMITTED (FR) / Family::WORD_SPANISH_NOT_ADMITTED (ES). 236 909
+     * lignes (storage/dictionary_de.sqlite, is_german=1 AND is_admitted=0).
+     */
+    public const WORD_GERMAN_NOT_ADMITTED = 'word_german_not_admitted';
 
     public const WORD_LIST_LENGTH = 'word_list_length';
 
@@ -103,6 +108,7 @@ final class Family
     public const ALL = [
         self::HOME,
         self::WORD_ADMITTED,
+        self::WORD_GERMAN_NOT_ADMITTED,
         self::WORD_LIST_LENGTH,
         self::WORD_LIST_COMMENCANT,
         self::WORD_LIST_TERMINANT,
@@ -146,6 +152,26 @@ final class Family
         self::RACK,
     ];
 
+    /**
+     * D-DE-029, meme role que Family::SPANISH_NOT_ADMITTED (ES) / equivalent francais.
+     * Contrainte dure du role : "Never propose indexing these in bulk." Applique comme un
+     * plafond dur (MAX_BATCH_SIZE_GERMAN_NOT_ADMITTED) plutot qu'une simple note.
+     *
+     * @var list<string>
+     */
+    public const GERMAN_NOT_ADMITTED = [
+        self::WORD_GERMAN_NOT_ADMITTED,
+    ];
+
+    /**
+     * Plafond applique par tout lot touchant Family::WORD_GERMAN_NOT_ADMITTED. Decision
+     * explicite du proprietaire du produit (D-DE-029, meme demande que ES-024/D-017)
+     * d'ouvrir tout l'allemand non admis en un seul lot (236 909 mots). Marge au-dela du
+     * volume reel, meme discipline que ES-024 (100 000 pour 86 944 lignes reelles -- ici
+     * 300 000 pour 236 909, ratio comparable).
+     */
+    public const MAX_BATCH_SIZE_GERMAN_NOT_ADMITTED = 300_000;
+
     public static function isValid(string $family): bool
     {
         return in_array($family, self::ALL, true);
@@ -154,5 +180,10 @@ final class Family
     public static function forbidsSitemap(string $family): bool
     {
         return in_array($family, self::NEVER_SITEMAP, true);
+    }
+
+    public static function isGermanNotAdmitted(string $family): bool
+    {
+        return in_array($family, self::GERMAN_NOT_ADMITTED, true);
     }
 }

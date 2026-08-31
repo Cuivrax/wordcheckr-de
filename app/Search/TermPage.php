@@ -13,11 +13,14 @@ namespace App\Search;
  * avant toute construction de fiche).
  *
  * Le modele a trois statuts est ferme (CLAUDE.md) : $status ne prend jamais que l'une
- * des trois constantes STATUS_* ci-dessous. ADAPTATION ALLEMANDE : STATUS_FRENCH_NOT_
- * ADMITTED n'est produit par AUCUNE donnee actuelle (pas de source "reel mais non admis"
- * allemande retenue cette passe, voir data/raw/PROVENANCE.md) -- constante conservee pour
- * le modele ferme, pas une branche morte a supprimer ; un statut reel pourra l'atteindre
- * le jour ou une seconde source allemande sera ajoutee.
+ * des trois constantes STATUS_* ci-dessous. STATUS_FRENCH_NOT_ADMITTED (nom herite du
+ * depot francais, jamais renomme ici -- identifiant PHP interne uniquement, ne fuite
+ * jamais vers le HTML : voir app/View/word.php, qui le mappe vers modifier='not-admitted'/
+ * badge='Nicht Gültig', deja en allemand correct) EST PRODUIT depuis D-DE-029 : la
+ * troisieme source (is_german, kaikki.org/dewiktionary) alimente reellement ce statut
+ * (236 909 formes allemandes reelles non admises, is_admitted=0 AND is_german=1) --
+ * TermLookup::find() le derive deja correctement depuis is_admitted (jamais is_german
+ * directement), aucune modification necessaire a ce fichier ni a TermLookup.php.
  *
  * display_term == normalized sur toute ligne de la base : un seul champ "normalized" est
  * expose, pas de doublon display/normalized.

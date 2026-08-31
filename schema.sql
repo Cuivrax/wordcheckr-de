@@ -14,11 +14,10 @@
 --     interrogeable exactement de la même façon (voir data/raw/PROVENANCE.md). is_admitted
 --     reste DÉRIVÉE (is_enz OR is_hippler), précalculée au build, jamais une source de vérité
 --     indépendante -- même rôle et même raisonnement que côté français (D-022) : permet un
---     filtre "admis" indexable sans recalculer un OR à chaque requête. Toujours 1 sur CHAQUE
---     ligne dans cette passe (toute ligne vient forcément d'au moins une des deux sources par
---     construction), mais désormais un OR RÉEL, pas une constante codée en dur -- prêt pour
---     une future troisième source qui, elle, pourrait légitimement valoir 0 (ex. un
---     dictionnaire général allemand non-Scrabble, toujours recherché, voir docs/DECISIONS.md).
+--     filtre "admis" indexable sans recalculer un OR à chaque requête. Un OR RÉEL, pas une
+--     constante codée en dur -- la troisième source anticipée ici est arrivée (D-DE-029,
+--     is_german, kaikki.org/dewiktionary) : is_admitted vaut désormais réellement 0 pour toute
+--     ligne is_german=1 seule (forme allemande réelle, non retenue par enz/hippler).
 --   - pos/pos_secondary/gender (nature grammaticale, D-018 français) absentes : aucune
 --     source de nature grammaticale allemande retenue dans cette passe (hors périmètre
 --     explicite de la tâche). app/Search/TermLookup.php ne les sélectionne donc jamais et
@@ -31,17 +30,20 @@
 --     renvoient directement un résultat vide sans jamais interroger ces tables (voir leurs
 --     docblocks) -- aucune table absente n'est donc jamais requêtée au runtime,
 --     public/index.php (fichier partagé) continue de fonctionner sans modification.
---   - list_counts CONSERVÉE (contrairement aux tables ci-dessus) mais NON peuplée par
---     scripts/import_de.py dans cette passe (0 ligne) : contrairement à pos/gender/
---     word_senses/verb_forms, plusieurs classes App\Search\*LinksBuilder et
---     App\Search\ExploreHubBuilder l'interrogent SANS garde de disponibilité depuis
---     public/index.php (contrairement à App\Seo\Registry, qui vérifie is_file() avant
---     toute requête) -- l'absence de la TABLE ferait échouer toute page /mots/... avec une
---     erreur SQL, alors que 0 LIGNE se dégrade nativement en sections vides (déjà le
---     comportement attendu et testé côté français pour toute combinaison sans résultat).
---     scripts/build_explore_hub_counts.php n'a pas d'équivalent allemand construit dans
---     cette passe -- /mots (hub) et le maillage interne associé restent donc vides jusqu'à
---     un futur lot dédié.
+--   - list_counts CONSERVÉE (contrairement aux tables ci-dessus) et désormais PEUPLÉE, mais
+--     PAS par scripts/import_de.py : par scripts/build_explore_hub_counts_de.php, un second
+--     temps de build séparé (équivalent allemand direct de scripts/build_explore_hub_counts.php
+--     côté français), à exécuter après import_de.py (voir CLAUDE.md, « État Des Données »).
+--     Reconstruire la base avec le seul import_de.py laisse la table VIDE (0 ligne) -- même
+--     effet dégradé que documenté ci-dessous, pas une erreur mais un hub /woerter et un
+--     maillage silencieusement amputés. Contrairement à pos/gender/word_senses/verb_forms,
+--     plusieurs classes App\Search\*LinksBuilder et App\Search\ExploreHubBuilder l'interrogent
+--     SANS garde de disponibilité depuis public/index.php (contrairement à App\Seo\Registry,
+--     qui vérifie is_file() avant toute requête) -- l'absence de la TABLE ferait échouer toute
+--     page /woerter/... avec une erreur SQL, alors que 0 LIGNE se dégrade nativement en
+--     sections vides (comportement attendu et testé côté français pour toute combinaison sans
+--     résultat). État réel (20/20 list_type peuplés) : voir docs/PHASE_STATUS.md, section
+--     allemande.
 
 CREATE TABLE terms (
     id           INTEGER PRIMARY KEY,
@@ -61,15 +63,27 @@ CREATE TABLE terms (
     is_enz       INTEGER NOT NULL DEFAULT 0 CHECK (is_enz     IN (0, 1)),
     is_hippler   INTEGER NOT NULL DEFAULT 0 CHECK (is_hippler IN (0, 1)),
 
-    -- Admis (liste Scrabble allemande, l'une ou l'autre source). Colonne DÉRIVÉE
-    -- (is_enz OR is_hippler), précalculée au build -- jamais une source de vérité
-    -- indépendante, même rôle que côté français (D-022). Toujours 1 sur chaque ligne dans
-    -- cette passe (toute ligne vient forcément d'au moins une source par construction), mais
-    -- calculée comme un vrai OR, pas une constante -- prête pour une future troisième source
-    -- qui pourrait légitimement valoir 0. Le badge affiche "Wortliste" (config/sites/de.php),
-    -- jamais "officiel" (aucune liste officielle allemande n'est librement accessible en
-    -- masse, voir data/raw/PROVENANCE.md).
-    is_admitted  INTEGER NOT NULL DEFAULT 1 CHECK (is_admitted IN (0, 1)),
+    -- D-DE-029 : troisième source, ACTIVÉE (la remarque ci-dessus l'anticipait depuis
+    -- D-DE-006 : "prêt pour une future troisième source qui, elle, pourrait légitimement
+    -- valoir 0"). Forme allemande réelle retenue par kaikki.org/dewiktionary (extraction du
+    -- Wiktionnaire ALLEMAND natif, de.wiktionary.org -- pas l'édition anglaise
+    -- "kaikki.org/dictionary/German/", qui glose en anglais), filtrée par pos (voir
+    -- scripts/import_de.py, KAIKKI_POS_EXCLUDED). Équivalent allemand direct de is_spanish
+    -- (site espagnol) / is_french (site français, colonne renommée ici). N'affecte JAMAIS
+    -- is_admitted ci-dessous : une ligne is_german=1 SEULE (is_enz=0 ET is_hippler=0) reste
+    -- is_admitted=0 -- modèle à trois statuts (CLAUDE.md).
+    is_german    INTEGER NOT NULL DEFAULT 0 CHECK (is_german   IN (0, 1)),
+
+    -- Admis (liste Scrabble allemande, l'une ou l'autre source ENZ/HIPPLER -- JAMAIS
+    -- is_german ci-dessus). Colonne DÉRIVÉE (is_enz OR is_hippler), précalculée au build --
+    -- jamais une source de vérité indépendante, même rôle que côté français (D-022). Passe de
+    -- DEFAULT 1 (toujours vrai avant D-DE-029, aucune troisième source) à DEFAULT 0 (D-DE-029,
+    -- même convention que is_admitted côté FR/ES) : le DEFAULT n'est jamais utilisé en
+    -- pratique (scripts/import_de.py fixe explicitement chaque ligne), changé pour cohérence
+    -- sémantique désormais que 0 est un cas réel. Le badge affiche "Wortliste"
+    -- (config/sites/de.php), jamais "officiel" (aucune liste officielle allemande n'est
+    -- librement accessible en masse, voir data/raw/PROVENANCE.md).
+    is_admitted  INTEGER NOT NULL DEFAULT 0 CHECK (is_admitted IN (0, 1)),
 
     score        INTEGER NOT NULL,
     length       INTEGER NOT NULL CHECK (length >= 2),
@@ -142,13 +156,15 @@ CREATE INDEX idx_terms_length_score_normalized ON terms(length, score, normalize
 CREATE INDEX idx_terms_startletter_endletter_normalized
     ON terms(substr(normalized, 1, 1), substr(reversed, 1, 1), normalized);
 
--- Comptes précalculés du maillage interne (hub /mots, pages "commençant par"/"terminant
--- par"/"avec"/longueur combinées...), produits hors ligne par un futur
--- scripts/build_explore_hub_counts_de.php -- JAMAIS peuplée par scripts/import_de.py dans
--- cette première passe (voir note en tête de fichier : table conservée vide, pas
+-- Comptes précalculés du maillage interne (hub /woerter, pages "beginnend-mit"/"endend-mit"/
+-- "mit-buchstaben"/longueur combinées...), produits hors ligne par
+-- scripts/build_explore_hub_counts_de.php -- désormais PEUPLÉE (20/20 list_type, voir
+-- docs/PHASE_STATUS.md section allemande pour le compte exact), en un second temps de build
+-- séparé de scripts/import_de.py (qui ne la touche jamais, voir note en tête de fichier).
+-- JAMAIS peuplée par scripts/import_de.py seul -- table conservée vide dans ce cas, pas
 -- supprimée, pour que les classes App\Search\ExploreHubBuilder et App\Search\*LinksBuilder
 -- continuent de fonctionner sans modification -- comportement natif "aucun résultat" plutôt
--- qu'une erreur SQL "no such table"). Structure identique au schéma français : voir
+-- qu'une erreur SQL "no such table". Structure identique au schéma français : voir
 -- schema.sql du dépôt français pour le détail complet de chaque list_type, inchangé ici,
 -- code partagé.
 CREATE TABLE list_counts (

@@ -95,28 +95,39 @@ return function (): void {
     Assert::null($lookup->find(str_repeat('a', Normalizer::MAX_LENGTH + 1)), 'au-dessus de MAX_LENGTH');
 
     // Voisinage alphabetique autour d'un mot present -- ordre BINARY strict sur toute la
-    // base (590 850 formes) : Ä/Ö/Ü trient apres Z (voir Normalizer::signature()), donc le
-    // voisinage de SCHÖN se fait parmi d'autres formes en SCH... plutot qu'avec SCHOEN
-    // (qui n'existe pas comme forme normalisee separee) -- verifie a la main contre la
-    // base reelle.
-    Assert::same('SCHÖLTST', $schoen->previousWord);
-    Assert::same('SCHÖNE', $schoen->nextWord);
+    // base (827 765 formes, D-DE-029 : enz/hippler + kaikki_de) : Ä/Ö/Ü trient apres Z (voir
+    // Normalizer::signature()), donc le voisinage de SCHÖN se fait parmi d'autres formes en
+    // SCH... plutot qu'avec SCHOEN (qui n'existe pas comme forme normalisee separee) --
+    // verifie a la main contre la base reelle. Valeurs mises a jour par D-DE-029 (la base a
+    // grossi de 590 856 a 827 765 termes, de nouveaux voisins alphabetiques sont apparus).
+    Assert::same('SCHÖMERICHS', $schoen->previousWord);
+    Assert::same('SCHÖNAICHS', $schoen->nextWord);
 
     // Bornes de la base : AA est le premier mot (ordre BINARY, comme en francais -- pure
-    // coincidence alphabetique, pas une consequence du changement de langue). ÜPPIGSTES
-    // est le dernier : Ü, codepoint le plus eleve de l'alphabet allemand dans notre
-    // convention de tri BINARY, trie apres tout mot beginnend-mit par A-Z ou meme Ä/Ö.
+    // coincidence alphabetique, pas une consequence du changement de langue, ni de D-DE-029).
+    // ÜTTFELDS est desormais le dernier mot (D-DE-029 : ancien dernier ÜPPIGSTES, verifie
+    // toujours present mais plus le dernier une fois kaikki_de fusionne) : Ü, codepoint le
+    // plus eleve de l'alphabet allemand dans notre convention de tri BINARY, trie apres tout
+    // mot commencant par A-Z ou meme Ä/Ö.
     $first = $lookup->find('AA');
     Assert::notNull($first);
     Assert::true($first->found);
     Assert::null($first->previousWord, 'AA est le premier mot de la base, pas de precedent');
     Assert::notNull($first->nextWord);
 
-    $last = $lookup->find('ÜPPIGSTES');
+    // ÜPPIGSTES reste dans la base (verifie) mais n'est plus le dernier mot depuis D-DE-029 --
+    // sanity check qu'il a bien un successeur desormais, pas de reprise du role "dernier mot".
+    $uppigstes = $lookup->find('ÜPPIGSTES');
+    Assert::notNull($uppigstes);
+    Assert::true($uppigstes->found);
+    Assert::notNull($uppigstes->previousWord);
+    Assert::notNull($uppigstes->nextWord, 'ÜPPIGSTES n\'est plus le dernier mot de la base depuis D-DE-029 (kaikki_de)');
+
+    $last = $lookup->find('ÜTTFELDS');
     Assert::notNull($last);
     Assert::true($last->found);
     Assert::notNull($last->previousWord);
-    Assert::null($last->nextWord, 'ÜPPIGSTES est le dernier mot de la base (ordre BINARY), pas de suivant');
+    Assert::null($last->nextWord, 'ÜTTFELDS est le dernier mot de la base (ordre BINARY) depuis D-DE-029, pas de suivant');
 
     // Regression C1 (heritee du site francais) : entree UTF-8 invalide -> aucune fiche,
     // aucune exception qui remonterait au flux HTTP normal.
@@ -127,22 +138,24 @@ return function (): void {
     Assert::null($lookup->find('haus' . "\n"), 'HAUS suivi d\'un saut de ligne');
 
     // Verification exhaustive : score/signature/reversed/length recalcules pour les
-    // 590 856 lignes reelles (590 850 enz + 6 formes uniquement hippler, D-DE-006), compares
-    // aux colonnes stockees par scripts/import_de.py. Curseur PDO en streaming (pas de
-    // fetchAll) : ne charge pas la table en memoire.
+    // 827 765 lignes reelles (590 856 enz/hippler, D-DE-006 + 236 909 kaikki_de non admis,
+    // D-DE-029), compares aux colonnes stockees par scripts/import_de.py. Curseur PDO en
+    // streaming (pas de fetchAll) : ne charge pas la table en memoire.
     $pdo = $connection->pdo();
-    $statement = $pdo->query('SELECT normalized, score, length, signature, reversed, is_enz, is_hippler, is_admitted FROM terms');
+    $statement = $pdo->query('SELECT normalized, score, length, signature, reversed, is_enz, is_hippler, is_german, is_admitted FROM terms');
 
     $rows = 0;
     $withUmlaut = 0;
     $enzOnly = 0;
     $hipplerOnly = 0;
     $both = 0;
+    $kaikkiOnly = 0;
     foreach ($statement as $row) {
         $rows++;
         $normalized = $row['normalized'];
         $isEnz = (int) $row['is_enz'];
         $isHippler = (int) $row['is_hippler'];
+        $isGerman = (int) $row['is_german'];
 
         Assert::true(Normalizer::isValid($normalized), 'forme invalide en base : ' . $normalized);
         Assert::same((int) $row['score'], Normalizer::score($normalized, $tileScores), 'score de ' . $normalized);
@@ -150,18 +163,22 @@ return function (): void {
         Assert::same($row['signature'], Normalizer::signature($normalized), 'signature de ' . $normalized);
         Assert::same($row['reversed'], Normalizer::reverse($normalized), 'reversed de ' . $normalized);
 
-        // D-DE-006 : provenance par mot -- toute ligne vient d'AU MOINS une des deux
-        // sources (jamais ni l'une ni l'autre, cette ligne n'existerait pas), et
-        // is_admitted reste un OR REEL de is_enz/is_hippler, jamais une constante.
-        Assert::true($isEnz === 1 || $isHippler === 1, $normalized . ' doit venir d\'au moins une source');
-        Assert::same($isEnz || $isHippler ? 1 : 0, (int) $row['is_admitted'], 'is_admitted doit toujours egaler is_enz OR is_hippler : ' . $normalized);
+        // D-DE-006 : provenance par mot -- toute ligne vient d'AU MOINS une des TROIS
+        // sources depuis D-DE-029 (jamais aucune des trois, cette ligne n'existerait pas), et
+        // is_admitted reste un OR REEL de is_enz/is_hippler UNIQUEMENT -- jamais is_german
+        // (D-DE-029, troisieme statut du modele CLAUDE.md : reel mais pas necessairement
+        // admis).
+        Assert::true($isEnz === 1 || $isHippler === 1 || $isGerman === 1, $normalized . ' doit venir d\'au moins une source');
+        Assert::same($isEnz || $isHippler ? 1 : 0, (int) $row['is_admitted'], 'is_admitted doit toujours egaler is_enz OR is_hippler (jamais is_german) : ' . $normalized);
 
         if ($isEnz && $isHippler) {
             $both++;
         } elseif ($isEnz) {
             $enzOnly++;
-        } else {
+        } elseif ($isHippler) {
             $hipplerOnly++;
+        } else {
+            $kaikkiOnly++;
         }
 
         if (str_contains($normalized, 'Ä') || str_contains($normalized, 'Ö') || str_contains($normalized, 'Ü')) {
@@ -169,14 +186,17 @@ return function (): void {
         }
     }
 
-    Assert::same(590856, $rows, 'nombre total de lignes verifiees, doit correspondre a docs/PHASE_STATUS.md');
+    Assert::same(827765, $rows, 'nombre total de lignes verifiees, doit correspondre a docs/PHASE_STATUS.md (D-DE-029 : 590 856 enz/hippler + 236 909 kaikki_de non admis)');
     Assert::true($withUmlaut > 10000, 'sanity check : un nombre substantiel de mots doit contenir Ä/Ö/Ü (mesure reelle attendue bien au-dessus de 10 000)');
 
     // Comptes de provenance (D-DE-006), mesures au build et re-verifies ici independamment
     // sur la base reelle -- pas seulement fait confiance au rapport import-summary.json.
+    // enz/hippler/both INCHANGES par D-DE-029 (kaikki_de n'affecte que kaikkiOnly, un
+    // quatrieme compartiment, jamais les trois premiers).
     Assert::same(297690, $enzOnly, 'termes presents uniquement dans enz');
     Assert::same(6, $hipplerOnly, 'termes presents uniquement dans hippler (confirme empiriquement : la quasi-totalite des ~6 400 formes brutes hippler-seules sont des doublons de graphie ß/ss, pas une perte de couverture reelle)');
     Assert::same(293160, $both, 'termes presents dans les deux sources');
+    Assert::same(236909, $kaikkiOnly, 'termes reels allemands (kaikki_de) absents d\'enz/hippler, D-DE-029 -- non admis par construction');
 
     // Coeur de la decouverte D-DE-006 : ABSCHIEDSGRUSS existe cote hippler (graphie suisse
     // "ss") ET cote enz (graphie standard "ß") -- les deux formes brutes distinctes se

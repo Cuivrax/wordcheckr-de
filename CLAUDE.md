@@ -192,8 +192,10 @@ allemande, voir `data/raw/PROVENANCE.md`.
 `app/Search/Normalizer.php`). ß (Eszett) est accepté et converti en SS (règle officielle, pas
 de tuile ß dédiée).
 
-Empreintes et provenance : `data/raw/PROVENANCE.md`. Reconstruire la base :
-`python scripts/import_de.py`.
+Empreintes et provenance : `data/raw/PROVENANCE.md`. Reconstruire la base, en DEUX temps
+(l'omission du second détruit silencieusement `list_counts` et vide le hub `/woerter`, voir
+audit code-reviewer du 2026-08-31) :
+`python scripts/import_de.py` puis `php scripts/build_explore_hub_counts_de.php`.
 
 La base est notre construction propre : formes normalisées, indicateurs et scores, aucune
 définition. **Le site ne publie aucun crédit de source** (D-015, héritée) — ni page de licence,
@@ -205,14 +207,17 @@ ni mention en pied de page, ni commentaire dans le HTML servi.
 pas de dictionnaire général allemand indépendant (modèle à deux statuts, voir plus haut)
 pas de nature grammaticale / genre (pas d'équivalent D-018 français)
 pas de définitions lexicales (pas d'équivalent D-043 français)
-pas de registre SEO (storage/seo_de.sqlite non construit -- App\Seo\Registry gère nativement
-  son absence, noindex,follow par défaut, aucun impact fonctionnel)
-pas de maillage interne SEO peuplé (list_counts conservée dans schema.sql mais vide --
-  App\Search\ExploreHubBuilder et les *LinksBuilder restent fonctionnels, sections vides
-  plutôt qu'une erreur)
 pas de déploiement (ce dépôt reste un travail local, voir docs/09_DEPLOIEMENT_O2SWITCH.md
   hérité pour la marche à suivre le moment venu)
 ```
 
-Chacun de ces points est une décision explicite documentée, pas un oubli — voir
+Registre SEO et maillage interne : **construits et appliqués**, contrairement à une version
+antérieure de cette section (corrigée le 2026-08-31 après un audit code-reviewer qui a trouvé
+CLAUDE.md en contradiction avec l'état réel du dépôt). `storage/seo_de.sqlite` est construit et
+appliqué (voir `docs/PHASE_STATUS.md`, section allemande, pour le compte d'URL exact et à jour) ;
+`list_counts` est peuplée (20/20 `list_type`) et alimente réellement
+`App\Search\ExploreHubBuilder` (hub `/woerter`) et les `*LinksBuilder` — voir D-DE-013,
+D-DE-016 à D-DE-025 dans `docs/DECISIONS.md`.
+
+Chacun des points restants ci-dessus est une décision explicite documentée, pas un oubli — voir
 `docs/DECISIONS.md` (section D-DE-XXX) pour le détail complet.

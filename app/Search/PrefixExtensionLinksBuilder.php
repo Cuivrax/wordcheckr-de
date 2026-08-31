@@ -66,7 +66,13 @@ final class PrefixExtensionLinksBuilder
      */
     public function build(string $prefix): PrefixExtensionLinks
     {
-        $length = strlen($prefix);
+        // CORRECTIF I1 (audit NO GO 2026-08-31) : strlen() (octets) -> mb_strlen() (caracteres)
+        // -- $prefix peut contenir Ä/Ö/Ü (lettres allemandes distinctes, encodees sur 2 octets
+        // en UTF-8), auquel cas strlen('Ä') = 2 au lieu de 1, faisant calculer un $listType
+        // ('prefixN') decale d'un palier (ex. 'prefix3' au lieu de 'prefix2' pour un prefixe
+        // Ä d'une seule lettre) : la section "Präfix Ä Fortsetzen" restait vide alors que
+        // list_counts contient reellement les donnees pour ce prefixe.
+        $length = mb_strlen($prefix, 'UTF-8');
 
         if ($length < self::MIN_INPUT_LENGTH || $length > self::MAX_INPUT_LENGTH) {
             return new PrefixExtensionLinks(links: [], queryCount: 0);

@@ -150,7 +150,7 @@ $allowedMethods = $path === '/contact' ? ['GET', 'HEAD', 'POST'] : ['GET', 'HEAD
 if (!in_array($method, $allowedMethods, true)) {
     http_response_code(405);
     header('Allow: ' . implode(', ', $allowedMethods));
-    echo '405 Methode non autorisee';
+    echo '405 Methode nicht erlaubt';
 
     return;
 }
@@ -181,8 +181,8 @@ $render = static function (string $view, array $data, int $status = 200, ?string
 
     if (!is_file($file)) {
         header('Content-Type: text/plain; charset=utf-8');
-        echo "Vue non implementee : {$view}\n";
-        echo "Donnees pretes, en attente du gabarit (Phase 1b, agent frontend).\n";
+        echo "Ansicht nicht implementiert: {$view}\n";
+        echo "Daten bereit, wartet auf die Vorlage (Phase 1b, Agent frontend).\n";
 
         return;
     }
@@ -511,19 +511,19 @@ if ($path === '/woerter' || preg_match('#^/woerter(/.*)$#u', $path, $matches) ==
         return !in_array(true, $active, true);
     };
 
-    $isBareSingleLetterPrefix = $filters->prefix !== null && strlen($filters->prefix) === 1
+    $isBareSingleLetterPrefix = $filters->prefix !== null && mb_strlen($filters->prefix) === 1
         && $hasNoOtherConstraint($filters, ['prefix']);
-    $isBareSingleLetterSuffix = $filters->suffix !== null && strlen($filters->suffix) === 1
+    $isBareSingleLetterSuffix = $filters->suffix !== null && mb_strlen($filters->suffix) === 1
         && $hasNoOtherConstraint($filters, ['suffix']);
     $isBarePrefixOnly = $filters->prefix !== null && $hasNoOtherConstraint($filters, ['prefix']);
     $isBareSuffixOnly = $filters->suffix !== null && $hasNoOtherConstraint($filters, ['suffix']);
-    $isBarePrefixSuffixPair = $filters->prefix !== null && strlen($filters->prefix) === 1
-        && $filters->suffix !== null && strlen($filters->suffix) === 1
+    $isBarePrefixSuffixPair = $filters->prefix !== null && mb_strlen($filters->prefix) === 1
+        && $filters->suffix !== null && mb_strlen($filters->suffix) === 1
         && $hasNoOtherConstraint($filters, ['prefix', 'suffix']);
     $isLengthPlusSinglePrefixOnly = $filters->length !== null && $filters->prefix !== null
-        && strlen($filters->prefix) === 1 && $hasNoOtherConstraint($filters, ['length', 'prefix']);
+        && mb_strlen($filters->prefix) === 1 && $hasNoOtherConstraint($filters, ['length', 'prefix']);
     $isLengthPlusSingleSuffixOnly = $filters->length !== null && $filters->suffix !== null
-        && strlen($filters->suffix) === 1 && $hasNoOtherConstraint($filters, ['length', 'suffix']);
+        && mb_strlen($filters->suffix) === 1 && $hasNoOtherConstraint($filters, ['length', 'suffix']);
 
     $singleAvecLetter = null;
     if (count($filters->withLetters) === 1) {

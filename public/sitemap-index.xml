@@ -4,6 +4,9 @@
   <loc>https://www.wordcheckr.de/sitemaps/avec-single-0001.xml</loc>
  </sitemap>
  <sitemap>
+  <loc>https://www.wordcheckr.de/sitemaps/avec-three-0001.xml</loc>
+ </sitemap>
+ <sitemap>
   <loc>https://www.wordcheckr.de/sitemaps/avec-two-0001.xml</loc>
  </sitemap>
  <sitemap>
@@ -14,6 +17,24 @@
  </sitemap>
  <sitemap>
   <loc>https://www.wordcheckr.de/sitemaps/ends-0002.xml</loc>
+ </sitemap>
+ <sitemap>
+  <loc>https://www.wordcheckr.de/sitemaps/invalid-0001.xml</loc>
+ </sitemap>
+ <sitemap>
+  <loc>https://www.wordcheckr.de/sitemaps/invalid-0002.xml</loc>
+ </sitemap>
+ <sitemap>
+  <loc>https://www.wordcheckr.de/sitemaps/invalid-0003.xml</loc>
+ </sitemap>
+ <sitemap>
+  <loc>https://www.wordcheckr.de/sitemaps/invalid-0004.xml</loc>
+ </sitemap>
+ <sitemap>
+  <loc>https://www.wordcheckr.de/sitemaps/invalid-0005.xml</loc>
+ </sitemap>
+ <sitemap>
+  <loc>https://www.wordcheckr.de/sitemaps/invalid-0006.xml</loc>
  </sitemap>
  <sitemap>
   <loc>https://www.wordcheckr.de/sitemaps/letters-0001.xml</loc>

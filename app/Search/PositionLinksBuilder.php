@@ -18,36 +18,25 @@ use App\Database\Connection;
 final class PositionLinksBuilder
 {
     /**
-     * Doublons de contenu CROISÉS avec une famille EXTÉRIEURE à "position" (D-041, garde-fou
-     * structurel demandé par le constat C-4 du 4e audit consolidé, docs/DECISIONS.md D-040) --
-     * trouvés par le balayage GÉNÉRIQUE de tout le registre
-     * (scripts/check_combinatorial_duplicates.php, balayage du 2026-08-21 : 1 656 groupes,
-     * 2 089 pages en excès), pas une comparaison ciblée à une seule paire de familles.
+     * NEUTRALISEE POUR L'ALLEMAND (correctif C2, audit NO GO 2026-08-31 -- meme discipline que
+     * D-DE-024/SuffixExtensionLinksBuilder::EXTERNAL_DUPLICATE_SUFFIXES, decision a journaliser
+     * par la session principale dans docs/DECISIONS.md) : ces 2 clés ("13:W:10", "15:W:10")
+     * etaient des doublons structurels francais precis (13/15 lettres, lettre W, position 10 --
+     * lie a des mots francais specifiques comme "SASK") et copiees telles quelles lors du
+     * portage du depot (git archive) -- jamais revalidees pour l'allemand. Videe plutot que
+     * conservee : ces cles filtreraient des combinaisons allemandes par pure coincidence de
+     * format, sans aucun rapport avec un vrai doublon allemand.
      *
-     * Clé au format exact du `list_key` 'length_with_position' ("{longueur}:{lettre}:{position}",
-     * D-023bis), comparée directement à la clé reconstruite ci-dessous dans build(). Ce même
-     * ensemble est aussi utilisé par App\Search\LengthLinksBuilder (byPosition, qui cible la MÊME
-     * famille App\Seo\Family::WORD_LIST_POSITION depuis une page source différente,
-     * /mots/{N}-lettres) -- référencé depuis là-bas plutôt que dupliqué, une seule source de
-     * vérité pour cette famille cible.
-     *
-     * Règle de départage : App\Search\DuplicatePageResolver::resolveDuplicateWinner() -- une page
-     * "position" a TOUJOURS 3 composants (longueur + position, qui vaut 2 à elle seule). Les 2
-     * clés trouvées perdent toutes les deux :
-     *   13:W:10  /mots/13-lettres/position/10/w  perd face à /mots/13-lettres/commencant/c/
-     *            terminant/h (Family::WORD_LIST_COMBINED avec longueur, 3 composants -- signature
-     *            de rôles [longueur, commençant, terminant] précède [longueur, position, position]
-     *            dans l'ordre canonique, "commençant" avant "position")
-     *   15:W:10  /mots/15-lettres/position/10/w  perd face à /mots/commencant/sask (1 composant)
-     * Recalculé indépendamment par échantillonnage direct contre `terms` (voir le rapport AFTER
-     * de cette tâche) : 0 divergence.
-     *
-     * Liste figée : valable pour l'état actuel de storage/dictionary_fr.sqlite (838 180 termes,
-     * inchangé depuis D-022). Une reconstruction future de la base devra revalider cette liste.
+     * Cible App\Seo\Family::WORD_LIST_POSITION, qui n'a AUCUNE ligne dans storage/seo_de.sqlite
+     * a ce jour (2026-08-31 -- famille pas encore deployee, voir app/Seo/Family.php) : aucune
+     * page de ce builder n'est donc indexee actuellement, le risque decrit par l'audit (amputer
+     * le maillage d'une page deja indexee) est nul pour cette famille precise tant qu'elle n'est
+     * pas ouverte. Le calcul REEL d'un equivalent allemand reste a faire dans une passe separee
+     * au moment de l'ouverture de ce palier.
      *
      * @var list<string>
      */
-    public const EXTERNAL_DUPLICATE_KEYS = ['13:W:10', '15:W:10'];
+    public const EXTERNAL_DUPLICATE_KEYS = [];
 
     public function __construct(
         private readonly Connection $connection,

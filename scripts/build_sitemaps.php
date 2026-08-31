@@ -81,6 +81,10 @@ const FAMILY_FRAGMENT_PREFIXES = [
     // word_admitted (/wort/{mot}, mots admis enz/german-wordlist + hippler/german-wordlist) :
     // 590 856 URL, D-DE-016.
     'word_admitted' => 'words',
+    // word_german_not_admitted (/wort/{mot}, formes allemandes reelles non admises) :
+    // D-DE-029, meme prefixe que les depots francais/espagnol (family word_french_not_admitted/
+    // word_spanish_not_admitted -> prefixe 'invalid').
+    'word_german_not_admitted' => 'invalid',
     // word_list_length (/woerter/{N}-buchstaben) : les 14 longueurs (2 a 15), D-DE-013
     // (correction du plan initial qui n'en anticipait que 2 -- CHAQUE fiche de mot admis lie
     // inconditionnellement sa propre page de longueur, App\Search\RelationsFinder::
@@ -107,10 +111,13 @@ const FAMILY_FRAGMENT_PREFIXES = [
     // word_list_avec_two_letters (/woerter/{N}-buchstaben/mit-buchstaben/{X}/{Y}, palier 2
     // lettres) : D-DE-027.
     'word_list_avec_two_letters' => 'avec-two',
-    // rack, enthalten/ohne/muster, position, "avec" 3 lettres, et beginnend-mit+endend-mit
-    // combine (690 combinaisons, 1 seule liee) : absents volontairement -- soit
-    // App\Seo\Family::NEVER_SITEMAP (jamais de prefixe), soit non encore ouverts (D-DE-017/
-    // D-DE-019/D-DE-026/D-DE-027).
+    // word_list_avec_three_letters (/woerter/{N}-buchstaben/mit-buchstaben/{X}/{Y}/{Z},
+    // palier 3 lettres) : D-DE-028.
+    'word_list_avec_three_letters' => 'avec-three',
+    // rack, enthalten/ohne/muster, position, et beginnend-mit+endend-mit combine (690
+    // combinaisons, 1 seule liee) : absents volontairement -- soit App\Seo\Family::
+    // NEVER_SITEMAP (jamais de prefixe), soit non encore ouverts (D-DE-017/D-DE-019/
+    // D-DE-026/D-DE-027/D-DE-028).
 ];
 
 $baseUrl = null;

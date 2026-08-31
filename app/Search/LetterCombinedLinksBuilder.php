@@ -22,39 +22,38 @@ use App\Database\Connection;
 final class LetterCombinedLinksBuilder
 {
     /**
-     * Doublons de contenu CROISÉS avec une famille EXTÉRIEURE à la variante commençant+terminant
-     * SANS longueur (D-041, garde-fou structurel demandé par le constat C-4 du 4e audit consolidé,
-     * docs/DECISIONS.md D-040) -- trouvés par le balayage GÉNÉRIQUE de tout le registre
-     * (scripts/check_combinatorial_duplicates.php, balayage du 2026-08-21 : 1 656 groupes,
-     * 2 089 pages en excès), pas une comparaison ciblée à une seule paire de familles.
+     * NEUTRALISEE POUR L'ALLEMAND (correctif C2, audit NO GO 2026-08-31 -- meme discipline que
+     * D-DE-024/SuffixExtensionLinksBuilder::EXTERNAL_DUPLICATE_SUFFIXES, decision a journaliser
+     * par la session principale dans docs/DECISIONS.md) : cette liste de 33 paires
+     * "{début}:{fin}" etait calculee sur storage/dictionary_fr.sqlite (838 180 termes francais,
+     * D-041 cote francais, voir historique ci-dessous) et copiee telle quelle lors du portage du
+     * depot (git archive) -- jamais revalidee pour l'allemand. Trouvee lue au runtime par l'audit
+     * independant, avec un exemple direct verifie sur ce depot : 'W:L' filtrait a tort la page
+     * allemande /woerter/beginnend-mit/w/endend-mit/l (290 mots reels, list_counts confirme) --
+     * le lien depuis /woerter/beginnend-mit/w (page deja indexee, word_list_commencant) etait
+     * absent alors que la page cible repond 200. Videe plutot que conservee : une liste de cles
+     * francaises filtrerait des paires allemandes par pure coincidence de format, sans aucun
+     * rapport avec un vrai doublon allemand -- pire que ne rien filtrer du tout. Le calcul REEL
+     * d'un equivalent allemand (doublons croises commencant/terminant sur
+     * storage/dictionary_de.sqlite) reste a faire dans une passe separee si besoin -- NOTE :
+     * word_list_combined (la famille cible de ce builder) n'a encore AUCUNE ligne dans
+     * storage/seo_de.sqlite a ce jour (2026-08-31, famille pas encore deployee au registre) ; le
+     * balayage ad hoc de ce correctif (voir le rapport AFTER) a bien trouve 67 groupes de vrais
+     * doublons croises allemands, mais tous entre word_list_commencant/word_list_terminant
+     * multi-lettres (famille geree par Prefix/SuffixExtensionLinksBuilder, pas par ce builder-ci)
+     * -- l'absence de doublon confirme ici est donc partielle (aucune ligne word_list_combined a
+     * comparer pour l'instant), a reverifier des que cette famille sera peuplee au registre. Ce
+     * champ ne bloque QUE l'affichage du lien "explorer plus loin" sur une page deja indexee,
+     * jamais une decision d'indexation (calculee independamment par storage/seo_de.sqlite).
      *
-     * Clé au format exact du `list_key` 'start_end' ("{début}:{fin}", D-024), comparée directement
-     * à la clé reconstruite ci-dessous dans build(). Distinct des 52 doublons déjà exclus par
-     * App\Search\LengthLinksBuilder::DUPLICATE_START_END_KEYS (D-025/I-1, sens inverse : une page
-     * AVEC longueur dupliquant celle-ci -- la variante sans longueur y reste TOUJOURS gagnante,
-     * jamais concernée par une exclusion) : ici, c'est cette page SANS longueur elle-même qui perd
-     * face à une TROISIÈME famille (commençant/terminant multi-lettres, un seul mot suffit à
-     * rendre "commençant/{X}/terminant/{Y}" et "terminant/{XY...}" identiques).
-     *
-     * Règle de départage : App\Search\DuplicatePageResolver::resolveDuplicateWinner() -- une page
-     * "commençant/{X}/terminant/{Y}" a TOUJOURS 2 composants. Perd systématiquement ici face à
-     * l'adversaire à 1 seul composant de chaque groupe (commençant ou terminant multi-lettres, ex.
-     * F:Q perd face à /mots/terminant/faq -- FAQ est le seul mot de la paire F:Q). Recalculé
-     * indépendamment par échantillonnage direct contre `terms` (voir le rapport AFTER de cette
-     * tâche) : 0 divergence.
-     *
-     * Liste figée : valable pour l'état actuel de storage/dictionary_fr.sqlite (838 180 termes,
-     * inchangé depuis D-022). Une reconstruction future de la base devra revalider cette liste.
+     * Historique francais (pour memoire, ne s'applique plus a cette base) : doublons de contenu
+     * CROISÉS avec une famille EXTÉRIEURE à la variante commençant+terminant SANS longueur
+     * (D-041) -- une page "commençant/{X}/terminant/{Y}" perdait face à un adversaire à 1 seul
+     * composant (commençant/terminant multi-lettres, ex. F:Q perdait face à /mots/terminant/faq).
      *
      * @var list<string>
      */
-    public const EXTERNAL_DUPLICATE_KEYS = [
-        'B:J', 'C:J', 'D:Q', 'F:J', 'F:Q', 'G:W', 'I:W', 'M:J',
-        'M:V', 'N:W', 'O:J', 'O:Q', 'O:W', 'P:V', 'Q:C', 'Q:Q',
-        'R:Q', 'R:W', 'S:V', 'T:J', 'T:Q', 'U:B', 'U:V', 'V:Q',
-        'V:V', 'W:L', 'X:O', 'X:U', 'Y:P', 'Y:Q', 'Y:V', 'Z:J',
-        'Z:Q',
-    ];
+    public const EXTERNAL_DUPLICATE_KEYS = [];
 
     public function __construct(
         private readonly Connection $connection,

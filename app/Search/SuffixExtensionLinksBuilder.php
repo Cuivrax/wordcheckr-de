@@ -60,7 +60,12 @@ final class SuffixExtensionLinksBuilder
      */
     public function build(string $suffix): SuffixExtensionLinks
     {
-        $length = strlen($suffix);
+        // CORRECTIF I2 (audit NO GO 2026-08-31) : strlen() (octets) -> mb_strlen() (caracteres)
+        // -- meme bug et meme correctif que App\Search\PrefixExtensionLinksBuilder::build() (I1),
+        // $suffix peut contenir Ä/Ö/Ü (2 octets en UTF-8, strlen('Ü') = 2), faisant calculer un
+        // $listType ('suffixN') decale d'un palier -- la section "Suffix Ü Fortsetzen" restait
+        // vide alors que list_counts contient reellement les donnees pour ce suffixe.
+        $length = mb_strlen($suffix, 'UTF-8');
 
         if ($length < self::MIN_INPUT_LENGTH || $length > self::MAX_INPUT_LENGTH) {
             return new SuffixExtensionLinks(links: [], queryCount: 0);

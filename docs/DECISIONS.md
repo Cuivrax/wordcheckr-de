@@ -5233,3 +5233,194 @@ Reste a faire : avec 3 lettres, position, combined_with_letter, commencant_with_
   DE ET ES.
 ```
 
+## D-DE-028 — Palier 3 Lettres De "avec" (`word_list_avec_three_letters`) Ouvert
+
+Date : 2026-08-31
+Statut : accepté
+
+Contexte : suite directe de D-DE-026/D-DE-027 (paliers 1 et 2 lettres). Généré et appliqué
+APRÈS D-DE-029 (troisième source is_german/kaikki_de) alors que numéroté avant — la
+génération initiale (avant D-DE-029) s'appuyait sur des comptes devenus obsolètes dès que le
+dictionnaire a grossi de 590 856 à 827 765 termes ; regénérée intégralement contre l'état
+post-migration avant application, jamais appliquée dans son état obsolète.
+
+Décision :
+
+```text
+scripts/apply_seo_batch.php : regle de forme ajoutee ('/woerter/{N}-buchstaben/
+  mit-buchstaben/{X}/{Y}/{Z}', trois lettres distinctes triees alphabetiquement).
+scripts/build_sitemaps.php : FAMILY_FRAGMENT_PREFIXES['word_list_avec_three_letters'] =
+  'avec-three' ajoute.
+scripts/seo-batches/avec-three-letters-2026-08-31.php (nouveau, 39 830 lignes, regenere
+  contre storage/dictionary_de.sqlite POST D-DE-029) : 38 580 index,follow + 1 250
+  noindex,follow (doublons de contenu exacts).
+```
+
+Doublons trouves (verification programmatique, QUATRE classes -- meme methode que ES-029) :
+
+```text
+39 830 candidats (list_counts 'length_with_triple', recalcule apres D-DE-029), verifies en
+  quatre passes : PARENT1 (triple == un des 3 avec-single parents), PARENT2 (triple == une
+  des 3 paires avec-two parentes), SIBLING (deux triples differents, meme longueur, meme
+  ensemble de mots -- 4995 groupes multi-candidats verifies par empreinte, 621 doublons),
+  EXTERNAL (doublon avec une autre famille deja ouverte). 1 250 doublons au total.
+```
+
+Vérifications faites :
+
+```text
+php -l : propre.
+TTFB (php -S, echantillon 3 pages, longueurs 3/7/15) : 12-40 ms, tous largement sous le
+  budget 250 ms.
+php tests/run.php = 24/25 (meme echec pre-existant WordListViewTest, D-DE-011, sans rapport).
+storage/seo_de.sqlite : 857 671 -> 897 501 lignes total, 857 527 -> 896 107 index,follow.
+Sitemaps regeneres : nouveau fragment avec-three-0001.xml (38 580 URL), sitemap-index.xml
+  passe a 31 fragments / 896 107 URL au total.
+```
+
+Raison :
+
+```text
+suite directe de D-DE-026/D-DE-027, meme demande produit -- ferme le palier 3 lettres de
+  l'entonnoir "avec", iso avec le depot espagnol cousin (ES-029).
+```
+
+Conséquences :
+
+```text
+scripts/apply_seo_batch.php, scripts/build_sitemaps.php,
+  scripts/seo-batches/avec-three-letters-2026-08-31.php (nouveau)
+L'entonnoir "avec" (1+2+3 lettres) est desormais COMPLET sur DE et ES, iso avec le depot
+  francais (D-034 a D-036 equivalent).
+Reste a faire : position, combined_with_letter, commencant_with_letter -- sur DE ET ES.
+```
+
+## D-DE-029 — Troisième Source Allemande (`is_german`, kaikki.org/dewiktionary) + `word_german_not_admitted` Indexée
+
+Date : 2026-08-31
+Statut : accepté
+
+Contexte : demande produit explicite de construire l'équivalent allemand de is_french (FR) /
+is_spanish (ES) — un corpus de formes allemandes réelles, indépendant des deux lexiques
+Scrabble (enz/hippler), pour peupler le troisième statut du modèle (« forme réelle non
+admise ») resté vide depuis D-DE-006 faute de source retenue.
+
+Décision :
+
+```text
+Source retenue : kaikki.org/dewiktionary (extraction du Wiktionnaire ALLEMAND natif,
+  de.wiktionary.org -- pas l'édition anglaise "kaikki.org/dictionary/German/", qui glose en
+  anglais), même méthodologie déjà appliquée deux fois sur ce projet (scripts/
+  download_kaikki_french.py, download_kaikki_spanish.py). URL vérifiée en direct :
+  https://kaikki.org/dewiktionary/Deutsch/kaikki.org-dictionary-Deutsch.jsonl.gz (200, 304 Mo,
+  sha256 885b5ac45c7608508bdee49fe1cbcb8ece59fd559cbdb96b567eed0178db9b85).
+schema.sql : colonne is_german ajoutée (CHECK IN (0,1), DEFAULT 0), is_admitted DEFAULT
+  1 -> 0 (cohérence sémantique FR/ES, le DEFAULT n'est jamais utilisé en pratique).
+  is_admitted reste dérivée UNIQUEMENT de is_enz/is_hippler, JAMAIS de is_german -- une ligne
+  is_german=1 seule reste is_admitted=0 (troisième statut, CLAUDE.md).
+scripts/import_de.py : nouvelle fonction load_kaikki_de() (patron load_kaikki_es()),
+  KAIKKI_POS_EXCLUDED étendu (name/phrase/character/symbol/unknown/suffix/prefix/infix +
+  abbrev -- catégorie propre à kaikki_de, mesurée : "HI"/"UTC"/"PKW"/"WHO"/"lol", pas des mots
+  réels). rejection_rule() étendu pour filtrer aussi la forme BRUTE (espace/trait d'union/
+  apostrophe/chiffre) -- enz/hippler restent déjà propres (0 déclenchement), le filtre sert
+  réellement pour kaikki_de (locutions, formes composées).
+Ordre de fusion : enz/hippler (inchangé, D-DE-006) PUIS kaikki_de -- une forme kaikki_de qui
+  crée une ligne absente d'enz/hippler devient is_admitted=0 par construction.
+app/Seo/Family.php : nouvelle constante WORD_GERMAN_NOT_ADMITTED (équivalent direct de
+  WORD_FRENCH_NOT_ADMITTED/WORD_SPANISH_NOT_ADMITTED), MAX_BATCH_SIZE_GERMAN_NOT_ADMITTED =
+  300 000 (marge au-dessus du volume réel 236 909, même ratio que ES-024).
+nouveau scripts/apply_word_german_not_admitted_rollout.php (patron
+  apply_word_spanish_not_admitted_rollout.php ES) : lot UNIQUE, assertions R1/R3/R4/R5/R6/R7
+  mécaniques, plafond vérifié explicitement.
+```
+
+Résultat de la reconstruction (`python scripts/import_de.py`, --dry-run vérifié avant
+application réelle) :
+
+```text
+kaikki_de : 1 005 656 lignes sources, 965 467 candidats après filtre pos (40 189 exclus),
+  681 596 formes normalisées distinctes retenues, 241 613 rejets (dont 139 949 > 15 lettres,
+  90 350 espace, 10 331 trait d'union -- Wiktionnaire contient de nombreuses locutions/formes
+  composées, filtrées comme prévu)
+236 909 lignes NOUVELLES (absentes d'enz/hippler) -> is_german=1, is_admitted=0
+444 687 lignes déjà présentes (enz/hippler) confirmées aussi is_german=1 (recoupement réel,
+  pas suspect : un mot Scrabble admis est presque toujours aussi un mot réel)
+146 169 lignes admises mais absentes de kaikki_de (is_german=0) -- attendu, kaikki_de ne
+  couvre pas 100% du lexique Scrabble (même constat que kaikki_es côté espagnol)
+terms_total : 590 856 -> 827 765 (+236 909)
+admitted_total : 590 856 -> 590 856 INCHANGÉ (is_admitted ne dépend jamais de is_german)
+integrity_check : ok, quick_check : ok
+```
+
+Rollout SEO (`word_german_not_admitted`) :
+
+```text
+--dry-run préalable : 236 909 lignes validées (assertions R1-R7), 0 rejet.
+Application réelle : 236 909 lignes 'index,follow', batch_id='word_german_not_admitted-
+  full-2026-08-31'.
+Maillage interne : App\Search\TermLookup::neighbours() (navigation mot précédent/suivant)
+  parcourt déjà la chaîne alphabétique complète, admis ET non admis confondus -- même
+  mécanisme que D-017 (FR) / ES-024 (ES), vérifié dans le code, pas supposé.
+Sitemaps régénérés : 6 nouveaux fragments invalid-0001..invalid-0006.xml, sitemap-index.xml
+  passe à 30 fragments / 857 527 URL au total.
+```
+
+**Effet de bord découvert et corrigé** : agrandir `terms` de 590 856 à 827 765 lignes a rendu
+obsolètes (sous-évalués) les `result_count` déjà stockés pour toutes les familles
+combinatoires déjà ouvertes (word_list_length, word_list_commencant, word_list_terminant,
+word_list_avec_single_letter, word_list_avec_two_letters) — ces comptes ne sont JAMAIS
+filtrés par is_admitted (même convention que list_counts/WordListSolver par défaut), donc
+chaque page dont le contenu recoupe les 236 909 nouveaux mots voit son total réel augmenter.
+`list_counts` (scripts/build_explore_hub_counts_de.php) reconstruite (132 428 lignes, 19/19
+list_type) ; `result_count` recalculé et corrigé pour toutes les familles concernées (voir
+rapport de tâche pour le détail chiffré par famille) — recalcul EFFICACE via des requêtes par
+PLAGE sur la colonne `reversed` (indexée, `App\Search\WordListSolver::rangeBounds()`) pour
+les suffixes, jamais `LIKE '%suffixe'` (scan complet, une première tentative naïve a mis un
+temps déraisonnable sur les 19 733 lignes `word_list_terminant`).
+
+**Tests cassés par la reconstruction, corrigés** : `tests/Search/TermLookupTest.php` (voisins
+alphabétiques de SCHÖN changés, dernier mot de la base ÜPPIGSTES -> ÜTTFELDS, compte total
+590 856 -> 827 765, nouvelle classe kaikkiOnly ajoutée à la vérification exhaustive de
+provenance) ; `tests/Search/WordListSolverTest.php` (l'hypothèse "source unique, statut/
+gueltig égale toujours le total de la longueur" ne tient plus, statut/nicht-gueltig
+recalculé indépendamment plutôt que supposé à 0) ; commentaires obsolètes corrigés dans
+`app/Search/TermPage.php` et `app/View/word.php` (STATUS_FRENCH_NOT_ADMITTED est désormais
+réellement produit, plus une branche morte).
+
+Vérifications faites :
+
+```text
+php -l sur tous les fichiers touchés : propre.
+Déterminisme : pipeline entièrement construit à partir de fichiers sources statiques
+  (enz/hippler inchangés, kaikki_de téléchargé une fois et vérifié par sha256), tri
+  Python déterministe (sorted(terms.items())) -- même garantie structurelle que les
+  reconstructions précédentes.
+php tests/run.php = 24/25 (même échec pré-existant WordListViewTest, D-DE-011, sans rapport)
+  -- retour à la ligne de base après correction des 6 échecs introduits par la
+  reconstruction.
+Vérifié en direct (php -S) : sitemaps/invalid-0001.xml -> 200, 40 000 <loc>.
+```
+
+Raison :
+
+```text
+demande produit explicite (2026-08-31) -- même raisonnement que D-017 (FR) / ES-024 (ES) : le
+  site répond à deux questions symétriques, un visiteur ne sait jamais laquelle s'applique
+  avant de chercher sur Google. Le dépôt allemand était le seul des trois sans cette
+  symétrie, faute de source jusqu'ici.
+```
+
+Conséquences :
+
+```text
+schema.sql, scripts/import_de.py, app/Seo/Family.php, tests/Seo/FamilyTest.php,
+  scripts/build_sitemaps.php, scripts/apply_word_german_not_admitted_rollout.php (nouveau),
+  tests/Search/TermLookupTest.php, tests/Search/WordListSolverTest.php,
+  app/Search/TermPage.php (commentaire), app/View/word.php (commentaire)
+storage/dictionary_de.sqlite : 590 856 -> 827 765 termes (236 909 nouveaux, non admis)
+storage/seo_de.sqlite : 620 762 -> 857 671 lignes total, 620 618 -> 857 527 index,follow
+Les DEUX familles principales de fiches mot (word_admitted, word_german_not_admitted) sont
+  désormais intégralement indexées -- iso avec les dépôts français (D-017) et espagnol
+  (ES-024).
+```
+

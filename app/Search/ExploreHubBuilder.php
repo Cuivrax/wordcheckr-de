@@ -8,16 +8,29 @@ use App\Database\Connection;
 
 /**
  * Construit App\Search\ExploreHub depuis la table list_counts, precalculee hors ligne par
- * scripts/build_explore_hub_counts.php.
+ * scripts/build_explore_hub_counts_de.php.
  *
  * Mesure qui a impose ce detour (pas de GROUP BY direct au runtime) : un GROUP BY sur
  * substr(normalized,1,1) / substr(reversed,1,1) n'a aucun index disponible sur l'expression
- * calculee -- 245 ms et 215 ms mesures sur les 838 180 lignes reelles (SCAN complet + TEMP
- * B-TREE), tres au-dessus du budget TTFB p95 < 250 ms pour une seule page (CLAUDE.md). La
- * table list_counts (66 lignes fixes) rend cette lecture triviale.
+ * calculee -- 245 ms et 215 ms mesures sur les 838 180 lignes reelles cote francais (SCAN
+ * complet + TEMP B-TREE), tres au-dessus du budget TTFB p95 < 250 ms pour une seule page
+ * (CLAUDE.md).
  *
- * Budget runtime : 1 requete SQLite (SELECT * FROM list_counts), aucun GROUP BY, aucun SCAN
- * de `terms` -- tres en-dessous du plafond de moins de 10 (CLAUDE.md).
+ * CORRECTIF C1 (audit NO GO, 2026-08-31) : le docblock ci-dessus affirmait a tort "la table
+ * list_counts (66 lignes fixes) rend cette lecture triviale" -- ce chiffre decrivait l'etat
+ * initial du site francais avant l'ouverture des paliers combinatoires (D-DE-018 a D-DE-027,
+ * schema.sql `list_type` desormais a 19/19 valeurs) : list_counts contient reellement
+ * 123 471 lignes cote allemand (19 list_type), dont seules 72 sont utiles a ce hub (14
+ * 'length' + 29 'start' + 29 'end'). L'ancien SELECT * FROM list_counts (sans WHERE, via
+ * PDO::query(), jamais prepare -- la SEULE occurrence de ->query() dans tout app/, tout le
+ * reste utilisant systematiquement prepare()) lisait et iterait les 123 471 lignes en PHP
+ * pour n'en retenir que 72 : mesure 93-109 ms (SCAN complet) contre <1 ms (SEARCH USING
+ * INDEX sqlite_autoindex_list_counts_1) avec le WHERE prepare ci-dessous -- voir le rapport
+ * AFTER de cette tache pour l'EXPLAIN QUERY PLAN et le detail du benchmark avant/apres.
+ *
+ * Budget runtime : 1 requete SQLite preparee, bornee par WHERE list_type IN (?,?,?) LIMIT,
+ * aucun GROUP BY, aucun SCAN de `terms` -- tres en-dessous du plafond de moins de 10
+ * (CLAUDE.md).
  */
 final class ExploreHubBuilder
 {
@@ -28,7 +41,16 @@ final class ExploreHubBuilder
 
     public function build(): ExploreHub
     {
-        $statement = $this->connection->pdo()->query('SELECT list_type, list_key, count FROM list_counts');
+        // CORRECTIF C1 : requete preparee, bornee a list_type IN ('length','start','end') --
+        // les 3 seuls list_type consommes par le switch ci-dessous -- avec un LIMIT explicite
+        // (100, marge au-dessus des 72 lignes utiles reelles : 14 longueurs + 29 lettres
+        // 'start' + 29 lettres 'end', alphabet allemand A-Z + Ä/Ö/Ü) plutot qu'un SELECT * FROM
+        // list_counts non prepare et non borne (123 471 lignes, 19 list_type -- voir le
+        // docblock de classe pour la mesure avant/apres).
+        $statement = $this->connection->pdo()->prepare(
+            'SELECT list_type, list_key, count FROM list_counts WHERE list_type IN (?, ?, ?) LIMIT 100'
+        );
+        $statement->execute(['length', 'start', 'end']);
 
         $byLength = [];
         $byStart = [];

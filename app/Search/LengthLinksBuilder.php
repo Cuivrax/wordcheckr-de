@@ -28,59 +28,41 @@ use App\Database\Connection;
 final class LengthLinksBuilder
 {
     /**
-     * Les 52 paires (longueur, debut, fin) a contenu strictement duplique identifiees par D-025
-     * (I-1) : pour chacune, TOUS les mots commencant par {debut} et terminant par {fin} (toutes
-     * longueurs confondues) partagent exactement la meme longueur {longueur} -- la variante SANS
-     * longueur (deja indexee comme gagnante canonique permanente, storage/seo_fr.sqlite,
-     * registry.notes) couvre alors 100% du contenu de la variante AVEC longueur correspondante.
-     * Ces 52 pages restent et resteront noindex,follow (R3, jamais deux pages index,follow pour
-     * un contenu identique) -- exclues ici pour ne jamais leur creer de lien depuis une page deja
-     * indexee (/mots/{N}-lettres, Family::WORD_LIST_LENGTH).
+     * NEUTRALISEE POUR L'ALLEMAND (correctif C2, audit NO GO 2026-08-31 -- meme discipline que
+     * D-DE-024/SuffixExtensionLinksBuilder::EXTERNAL_DUPLICATE_SUFFIXES, decision a journaliser
+     * par la session principale dans docs/DECISIONS.md) : cette liste des 52 paires
+     * (longueur, debut, fin) etait calculee sur storage/dictionary_fr.sqlite (838 180 termes
+     * francais, D-025/I-1 cote francais, voir historique ci-dessous) et copiee telle quelle lors
+     * du portage du depot (git archive) -- jamais revalidee pour l'allemand. Trouvee lue au
+     * runtime par l'audit independant : filtrait des cles allemandes par pure coincidence de
+     * format ("{N}:{X}:{Y}"), sans aucun rapport avec un vrai doublon allemand -- pire que ne
+     * rien filtrer du tout (2 141 cles francaises figees correspondaient a de vraies cles
+     * list_counts allemandes sur l'ensemble des builders touches par ce correctif, dont 179
+     * suppressions injustifiees sur la seule famille tranchee exactement ici). Videe plutot que
+     * conservee. Le calcul REEL d'un equivalent allemand (doublons longueur/commencant+terminant
+     * sur storage/dictionary_de.sqlite) reste a faire dans une passe separee si besoin -- ce
+     * champ ne bloque QUE l'affichage du lien "explorer plus loin" sur une page deja indexee,
+     * jamais une decision d'indexation (calculee independamment par storage/seo_de.sqlite).
      *
-     * Source : storage/seo_fr.sqlite, `SELECT route_path, notes FROM registry WHERE
-     * family = 'word_list_combined' AND notes LIKE '%ATTENTION doublon%'` -- exactement 52
-     * lignes, chacune citant sa longueur partagee en toutes lettres ("tous les mots de cette
-     * paire partagent la longueur N"). Verifie une seconde fois de facon independante (0
-     * divergence dans les deux sens) en comparant list_counts : une entree 'length_start_end'
-     * "{N}:{X}:{Y}" est un doublon si et seulement si son `count` est EGAL au `count` de l'entree
-     * 'start_end' "{X}:{Y}" correspondante (meme total, donc aucun mot de cette paire n'existe a
-     * une autre longueur) -- reproduit exactement les 52 memes triples, voir
-     * tests/Search/LengthLinksBuilderTest.php et reports/query-plans/combined-length-maillage.md.
-     *
-     * Liste figee : valable pour l'etat actuel de storage/dictionary_fr.sqlite (838 180 termes,
-     * inchange depuis D-022, integrity_check = ok). Une reconstruction future de la base devra
-     * revalider cette liste (le test de coherence ci-dessus le detecterait, comparaison
-     * list_counts, jamais un echantillon).
+     * Historique francais (pour memoire, ne s'applique plus a cette base) : les 52 paires a
+     * contenu strictement duplique identifiees par D-025 (I-1) -- pour chacune, TOUS les mots
+     * commencant par {debut} et terminant par {fin} (toutes longueurs confondues) partageaient
+     * exactement la meme longueur {longueur} cote francais.
      *
      * @var list<string>
      */
-    private const DUPLICATE_START_END_KEYS = [
-        '3:A:J', '5:B:J', '4:C:J', '7:D:Q', '3:D:V', '2:E:J', '4:F:J', '3:F:Q', '4:F:W', '3:G:W',
-        '9:I:B', '2:I:P', '2:I:V', '9:I:W', '3:J:B', '3:M:J', '6:M:V', '11:M:W', '7:N:P', '8:N:W',
-        '4:O:J', '9:O:Q', '6:O:W', '2:P:V', '3:Q:C', '9:Q:P', '2:Q:Q', '9:R:Q', '8:R:W', '5:S:V',
-        '5:T:J', '8:T:Q', '8:T:W', '3:U:B', '3:U:H', '5:U:K', '4:U:V', '9:V:B', '7:V:Q', '3:V:V',
-        '10:W:L', '14:X:C', '5:X:G', '5:X:O', '7:X:U', '12:X:X', '4:Y:P', '5:Y:Q', '4:Y:V', '8:Z:J',
-        '3:Z:P', '6:Z:Q',
-    ];
+    private const DUPLICATE_START_END_KEYS = [];
 
     /**
-     * Doublon de contenu CROISÉ avec une famille EXTÉRIEURE pour byWith (D-041, garde-fou
-     * structurel demandé par le constat C-4 du 4e audit consolidé, docs/DECISIONS.md D-040) --
-     * balayage GÉNÉRIQUE de tout le registre (scripts/check_combinatorial_duplicates.php, balayage
-     * du 2026-08-21 : 1 656 groupes, 2 089 pages en excès).
-     *
-     * "2-lettres/avec/w" (Family::WORD_LIST_AVEC_SINGLE_LETTER, 2 composants -- WU, seul mot de 2
-     * lettres avec W) fait partie d'un groupe de 3 pages au contenu identique : elle-même,
-     * "2-lettres/commencant/w/terminant/u" (Family::WORD_LIST_COMBINED avec longueur, 3
-     * composants) et "terminant/wu" (Family::WORD_LIST_TERMINANT sans longueur, 1 seul composant).
-     * Le gagnant du groupe est "terminant/wu" (le plus petit compte des trois) --
-     * App\Search\DuplicatePageResolver::resolveDuplicateWinner() retire donc "2:W" ICI, pas parce
-     * qu'elle perd face à la variante avec longueur (2 < 3, elle la battrait seule à seule), mais
-     * parce qu'une troisième page à 1 seul composant gagne le groupe entier.
+     * NEUTRALISEE POUR L'ALLEMAND (correctif C2, audit NO GO 2026-08-31 -- meme discipline que
+     * DUPLICATE_START_END_KEYS ci-dessus) : la seule entree ('2:W') etait un doublon structurel
+     * francais precis (WU/wu) sans aucune raison de correspondre a un mot allemand de 2 lettres.
+     * Videe plutot que conservee, meme garantie de securite (n'affecte que le maillage d'une
+     * page deja indexee, jamais storage/seo_de.sqlite).
      *
      * @var list<string>
      */
-    private const EXTERNAL_DUPLICATE_WITH_KEYS = ['2:W'];
+    private const EXTERNAL_DUPLICATE_WITH_KEYS = [];
 
     public function __construct(
         private readonly Connection $connection,

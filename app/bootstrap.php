@@ -48,7 +48,7 @@ if (PHP_SAPI !== 'cli') {
             http_response_code(500);
             header('Content-Type: text/plain; charset=utf-8');
         }
-        echo "Une erreur est survenue. Merci de reessayer.\n";
+        echo "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.\n";
     };
 
     set_exception_handler(static function (\Throwable $exception) use ($renderSafeError): void {

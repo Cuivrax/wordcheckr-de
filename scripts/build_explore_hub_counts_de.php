@@ -350,4 +350,17 @@ $pdo->commit();
 // operation.
 $pdo->exec('ANALYZE');
 
+// CORRECTIF I6 (audit NO GO 2026-08-31) : le DROP TABLE + CREATE TABLE + INSERT ci-dessus
+// laisse des pages libres (freelist) dans le fichier -- ce script tourne apres le VACUUM final
+// de scripts/import_de.py (import_de.py:208-210), qui ne voit donc jamais l'espace liberé par
+// une reconstruction ulterieure de list_counts. Mesure avant ce correctif : 1 898 pages libres
+// (freelist_count), 4,6% des 40 863 pages totales (page_size=4096), ~7,4 Mo recuperables sur
+// 159,6 Mo -- voir le rapport AFTER de cette tache pour le avant/apres exact. VACUUM ne peut pas
+// s'executer dans une transaction explicite (deja fermee par commit() ci-dessus) ; execute apres
+// ANALYZE plutot qu'avant : VACUUM recopie les stats sqlite_stat1 telles quelles, aucune
+// modification de table/index n'a lieu entre les deux (D-021 reste respecte -- ANALYZE suit
+// toujours la modification reelle de list_counts, VACUUM est un simple compactage physique du
+// fichier, jamais un changement de contenu).
+$pdo->exec('VACUUM');
+
 printf("list_counts : %d lignes inserees (19/19 list_type)\n", $total);

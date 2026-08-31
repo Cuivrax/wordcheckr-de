@@ -17,11 +17,11 @@ use Tests\Support\Assert;
  * attendue DIRECTEMENT depuis la base reelle (COUNT() SQL independant du solveur, pas une
  * valeur figee) -- elles restent donc valides sans changement pour n'importe quelle
  * langue. Ce qui a du changer : is_ods8/is_ods9 -> is_admitted (schema.sql, un seul
- * lexique), et les MOTS/LETTRES choisis comme cas particuliers illustratifs (frequences
- * differentes en allemand -- ex. le prefixe le plus frequent est A, pas R). "status/nicht-
- * gueltig" renvoie desormais toujours 0 resultat (aucune source "reel mais non admis"
- * allemande cette passe, voir data/raw/PROVENANCE.md) -- verifie explicitement comme un
- * comportement attendu, pas une regression.
+ * lexique admis), et les MOTS/LETTRES choisis comme cas particuliers illustratifs
+ * (frequences differentes en allemand -- ex. le prefixe le plus frequent est A, pas R).
+ * D-DE-029 (troisieme source is_german/kaikki_de) : "status/nicht-gueltig" renvoie
+ * desormais un total REEL non nul (236 909 formes allemandes reelles non admises au total)
+ * -- recalcule independamment ci-dessous, jamais suppose a 0.
  */
 return function (): void {
     $dbPath = __DIR__ . '/../../storage/dictionary_de.sqlite';
@@ -349,18 +349,18 @@ return function (): void {
     // --- WordListFiltersTest.php -- pas reteste ici pour eviter la duplication. ---
 
     // --- Statut, regime EXACT (longueur seule) : is_admitted precalcule, verifie par force
-    // --- brute. ADAPTATION ALLEMANDE : toute ligne est is_admitted = 1 cette passe (source
-    // --- unique) -- "status/gueltig" doit donc egaler le total de la longueur, et
-    // --- "status/nicht-gueltig" doit toujours renvoyer 0 (comportement attendu, pas une
-    // --- regression -- voir data/raw/PROVENANCE.md). ---
+    // --- brute. D-DE-029 (troisieme source is_german/kaikki_de) : "status/nicht-gueltig"
+    // --- renvoie desormais un total REEL non nul (236 909 formes allemandes reelles non
+    // --- admises au total, is_german=1 AND is_admitted=0) -- l'ancienne hypothese "source
+    // --- unique, statut/gueltig egale toujours le total de la longueur" ne tient plus,
+    // --- recalculee independamment ci-dessous comme sur les depots francais/espagnol
+    // --- cousins, jamais supposee. ---
     $admittedOnly = $solver->solve('9-buchstaben/status/gueltig');
     Assert::notNull($admittedOnly);
     Assert::true($admittedOnly->exact);
     Assert::same(2, $admittedOnly->queryCount, 'regime EXACT : is_admitted est un predicat de plus dans la meme clause WHERE, toujours 2 requetes');
     $expectedAdmitted9 = (int) $pdo->query('SELECT COUNT(*) c FROM terms WHERE length = 9 AND is_admitted = 1')->fetch()['c'];
     Assert::same($expectedAdmitted9, $admittedOnly->total);
-    $expectedLength9Total = (int) $pdo->query('SELECT COUNT(*) c FROM terms WHERE length = 9')->fetch()['c'];
-    Assert::same($expectedLength9Total, $expectedAdmitted9, 'ADAPTATION ALLEMANDE : source unique, statut/gueltig egale toujours le total de la longueur');
     foreach ($admittedOnly->items as $item) {
         Assert::same(9, $item['length']);
         Assert::same('admitted', $item['status']);
@@ -368,8 +368,16 @@ return function (): void {
 
     $notAdmittedOnly = $solver->solve('9-buchstaben/status/nicht-gueltig');
     Assert::notNull($notAdmittedOnly);
-    Assert::same(0, $notAdmittedOnly->total, 'ADAPTATION ALLEMANDE : aucune forme "reelle mais non admise" cette passe, statut/nicht-gueltig renvoie toujours 0 (comportement attendu)');
-    Assert::same([], $notAdmittedOnly->items);
+    $expectedNotAdmitted9 = (int) $pdo->query('SELECT COUNT(*) c FROM terms WHERE length = 9 AND is_admitted = 0')->fetch()['c'];
+    Assert::true($expectedNotAdmitted9 > 0, 'D-DE-029 : au moins une forme allemande reelle non admise attendue a la longueur 9');
+    Assert::same($expectedNotAdmitted9, $notAdmittedOnly->total, 'D-DE-029 : statut/nicht-gueltig renvoie desormais les formes reelles kaikki_de non admises');
+    foreach ($notAdmittedOnly->items as $item) {
+        Assert::same(9, $item['length']);
+        Assert::same('french_not_admitted', $item['status'], 'nom de constante herite du depot francais (TermPage::STATUS_FRENCH_NOT_ADMITTED), jamais renomme -- identifiant interne uniquement, voir TermPage.php');
+    }
+
+    $expectedLength9Total = (int) $pdo->query('SELECT COUNT(*) c FROM terms WHERE length = 9')->fetch()['c'];
+    Assert::same($expectedAdmitted9 + $expectedNotAdmitted9, $expectedLength9Total, 'D-DE-029 : gueltig + nicht-gueltig doit couvrir tout le total de la longueur (aucun troisieme statut cache)');
 
     // --- Statut, regime BORNE (ancrage suffixe, verifie par force brute) : predicat
     // --- is_admitted ajoute au meme cout que les autres. ---

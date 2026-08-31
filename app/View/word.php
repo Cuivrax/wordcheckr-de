@@ -91,10 +91,9 @@ $statusMeta = match ($page->status) {
             $page->normalized,
         ),
         // Meme raccourci que le statut admis ci-dessus, meme raison (D-DE-013 point 4) --
-        // "Ist Kein Gültiges Scrabble-Wort" -> "Ist Nicht Gültig". Statut structurellement
-        // ferme (CLAUDE.md) mais jamais produit par les donnees allemandes actuelles
-        // (TermLookup::find(), aucune source "reel mais non admis") -- corrige quand meme
-        // pour coherence, pas une branche morte a laisser incoherente.
+        // "Ist Kein Gültiges Scrabble-Wort" -> "Ist Nicht Gültig". EST PRODUIT depuis
+        // D-DE-029 (troisieme source is_german/kaikki_de, 236 909 formes allemandes reelles
+        // non admises) -- ce n'etait plus une branche morte des l'ajout de cette source.
         'title' => sprintf('Nein, %s Ist Nicht Gültig', $page->normalized),
     ],
     default => [
